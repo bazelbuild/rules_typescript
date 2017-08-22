@@ -1,7 +1,7 @@
 {
     "name": "@bazel/typescript",
     "description": "Build TypeScript with Bazel",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "dependencies": {
         "@types/node": "7.0.18",
         "typescript": "2.3",
