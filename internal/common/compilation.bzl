@@ -166,7 +166,7 @@ def compile_ts(ctx,
 
   if has_sources and ctx.attr.runtime != "nodejs":
     # Note: setting this variable controls whether tsickle is run at all.
-    tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
+    tsickle_externs = [] #[ctx.new_file(ctx.label.name + ".externs.js")] # disable tsickle entirely for ABC demo
 
   transitive_dts = _collect_transitive_dts(ctx)
   input_declarations = transitive_dts.transitive_declarations + src_declarations
