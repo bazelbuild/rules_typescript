@@ -112,7 +112,7 @@ def create_tsconfig(ctx, files, srcs,
       "skipDefaultLibCheck": True,
 
       # Always produce commonjs modules (might get translated to goog.module).
-      "module": "commonjs",
+      "module": "commonjs" if devmode_manifest or ctx.attr.runtime == "nodejs" else "es2015", # closure requires es2015 modules for ABC demo
       "moduleResolution": "node",
 
       "outDir": "/".join([workspace_path, outdir_path]),

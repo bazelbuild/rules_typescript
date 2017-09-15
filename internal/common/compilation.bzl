@@ -32,6 +32,7 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
         allow_files = True,
         cfg = "data",
     ),
+    "prod_output": attr.bool(default = False), # prod_output needed to prevent ES6 build of tools for ABC demo
     # TODO(evanm): make this the default and remove the option.
     "runtime": attr.string(default="browser"),
     # Used to determine module mappings
@@ -166,7 +167,7 @@ def compile_ts(ctx,
 
   if has_sources and ctx.attr.runtime != "nodejs":
     # Note: setting this variable controls whether tsickle is run at all.
-    tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
+    tsickle_externs = [] #[ctx.new_file(ctx.label.name + ".externs.js")] # disable tsickle entirely for ABC demo
 
   transitive_dts = _collect_transitive_dts(ctx)
   input_declarations = transitive_dts.transitive_declarations + src_declarations
@@ -263,6 +264,9 @@ def compile_ts(ctx,
       if hasattr(dep, "typescript"):
         declarations += dep.typescript.declarations
   files += declarations
+  files += es5_sources
+  if ctx.attr.prod_output:
+    files += es6_sources
 
   # If this is a ts_declaration, add tsickle_externs to the outputs list to
   # force compilation of d.ts files.  (tsickle externs are produced by running a
@@ -273,6 +277,7 @@ def compile_ts(ctx,
   return {
       "files": files,
       "runfiles": ctx.runfiles(
+          files=files.to_list(), # force output off es6 closure build files for ABC demo
           # Note: don't include files=... here, or they will *always* be built
           # by any dependent rule, regardless of whether it needs them.
           # But these attributes are needed to pass along any input runfiles:
