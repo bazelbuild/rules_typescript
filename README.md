@@ -70,8 +70,8 @@ package(default_visibility=["//visibility:public"])
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 
 ts_library(
-    name = "my_code",
-    srcs = glob(["*.ts"]),
+    name = "my-library",
+    srcs = glob(["src/**/*.ts"]),
     deps = ["//path/to/other:library"],
     tsconfig = "//:tsconfig.json",
 )
@@ -79,7 +79,20 @@ ts_library(
 
 Then build it:
 
-`bazel build //path/to/package:target`
+`$ bazel build //path/to/package:target`
+
+> For instance, if you named your `ts_library` "`my-library`" and this `BUILD`
+> file is in `./packages/my-library`, you would run
+>
+> ```
+> $ bazel build packages/my-library:my-library
+> ```
+>
+> If you are already in the `my-library` directory, just omit the package path:
+>
+> ```
+> $ bazel build :my-library
+> ```
 
 The resulting `.d.ts` file paths will be printed. Additionally, the `.js`
 outputs from TypeScript will be written to disk, next to the `.d.ts` files <sup>1</sup>.
