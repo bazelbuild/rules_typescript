@@ -41,17 +41,19 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 node_repositories(package_json = ["//:package.json"])
 
 
-# Include @bazel/typescript in package.json#devDependencies
 local_repository(
     name = "build_bazel_rules_typescript",
     path = "node_modules/@bazel/typescript",
 )
 ```
 
-We recommend using the Yarn package manager, because it has a built-in command
-to verify the integrity of your `node_modules` directory.
-You can run the version Bazel has already installed:
+This workspace will pull Bazel's [`rules_nodejs`](https://github.com/bazelbuild/rules_nodejs/) from GitHub, but you'll need [`rules_typescript`](https://github.com/bazelbuild/rules_typescript/) and [`tsickle`](https://github.com/angular/tsickle/) installed in your `node_modules` folder.  `rules_nodejs` includes `yarn`.  You can use it to install these dependencies:
 
+```bash
+$ bazel run @yarn//:yarn -- add --dev @bazel/typescript tsickle
+```
+
+As your code evolves and your dependencies change, you'll want to update your local node modules.  You can run Bazel's copy of `yarn` with this command:
 ```sh
 $ bazel run @yarn//:yarn
 ```
