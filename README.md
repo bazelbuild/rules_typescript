@@ -17,11 +17,10 @@ package(default_visibility = ["//visibility:public"])
 exports_files(["tsconfig.json"])
 
 # NOTE: this will move to node_modules/BUILD in a later release
-filegroup(name = "node_modules", srcs = glob([
-    "node_modules/**/*.js",
-    "node_modules/**/*.d.ts",
-    "node_modules/**/*.json",
-]))
+filegroup(
+    name = "node_modules",
+    srcs = glob([node_modules/**"])
+)
 ```
 
 Next create a `WORKSPACE` file in your project root (or edit the existing one)
@@ -33,13 +32,12 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.0.2", # check for the latest tag when you install
+    tag = "0.1.8", # check for the latest tag when you install
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 
 node_repositories(package_json = ["//:package.json"])
-
 
 local_repository(
     name = "build_bazel_rules_typescript",
