@@ -1,2 +1,6 @@
 build --strategy=TypeScriptCompile=worker
 test --test_output=errors
+
+# Run the linter with
+# bazel build --config=lint
+build:lint --experimental_action_listener=@build_bazel_rules_typescript//tslint

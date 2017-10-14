@@ -14,4 +14,4 @@
 
 package(default_visibility = ["//visibility:public"])
 
-exports_files(["worker_protocol.proto"])
+exports_files(["extra_actions_base.proto", "worker_protocol.proto"])

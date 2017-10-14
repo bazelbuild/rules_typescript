@@ -10,6 +10,7 @@
         "typescript": "2.4.x"
     },
     "devDependencies": {
-        "clang-format": "1.0.49"
+        "clang-format": "1.0.49",
+        "tslint": "^5.7.0"
     }
 }
