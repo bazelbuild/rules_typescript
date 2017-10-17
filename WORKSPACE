@@ -17,7 +17,7 @@ workspace(name = "build_bazel_rules_typescript")
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs",
-    tag = "0.1.10",
+    commmit = "0a8c65b",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
