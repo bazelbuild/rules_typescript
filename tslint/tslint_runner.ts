@@ -4,18 +4,18 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {ILinterOptions, Linter, IOptions} from 'tslint';
+import {ILinterOptions, Linter} from 'tslint';
 import * as ts from 'typescript';
 import {parseTsconfig} from '@bazel/typescript';
 
 /* tslint:disable:no-require-imports */
 const protobufjs = require('protobufjs');
-const ByteBuffer = require('bytebuffer');
 
 export const extraActionPb = (function loadPb(): {decode: Function} {
   // This doesn't work due to a Bazel bug, see comments in build_defs.bzl
   // let protoPath =
   // 'external/bazel_tools/src/main/protobuf/extra_actions_base.proto';
+  // tslint:disable-next-line:prefer-const  we do re-assign this in google internal
   let protoPath = 'build_bazel_rules_typescript/internal/extra_actions_base.proto';
 
   // Use node module resolution so we can find the .proto file in any of the root dirs

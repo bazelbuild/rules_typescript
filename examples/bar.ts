@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// tslint:disable:no-unused-variable
 import {Greeter} from 'examples/foo';
 // Repro for #31, should automatically discover @types/node
 import * as fs from 'fs';

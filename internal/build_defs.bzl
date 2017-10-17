@@ -21,7 +21,7 @@ load(":executables.bzl", "get_tsc")
 load(":common/tsconfig.bzl", "create_tsconfig")
 load(":ts_config.bzl", "TsConfig")
 
-def _compile_action(ctx, inputs, outputs, config_file_path):
+def _compile_action(ctx, inputs, outputs, config_file_path, default_mnemonic = "ProdTSCompile"):
   externs_files = []
   non_externs_files = []
   for output in outputs:
@@ -48,7 +48,7 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
   # rather than the contents getting expanded.
   if ctx.attr.supports_workers:
     arguments = ["@@" + config_file_path]
-    mnemonic = "TypeScriptCompile"
+    mnemonic = default_mnemonic
   else:
     arguments = ["-p", config_file_path]
     mnemonic = "tsc"
@@ -67,7 +67,7 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
 
 
 def _devmode_compile_action(ctx, inputs, outputs, config_file_path):
-  _compile_action(ctx, inputs, outputs, config_file_path)
+  _compile_action(ctx, inputs, outputs, config_file_path, "TypeScriptCompile")
 
 def tsc_wrapped_tsconfig(ctx,
                          files,
