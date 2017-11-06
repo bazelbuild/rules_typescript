@@ -72,8 +72,8 @@ export interface BazelOptions {
   /** Write a performance trace to this path. Disabled when falsy. */
   perfTracePath?: string;
 
-  /** If true, enable the conformance check plugin in TSC. */
-  enableConformance: boolean;
+  /** A list of conformance rule names that should not run on this target. */
+  disabledConformanceRules: string[];
 
   /**
    * An additional prelude to insert after the `goog.module` call,
@@ -102,6 +102,12 @@ export interface BazelOptions {
    * List of regexes on file paths for which we suppress tsickle's warnings.
    */
   ignoreWarningPaths: string[];
+
+  /**
+   * Whether to add aliases to the .d.ts files to add the exports to the
+   * ಠ_ಠ.clutz namespace.
+   */
+  addDtsClutzAliases: true;
 }
 
 export interface ParsedTsConfig {
