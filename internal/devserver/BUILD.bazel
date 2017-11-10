@@ -1,0 +1,25 @@
+exports_files(["launcher.sh"])
+
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["devserver.go"],
+    deps = ["//internal/concatjs:go_default_library"],
+    importpath = "github.com/bazelbuild/rules_typescript/internal/devserver",
+    visibility = ["//visibility:private"],
+)
+
+go_binary(
+    name = "devserver",
+    importpath = "github.com/bazelbuild/rules_typescript/internal/devserver",
+    library = ":go_default_library",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["devserver_test.go"],
+    importpath = "github.com/bazelbuild/rules_typescript/internal/devserver",
+    library = ":go_default_library",
+)

@@ -1,3 +1,6 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+
 # Copyright 2017 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,3 +18,22 @@
 package(default_visibility = ["//visibility:public"])
 
 exports_files(["worker_protocol.proto"])
+
+proto_library(
+    name = "blaze_worker_proto",
+    srcs = ["worker_protocol.proto"],
+    visibility = ["//visibility:public"],
+)
+
+go_proto_library(
+    name = "blaze_worker_go_proto",
+    importpath = "github.com/bazelbuild/rules_typescript/internal",
+    proto = ":blaze_worker_proto",
+    visibility = ["//visibility:public"],
+)
+
+go_library(
+    name = "go_default_library",
+    importpath = "github.com/bazelbuild/rules_typescript/internal",
+    library = ":blaze_worker_go_proto",
+)

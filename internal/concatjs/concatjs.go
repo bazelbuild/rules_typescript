@@ -137,9 +137,10 @@ type cacheEntry struct {
 // It skips blank lines and javascript/closure/deps.js.
 // END_INTERNAL
 func manifestFiles(manifest string) ([]string, error) {
+	dir, err := os.Getwd()
 	f, err := os.Open(manifest)
 	if err != nil {
-		return nil, fmt.Errorf("could not read manifest %s: %s", manifest, err)
+		return nil, fmt.Errorf("could not read manifest %s in directory %s: %s", manifest, dir, err)
 	}
 	defer f.Close()
 	return manifestFilesFromReader(f)

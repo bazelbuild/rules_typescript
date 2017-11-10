@@ -1,0 +1,24 @@
+load("@build_bazel_rules_nodejs//internal:devmode_js_sources.bzl", "devmode_js_sources")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_devserver", "ts_library")
+
+ts_library(
+    name = "app",
+    srcs = ["app.ts"],
+)
+
+# Extract the development mode JS sources from the transitive closure of these
+# dependencies.
+devmode_js_sources(
+    name = "dev_sources",
+    deps = [":app"],
+)
+
+ts_devserver(
+    name = "devserver",
+    # Points to a rule that produces a Manifest as its default output
+    manifest = ":dev_sources",
+    # This is the path we'll request from the browser, see index.html
+    serving_path = "/bundle.js",
+    # The devserver can serve our static files too
+    static_files = ["index.html"],
+)
