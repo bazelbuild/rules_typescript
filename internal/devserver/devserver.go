@@ -181,7 +181,8 @@ func main() {
 	flag.Parse()
 
 	pkgList := strings.Split(*pkgs, ",")
-	http.Handle(*servingPath, concatjs.ServeConcatenatedJS(*manifest, *base, nil /* realFileSystem */))
+	manifestRoot := filepath.Join(*base, "..")
+	http.Handle(*servingPath, concatjs.ServeConcatenatedJS(*manifest, manifestRoot, nil /* realFileSystem */))
 	http.HandleFunc("/", createFileHandler(*servingPath, *manifest, pkgList, *base))
 
 	h, err := os.Hostname()

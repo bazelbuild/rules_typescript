@@ -31,7 +31,7 @@ def _ts_devserver(ctx):
 internal/devserver/devserver {0} \
   -base "$PWD" \
   -packages={1} \
-  -manifest=../{2}
+  -manifest={2}
 # NB: manifest needs to look up one dir, because runfiles path includes workspace
 # but the PWD also includes the workspace
 # FIXME: that seems wrong
