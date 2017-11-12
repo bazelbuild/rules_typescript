@@ -28,7 +28,7 @@ def _ts_devserver(ctx):
       is_executable = True,
       content = """#!/bin/sh
 # TODO: change to $(rootpath :devserver) after bazel#2475 lands
-internal/devserver/devserver {0} \
+external/build_bazel_rules_typescript/internal/devserver/devserver {0} \
   -base "$PWD" \
   -packages={1} \
   -manifest={2}
