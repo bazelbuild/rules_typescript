@@ -63,10 +63,10 @@ ts_devserver = rule(
     executable = True,
 )
 
-def ts_devserver_macro(manifest, data = [], **kwargs):
+def ts_devserver_macro(manifest, data = [], tags = [], **kwargs):
   ts_devserver(
       data = data + [manifest],
       manifest = "$(location %s)" % manifest,
-      tags = ["IBAZEL_MAGIC_TAG"],
+      tags = tags + ["IBAZEL_MAGIC_TAG"],
       **kwargs
   )
