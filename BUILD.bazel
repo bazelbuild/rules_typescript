@@ -33,7 +33,8 @@ filegroup(
     srcs = glob([
         "node_modules/**/*.js",
         "node_modules/**/*.d.ts",
-        "node_modules/**/*.json"
+        "node_modules/**/*.json",
+        "node_modules/karma/bin/karma",
     ]),
     visibility = ["//visibility:public"],
 )
