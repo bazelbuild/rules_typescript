@@ -22,17 +22,10 @@ def _ts_test_impl(ctx):
       "      '%s'," % expand_path_into_runfiles(ctx, f.short_path)
       for f in files
   ])
+
   # root-relative (runfiles) path to the directory containing karma.conf
-  config_dir = "/".join([p
-      for p in [
-          ctx.label.workspace_root,
-          ctx.label.package
-      ] + ctx.label.name.split("/")[:-1]
-      # Skip empty path segments (eg. workspace_root when in same repo)
-      if p])
-  config_segments = len(config_dir.split("/"))
-  if ctx.workspace_name == 'build_bazel_rules_typescript':
-    config_segments += 1 # WHY??
+  config_segments = len(conf.short_path.split("/"))
+
   ctx.actions.expand_template(
       output = conf,
       template =  ctx.file._conf_tmpl,
