@@ -19,16 +19,25 @@ def _ts_test_impl(ctx):
       files += d.files
 
   TMPL_files = "\n".join([
-      "'../%s'," % expand_path_into_runfiles(ctx, f.short_path)
+      "      '%s'," % expand_path_into_runfiles(ctx, f.short_path)
       for f in files
   ])
-
-  basePath = "/".join([".."] * len(ctx.label.package.split("/")))
+  # root-relative (runfiles) path to the directory containing karma.conf
+  config_dir = "/".join([p
+      for p in [
+          ctx.label.workspace_root,
+          ctx.label.package
+      ] + ctx.label.name.split("/")[:-1]
+      # Skip empty path segments (eg. workspace_root when in same repo)
+      if p])
+  config_segments = len(config_dir.split("/"))
+  if ctx.workspace_name == 'build_bazel_rules_typescript':
+    config_segments += 1 # WHY??
   ctx.actions.expand_template(
       output = conf,
       template =  ctx.file._conf_tmpl,
       substitutions = {
-          "TMPL_basePath": basePath,
+          "TMPL_runfiles_path": "/".join([".."] * config_segments),
           "TMPL_files": TMPL_files,
           "TMPL_workspace_name": ctx.workspace_name,
       })
@@ -96,5 +105,5 @@ def ts_test_macro(tags = [], data = [], **kwargs):
       tags = tags + ["iblaze_notify_changes"],
       # Our binary dependency must be in data[] for collect_data to pick it up
       # FIXME: maybe we can just ask the attr._karma for its runfiles attr
-      data = data + ["//internal/karma:karma_bin"],
+      data = data + ["@build_bazel_rules_typescript//internal/karma:karma_bin"],
       **kwargs)

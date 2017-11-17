@@ -10,16 +10,13 @@ module.exports = function(config) {
 
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: 'TMPL_basePath',
+    basePath: 'TMPL_runfiles_path',
     files: [
-      '../build_bazel_rules_typescript/internal/karma/test-main.js',
-      TMPL_files
+      'build_bazel_rules_typescript/internal/karma/test-main.js',
+TMPL_files
     ],
     plugins: ['karma-*', 'karma-concat-js'],
     frameworks: ['jasmine', 'concat_js', 'requirejs'],
-    client: {
-      args: ["TMPL_workspace_name"]
-    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress'

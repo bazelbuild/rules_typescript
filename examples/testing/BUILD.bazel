@@ -15,7 +15,6 @@ ts_library(
 ts_test(
     name = "testing",
     deps = [
-      ":lib",
       ":tests",
     ],
 )
