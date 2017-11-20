@@ -30,7 +30,7 @@ import (
 // 	     concatjs.ServeConcatenatedJS("my/app/web_srcs.MF", ".", nil))
 //
 // Relative paths in the manifest are resolved relative to the path given as root.
-func ServeConcatenatedJS(manifestPath, root string, fs FileSystem) http.Handler {
+func ServeConcatenatedJS(manifestPath, root string, livereloadScript string, fs FileSystem) http.Handler {
 	var lock sync.Mutex // Guards cache.
 	cache := NewFileCache(root, fs)
 
@@ -61,6 +61,9 @@ func ServeConcatenatedJS(manifestPath, root string, fs FileSystem) http.Handler 
 		// Protect the cache with a lock because it's possible for multiple requests
 		// to be handled in parallel.
 		lock.Lock()
+		if livereloadScript != "" {
+			fmt.Fprint(writer, livereloadScript)
+		}
 		cache.WriteFiles(writer, files)
 		lock.Unlock()
 	})
