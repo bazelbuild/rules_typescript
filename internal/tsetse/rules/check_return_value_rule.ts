@@ -9,10 +9,11 @@ import * as tsutils from 'tsutils';
 import * as ts from 'typescript';
 
 import {Checker} from '../checker';
+import {ErrorCode} from '../error_code';
 import {AbstractRule} from '../rule';
 
-const FAILURE_STRING = 'return value is unused.'
-+ '\n\tSee http://tsetse.info/check-return-value';
+const FAILURE_STRING = 'return value is unused.' +
+    '\n\tSee http://tsetse.info/check-return-value';
 
 // A list of well-known functions that the return value must be used. If unused
 // then the function call is either a no-op (e.g. 'foo.trim()' foo is unchanged)
@@ -43,7 +44,7 @@ const METHODS_TO_CHECK = new Set<string>([
 
 export class Rule extends AbstractRule {
   readonly ruleName = 'check-return-value';
-  readonly code = 21222;
+  readonly code = ErrorCode.CHECK_RETURN_VALUE;
 
   // registers checkCallExpression() function on ts.CallExpression node.
   // TypeScript conformance will traverse the AST of each source file and run
