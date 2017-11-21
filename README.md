@@ -54,12 +54,8 @@ You can run the version Bazel has already installed:
 
 ```sh
 $ bazel run @yarn//:yarn
-```
-
-Using yarn, install this package and `tsickle`:
-
-```sh
-bazel run @yarn//:yarn add tsickle @bazel/typescript
+# Install this package as a dev dependency
+$ bazel run @yarn//:yarn -- add -D @bazel/typescript
 ```
 
 ## Usage
