@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@types/commander": "^2.11.0"
+  },
+  "dependencies": {
+    "commander": "^2.11.0"
+  }
+}

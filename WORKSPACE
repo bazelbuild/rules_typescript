@@ -29,7 +29,12 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
 #   @build_bazel_rules_typescript_node//:bin/npm
 # - The yarn package manager:
 #   @yarn//:yarn
-node_repositories(package_json = ["//:package.json"])
+node_repositories(
+    package_json = [
+        "//:package.json",
+        "//examples/program:package.json"
+    ]
+)
 
 http_archive(
     name = "io_bazel_rules_go",
