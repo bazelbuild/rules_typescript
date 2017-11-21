@@ -1,19 +1,21 @@
 /**
- * @fileoverview Bans `== NaN` in TypeScript code, since it is always false for
- * any value.
+ * @fileoverview Bans `== NaN` and `=== NaN` in TypeScript code, since it is
+ * always false for any value.
  */
 
 import * as tsutils from 'tsutils';
 import * as ts from 'typescript';
 
 import {Checker} from '../checker';
+import {ErrorCode} from '../error_code';
 import {AbstractRule} from '../rule';
 
-const FAILURE_STRING = 'x == NaN always returns false; use isNaN(x) instead';
+const FAILURE_STRING =
+    'x == NaN and x === NaN are always false; use isNaN(x) instead';
 
 export class Rule extends AbstractRule {
   readonly ruleName = 'equals-nan';
-  readonly code = 21222;
+  readonly code = ErrorCode.EQUALS_NAN;
 
   register(checker: Checker) {
     checker.on(
