@@ -17,6 +17,7 @@
 
 load(":common/module_mappings.bzl", "module_mappings_aspect")
 load(":common/json_marshal.bzl", "json_marshal")
+load("@io_bazel_rules_closure//closure/private:defs.bzl", "collect_js")
 
 BASE_ATTRIBUTES = dict()
 
@@ -33,7 +34,7 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
         cfg = "data",
     ),
     # TODO(evanm): make this the default and remove the option.
-    "runtime": attr.string(default="browser"),
+    "runtime": attr.string(default = "browser"),
     # Used to determine module mappings
     "module_name": attr.string(),
     "module_root": attr.string(),
@@ -53,12 +54,11 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
     # "diagnostic:regexp", e.g. "TS1234:failed to quizzle the .* wobble".
     # Useful to test for expected compilation errors.
     "expected_diagnostics": attr.string_list(),
-
 })
 
 COMMON_OUTPUTS = {
     # Allow the tsconfig.json to be generated without running compile actions.
-    "tsconfig": "%{name}_tsconfig.json"
+    "tsconfig": "%{name}_tsconfig.json",
 }
 
 # TODO(plf): Enforce this at analysis time.
@@ -122,7 +122,6 @@ def _outputs(ctx, label):
     devmode_js = devmode_js_files,
     declarations = declaration_files,
   )
-
 
 def compile_ts(ctx,
                is_library,
@@ -292,6 +291,25 @@ def compile_ts(ctx,
   if not is_library:
     files += depset(tsickle_externs)
 
+  rerooted_es6_sources = []
+  es6_js_modules_roots = []
+
+  for source in es6_sources:
+    root = source.dirname
+    es6_js_modules_roots.append(root)
+
+    file_path = "%s/%s" % (root, source.basename.replace(".closure", ""))
+    rooted_file = ctx.actions.declare_file(file_path)
+
+    ctx.actions.expand_template(
+        output = rooted_file,
+        template = source,
+        substitutions = {}
+    )
+    rerooted_es6_sources.append(rooted_file)
+
+  js = collect_js(ctx, ctx.attr.deps)
+
   return {
       "files": files,
       "runfiles": ctx.runfiles(
@@ -300,6 +318,23 @@ def compile_ts(ctx,
           # But these attributes are needed to pass along any input runfiles:
           collect_default=True,
           collect_data=True,
+      ),
+      # All of the subproviders below are considered optional and MUST be
+      # accessed using getattr(x, y, default). See collect_js() in
+      # @io_bazel_rules_closure//closure/private/defs.bzl.
+      "closure_js_library": struct(
+          # NestedSet<File> of all JavaScript source File artifacts in the
+          # transitive closure. These files MUST be JavaScript.
+          srcs= js.srcs + rerooted_es6_sources,
+          # NestedSet<String> of all execroot path prefixes in the transitive
+          # closure. For very simple projects, it will be empty. It is useful
+          # for getting rid of Bazel generated directories, workspace names,
+          # etc. out of module paths.  It contains the cartesian product of
+          # generated roots, external repository roots, and includes
+          # prefixes. This is passed to JSCompiler via the --js_module_root
+          # flag. See find_js_module_roots() in
+          # @io_bazel_rules_closure//closure/private/defs.bzl
+          js_module_roots= js.js_module_roots + es6_js_modules_roots,
       ),
       # TODO(martinprobst): Prune transitive deps, only re-export what's needed.
       "typescript": {
