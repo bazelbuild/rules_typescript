@@ -35,6 +35,6 @@ closure_js_binary(
     name = "closure_compiled",
     deps = [":parent"],
     defs = [
-        "--jscomp_off=missingSourcesWarnings",
+        "--jscomp_off=reportUnknownTypes",
     ],
 )
