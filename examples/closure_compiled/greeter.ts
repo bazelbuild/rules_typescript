@@ -1,5 +1,5 @@
 export class Greeter {
-  private greeting = 'hello, world';
+  private greeting = 'hello, world' + someDeclaredFunction(someDeclaredString);
   greet() {
     return this.greeting;
   }

@@ -17,23 +17,24 @@ package(default_visibility = ["//visibility:public"])
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
 load("//:defs.bzl", "ts_library")
 
+ts_library(
+    name = "child",
+    srcs = [
+        "greeter.ts",
+        "declarations.d.ts",
+    ],
+)
 
 ts_library(
-    name = "es6_output_lib",
-    srcs = [
-        "main.ts",
-        "greeter.ts",
-    ],
+    name = "parent",
+    srcs = ["main.ts"],
+    deps = [":child"],
 )
 
 closure_js_binary(
     name = "closure_compiled",
-    deps = [":es6_output_lib"],
+    deps = [":parent"],
     defs = [
-        "--module_resolution=NODE",
-        "--dependency_mode=LOOSE",
-        "--js_module_root=bazel-out/k8-fastbuild/bin/examples/closure_compiled/examples/closure_compiled",
-        "--jscomp_off=reportUnknownTypes",
         "--jscomp_off=missingSourcesWarnings",
     ],
 )
