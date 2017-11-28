@@ -28,7 +28,7 @@ export const PLUGIN: pluginApi.Plugin = {
     registerRules(checker, disabledTsetseRules);
     const proxy = pluginApi.createProxy(program);
     proxy.getSemanticDiagnostics = (sourceFile: ts.SourceFile) => {
-      const result = program.getSemanticDiagnostics(sourceFile);
+      const result = [...program.getSemanticDiagnostics(sourceFile)];
       perfTrace.wrap('checkConformance', () => {
         result.push(...checker.execute(sourceFile)
                         .map(failure => failure.toDiagnostic()));
