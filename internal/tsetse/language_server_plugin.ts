@@ -1,7 +1,7 @@
+import * as fs from 'fs';
 import * as tsForTypes from 'typescript';
-import * as tsServerLibForTypes from 'typescript/lib/tsserverlibrary';
+import * as ts from 'typescript/lib/tsserverlibrary';
 
-import * as perfTrace from '../tsc_wrapped/perf_trace';
 import * as pluginApi from '../tsc_wrapped/plugin_api';
 
 import {Checker} from './checker';
@@ -15,22 +15,25 @@ function init() {
     create(info: ts.server.PluginCreateInfo) {
       const oldService = info.languageService;
       const checker = new Checker(oldService.getProgram());
-      // Add disabledRules to tsconfig to disable specific rules
-      // "plugins": [
-      //   {"name": "...", "disabledRules": ["equals-nan"]}
-      // ]
-      //
-      registerRules(checker, info.config.disabledRules || []);
+      const {config, error} = ts.readConfigFile(
+          info.project.getProjectRootPath() + '/tsconfig.json',
+          fn => info.languageServiceHost.readFile!(fn));
+      if (error) {
+        // This will get lost in a log somewhere. Maybe we can fail more
+        // gracefully?
+        throw new Error(`Could not parse config file: ${error.messageText}`);
+      }
+      const disabledRules = config['bazelOpts'] ?
+          config['bazelOpts']['disabledTsetseRules'] || [] :
+          [];
+      registerRules(checker, disabledRules);
 
       const proxy = pluginApi.createProxy(oldService);
       proxy.getSemanticDiagnostics = (fileName: string) => {
         const result = oldService.getSemanticDiagnostics(fileName);
-        perfTrace.wrap('checkConformance', () => {
-          result.push(
-              ...checker
-                  .execute(oldService.getProgram().getSourceFile(fileName))
-                  .map(failure => failure.toDiagnostic()));
-        });
+        result.push(
+            ...checker.execute(oldService.getProgram().getSourceFile(fileName))
+                .map(failure => failure.toDiagnostic()));
         return result;
       };
       return proxy;
