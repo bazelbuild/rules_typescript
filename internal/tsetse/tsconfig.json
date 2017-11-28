@@ -12,9 +12,9 @@
       "es2015.collection"
     ],
     "plugins": [
-      // Run `bazel build internal/tsetse:plugin` for this to work.
+      // Run `bazel build internal/tsetse:language_server_plugin` for this to work.
       {
-        "name": "../../bazel-bin/internal/tsetse/plugin.js"
+        "name": "../../bazel-bin/internal/tsetse/language_server_plugin.js"
       }
     ]
   }

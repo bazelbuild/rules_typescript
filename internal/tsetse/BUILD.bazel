@@ -36,9 +36,9 @@ ts_library(
 )
 
 ts_library(
-    name = "plugin",
+    name = "language_server_plugin",
     srcs = [
-        "plugin.ts",
+        "language_server_plugin.ts",
     ],
     compiler = "//internal/tsc_wrapped:tsc",
     supports_workers = False,
