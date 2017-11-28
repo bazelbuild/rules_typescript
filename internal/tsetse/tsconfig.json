@@ -10,6 +10,12 @@
       "es5",
       "es2015.core",
       "es2015.collection"
+    ],
+    "plugins": [
+      // Run `bazel build internal/tsetse:plugin` for this to work.
+      {
+        "name": "../../bazel-bin/internal/tsetse/plugin.js"
+      }
     ]
   }
 }
