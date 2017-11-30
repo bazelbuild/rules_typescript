@@ -8,7 +8,9 @@
     "dependencies": {
         "@types/node": "7.0.18",
         "@types/source-map": "^0.5.1",
+        "livereload": "0.6.x",
         "protobufjs": "5.0.0",
+        "requirejs": "2.3.x",
         "tsickle": "0.25.x",
         "typescript": "2.5.x",
         "tsutils": "2.12.1"
