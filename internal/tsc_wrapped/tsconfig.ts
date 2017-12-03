@@ -128,8 +128,7 @@ export interface ParsedTsConfig {
  * @param tsconfigFile path to tsconfig, relative to process.cwd() or absolute
  * @return configuration parsed from the file, or error diagnostics
  */
-export function parseTsconfig(
-    tsconfigFile: string, host: ts.ParseConfigHost = ts.sys):
+export function parseTsconfig(tsconfigFile: string, host: ts.ParseConfigHost = ts.sys):
     [ParsedTsConfig|null, ts.Diagnostic[]|null, {target: string}] {
   // TypeScript expects an absolute path for the tsconfig.json file
   tsconfigFile = path.resolve(tsconfigFile);
@@ -142,8 +141,28 @@ export function parseTsconfig(
 
   const bazelOpts: BazelOptions = config.bazelOptions;
   const target = bazelOpts.target;
-  const {options, errors, fileNames} = ts.parseJsonConfigFileContent(
-    config, host, path.dirname(tsconfigFile));
+  bazelOpts.allowedStrictDeps = bazelOpts.allowedStrictDeps || [];
+  bazelOpts.typeBlackListPaths = bazelOpts.typeBlackListPaths || [];
+  bazelOpts.compilationTargetSrc = bazelOpts.compilationTargetSrc || [];
+
+  // Allow Bazel users to control some of the bazel options.
+  // Since TypeScript's "extends" mechanism applies only to "compilerOptions"
+  // we have to repeat some of their logic to get the user's bazelOptions.
+  if (config.extends) {
+    let userConfigFile = path.resolve(path.dirname(tsconfigFile), config.extends);
+    if (!userConfigFile.endsWith('.json')) userConfigFile += '.json';
+    const {config: userConfig, error} = ts.readConfigFile(userConfigFile, host.readFile);
+    if (error) {
+      return [null, [error], {target}];
+    }
+    if (userConfig.bazelOptions) {
+      bazelOpts.disableStrictDeps =
+          bazelOpts.disableStrictDeps || userConfig.bazelOptions.disableStrictDeps;
+    }
+  }
+
+  const {options, errors, fileNames} =
+      ts.parseJsonConfigFileContent(config, host, path.dirname(tsconfigFile));
   if (errors && errors.length) {
     return [null, errors, {target}];
   }
@@ -171,8 +190,7 @@ export function parseTsconfig(
   bazelOpts.typeBlackListPaths =
       bazelOpts.typeBlackListPaths.map(f => path.resolve(options.rootDir, f));
   if (bazelOpts.nodeModulesPrefix) {
-    bazelOpts.nodeModulesPrefix =
-        path.resolve(options.rootDir, bazelOpts.nodeModulesPrefix);
+    bazelOpts.nodeModulesPrefix = path.resolve(options.rootDir, bazelOpts.nodeModulesPrefix);
   }
 
   return [{options, bazelOpts, files, config}, null, {target}];
