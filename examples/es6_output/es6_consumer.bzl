@@ -15,15 +15,14 @@
 """Example of a rule that requires ES6 inputs.
 """
 
+load("//:internal/common/reroot_prod_files.bzl", "reroot_prod_files")
+
 def _es6_consumer(ctx):
-  sources = depset()
-  for d in ctx.attr.deps:
-    if hasattr(d, "typescript"):
-      sources += d.typescript.es6_sources
+  rerooted_prod_files = reroot_prod_files(ctx)
 
   return [DefaultInfo(
-      files = sources,
-      runfiles = ctx.runfiles(sources.to_list()),
+      files = rerooted_prod_files,
+      runfiles = ctx.runfiles(rerooted_prod_files.to_list()),
   )]
 
 es6_consumer = rule(

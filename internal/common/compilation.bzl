@@ -294,6 +294,11 @@ def compile_ts(ctx,
   if not is_library:
     files += depset(tsickle_externs)
 
+  transitive_es6_sources = es6_sources
+  for dep in ctx.attr.deps:
+    if hasattr(dep, "typescript"):
+      transitive_es6_sources += dep.typescript.transitive_es6_sources
+
   return {
       "files": files,
       "runfiles": ctx.runfiles(
@@ -308,6 +313,7 @@ def compile_ts(ctx,
           "declarations": declarations,
           "transitive_declarations": transitive_decls,
           "es6_sources": es6_sources,
+          "transitive_es6_sources": transitive_es6_sources,
           "es5_sources": es5_sources,
           "devmode_manifest": devmode_manifest,
           "type_blacklisted_declarations": type_blacklisted_declarations,
