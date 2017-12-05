@@ -131,8 +131,8 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   /** Allows suppressing warnings for specific known libraries */
   shouldIgnoreWarningsForPath(filePath: string): boolean {
-    return this.bazelOpts.ignoreWarningPaths.some(
-        p => !!filePath.match(new RegExp(p)));
+    return (this.bazelOpts.ignoreWarningPaths || [])
+        .some(p => !!filePath.match(new RegExp(p)));
   }
 
   fileNameToModuleId(fileName: string): string {
@@ -290,7 +290,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   writeFile(
       fileName: string, content: string, writeByteOrderMark: boolean,
-      onError: ((message: string) => void) | undefined,
+      onError: ((message: string) => void)|undefined,
       sourceFiles: ReadonlyArray<ts.SourceFile>): void {
     perfTrace.wrap(
         `writeFile ${fileName}`,
@@ -300,7 +300,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   writeFileImpl(
       fileName: string, content: string, writeByteOrderMark: boolean,
-      onError: ((message: string) => void) | undefined,
+      onError: ((message: string) => void)|undefined,
       sourceFiles: ReadonlyArray<ts.SourceFile>): void {
     // Workaround https://github.com/Microsoft/TypeScript/issues/18648
     if ((this.options.module === ts.ModuleKind.AMD ||

@@ -71,7 +71,10 @@ jobs:
           key: *cache_key
       - run: bazel run @yarn//:yarn
       # Don't occupy the bazel server, as this test wants to run Bazel itself
-      - run: bazel run @yarn//:yarn test --script_path=yarn_test.sh
+      - run: bazel run @yarn//:yarn test-dev --script_path=yarn_test.sh
+      - run: xvfb-run -a ./yarn_test.sh
+      # Don't occupy the bazel server, as this test wants to run Bazel itself
+      - run: bazel run @yarn//:yarn test-prod --script_path=yarn_test.sh
       - run: xvfb-run -a ./yarn_test.sh
 
 workflows:

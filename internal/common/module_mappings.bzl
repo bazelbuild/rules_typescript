@@ -22,7 +22,6 @@
 """Module mappings.
 """
 
-
 def _get_deps(attrs, names):
   return [d for n in names if hasattr(attrs, n)
           for d in getattr(attrs, n)]

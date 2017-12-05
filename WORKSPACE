@@ -52,3 +52,13 @@ http_archive(
     url = "https://github.com/bazelbuild/bazel/releases/download/0.9.0/bazel-0.9.0-dist.zip",
     sha256 = "efb28fed4ffcfaee653e0657f6500fc4cbac61e32104f4208da385676e76312a",
 )
+
+git_repository(
+    name = "io_bazel_rules_closure",
+    commit = "172f84fe96e07214fa7337b081648d4a61b45b93",
+    remote = "https://github.com/bazelbuild/rules_closure",
+)
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
+
+closure_repositories()

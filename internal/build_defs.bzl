@@ -22,21 +22,17 @@ load(":executables.bzl", "get_tsc")
 load("@build_bazel_rules_typescript_install//:tsconfig.bzl", "get_default_tsconfig")
 load(":common/tsconfig.bzl", "create_tsconfig")
 load(":ts_config.bzl", "TsConfigInfo")
+load("//:internal/common/collect_es6_sources.bzl", "collect_es6_sources")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")    
 
 def _compile_action(ctx, inputs, outputs, config_file_path):
   externs_files = []
   non_externs_files = []
   for output in outputs:
-    if output.basename.endswith(".externs.js"):
-      externs_files.append(output)
-    elif output.basename.endswith(".es5.MF"):
+    if output.basename.endswith(".es5.MF"):
       ctx.file_action(output, content="")
     else:
       non_externs_files.append(output)
-
-  # TODO(plf): For now we mock creation of files other than {name}.js.
-  for externs_file in externs_files:
-    ctx.file_action(output=externs_file, content="")
 
   action_inputs = inputs + [f for f in ctx.files.node_modules + ctx.files._tsc_wrapped_deps
                             if f.path.endswith(".ts") or f.path.endswith(".json")]
@@ -55,11 +51,15 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
     arguments = ["-p", config_file_path]
     mnemonic = "tsc"
 
+  outputs = non_externs_files
+  if not outputs:
+    return
+
   ctx.action(
       progress_message = "Compiling TypeScript (devmode) %s" % ctx.label,
       mnemonic = mnemonic,
       inputs = action_inputs,
-      outputs = non_externs_files,
+      outputs = outputs,
       arguments = arguments,
       executable = ctx.executable.compiler,
       execution_requirements = {
@@ -184,3 +184,90 @@ def tsc_library(**kwargs):
       compiler = "//internal/tsc_wrapped:tsc",
       node_modules = "@build_bazel_rules_typescript_deps//:node_modules",
       **kwargs)
+
+# ******************* #
+# closure_ts_binary   #
+# ******************* #
+def _collect_es6_sources_impl(ctx):
+  """Rule which wraps the rerooted_prod_files action for rules_closure.
+
+  Args:
+    ctx: the context.
+
+  Returns:
+    A closure_js_library with the rerooted files.
+  """
+  rerooted_prod_files = collect_es6_sources(ctx)
+
+  js_module_roots = depset()
+  for prod_file in rerooted_prod_files:
+    if "node_modules/" in prod_file.dirname:
+      js_module_roots += [prod_file.dirname[:prod_file.dirname.find('node_modules/')]]
+
+  return struct(
+    files = rerooted_prod_files,
+    closure_js_library = struct(
+      srcs = rerooted_prod_files,
+      js = [
+
+      ],
+      js_module_roots = js_module_roots
+  ))
+
+_collect_es6_sources = rule(
+    attrs = {"deps": attr.label_list(mandatory = True)},
+    implementation = _collect_es6_sources_impl,
+)
+
+def closure_ts_binary(name, deps, **kwargs):
+  _collect_es6_sources_label = name + "_collect_es6_sources"
+  _collect_es6_sources(name = _collect_es6_sources_label, deps = deps)
+
+  closure_js_binary(
+    name = name,
+    deps = [":" + _collect_es6_sources_label],
+    **kwargs
+  )
+
+def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
+  rerooted_node_modules_path = "bazel-out/darwin-fastbuild/bin/src/%s_collect_es6_sources.es6/node_modules" % name
+
+  rerooted_workspace_root = "%s/%s" % (rerooted_node_modules_path, workspace_name)
+  rxjs_path = "%s/rxjs" % rerooted_node_modules_path
+
+  closure_ts_binary(
+    name = name, 
+    defs = defs + [
+        # jscomp_off flags needed for libraries which examine 
+        # global variables (ie typeof module === "undefined"). 
+        "--jscomp_off=undefinedVars",
+        # jscomp_off flags needed specifically for RXJS
+        # TODO(mrmeku): Investigate whether these flags are needed from a tsickle bug.
+        "--jscomp_off=checkTypes",
+        "--jscomp_off=misplacedTypeAnnotation",
+        "--jscomp_off=unusedLocalVariables",
+        "--jscomp_off=jsdocMissingType",
+
+        ### @angular Dependencies 
+        "--js=node_modules/zone.js/dist/zone_externs.js",
+        "--js=node_modules/hammerjs/hammer.js",
+        "--js=%s/**.js" % rxjs_path,
+
+        ### @angular packages
+        "--package_json_entry_names=es2015",
+        "--js=node_modules/@angular/core/package.json",
+        "--js=node_modules/@angular/common/package.json",
+        "--js=node_modules/@angular/platform-browser/package.json",
+        # Core must be specified individually and not globbed with packages which depend on it 
+        # (ie. @angular/animations).
+        "--js=node_modules/@angular/core/esm2015/core.js",
+        "--js=node_modules/@angular/common/esm2015/common.js",
+        "--js=node_modules/@angular/platform-browser/esm2015/platform-browser.js",
+
+        ### All other rerooted Typescript files in the users workspace.
+        "--js=%s/**.js" % rerooted_workspace_root,
+        "--js=!%s/**.ngsummary.js" % rerooted_workspace_root,
+    ],
+    manually_specify_js = True,
+    **kwargs
+  )

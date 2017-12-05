@@ -1,7 +1,15 @@
 {
   "compilerOptions": {
     "strict": true,
-    "lib": ["es2015.promise", "dom", "es5"]
+    "lib": ["es2015.promise", "dom", "es5"],
+    "rootDir": "../",
+    "baseUrl": "../",
+    "moduleResolution": "node",
+    "paths": {
+      "build_bazel_rules_typescript/*": [
+        "./*"
+      ]
+    }
   }
 }
 

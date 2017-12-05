@@ -12,7 +12,10 @@
         "typescript": ">=2.4.2"
     },
     "devDependencies": {
+        "angular": "^1.6.7",
         "@bazel/ibazel": "^0.2.0",
+        "node-closure-compiler-externs": "git+//github.com:dcodeIO/node.js-closure-compiler-externs.git",
+        "@types/angular": "^1.6.39",
         "@types/jasmine": "^2.8.2",
         "@types/node": "7.0.18",
         "@types/source-map": "^0.5.1",
@@ -20,13 +23,15 @@
         "concurrently": "^3.5.1",
         "protobufjs": "5.0.0",
         "protractor": "^5.2.0",
-        "tsickle": "0.25.x",
+        "tsickle": "0.25.6",
         "tsutils": "2.12.1",
         "typescript": "2.5.x"
     },
     "scripts": {
-        "pretest": "webdriver-manager update && bazel build examples/app:all",
-        "test": "concurrently \"bazel run examples/app:devserver\" protractor --kill-others --success first",
+        "pretest-dev": "webdriver-manager update && bazel build examples/app:all",
+        "pretest-prod": "webdriver-manager update && bazel build examples/app:all",
+        "test-dev": "concurrently \"bazel run examples/app:devserver\" protractor --kill-others --success first",
+        "test-prod": "concurrently \"bazel run examples/app:prodserver\" protractor --kill-others --success first",
         "skylint": "bazel build @io_bazel//src/tools/skylark/java/com/google/devtools/skylark/skylint:Skylint && find . -type f -name \"*.bzl\" ! -path \"*/node_modules/*\" | xargs $(bazel info bazel-bin)/external/io_bazel/src/tools/skylark/java/com/google/devtools/skylark/skylint/Skylint"
     }
 }
