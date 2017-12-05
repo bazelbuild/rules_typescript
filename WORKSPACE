@@ -46,3 +46,29 @@ load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_too
 go_rules_dependencies()
 
 go_register_toolchains()
+
+git_repository(
+    name = "io_bazel_rules_closure",
+    commit = "172f84fe96e07214fa7337b081648d4a61b45b93",
+    remote = "https://github.com/bazelbuild/rules_closure",
+)
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
+
+closure_repositories()
+
+git_repository(
+    name = "angular",
+    commit = "d7f4f50f1346e23b7b11407fdc775b06e55a7bfd",
+    remote = "https://github.com/angular/bazel-builds.git",
+)
+
+git_repository(
+    name = "io_bazel_rules_sass",
+    remote = "https://github.com/bazelbuild/rules_sass.git",
+    tag = "0.0.3",
+)
+
+load("@io_bazel_rules_sass//sass:sass.bzl", "sass_repositories")
+
+sass_repositories()

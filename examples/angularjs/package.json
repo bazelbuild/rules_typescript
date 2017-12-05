@@ -1,0 +1,21 @@
+{
+  "name": "angularjs-example",
+  "version": "0.0.1",
+  "description": "An example of how to bundle an angularjs app with rules_closure",
+  "main": "index.ts",
+  "scripts": {
+    "devserver": "ibazel run //examples/angularjs:devserver",
+    "prodserver": "ibazel run //examples/angularjs:prodserver"
+  },
+  "author": "The Bazel Authors",
+  "license": "Apache License, Version 2.0",
+  "dependencies": {
+    "angular": "^1.6.7",
+    "typescript": "^2.6.2"
+  },
+  "devDependencies": {
+    "@bazel/ibazel": "^0.1.1",
+    "@types/angular": "^1.6.39",
+    "google-closure-compiler": "^20171112.0.0"
+  }
+}

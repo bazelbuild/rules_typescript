@@ -33,7 +33,7 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
         cfg = "data",
     ),
     # TODO(evanm): make this the default and remove the option.
-    "runtime": attr.string(default="browser"),
+    "runtime": attr.string(default = "browser"),
     # Used to determine module mappings
     "module_name": attr.string(),
     "module_root": attr.string(),
@@ -53,12 +53,11 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
     # "diagnostic:regexp", e.g. "TS1234:failed to quizzle the .* wobble".
     # Useful to test for expected compilation errors.
     "expected_diagnostics": attr.string_list(),
-
 })
 
 COMMON_OUTPUTS = {
     # Allow the tsconfig.json to be generated without running compile actions.
-    "tsconfig": "%{name}_tsconfig.json"
+    "tsconfig": "%{name}_tsconfig.json",
 }
 
 # TODO(plf): Enforce this at analysis time.
@@ -122,7 +121,6 @@ def _outputs(ctx, label):
     devmode_js = devmode_js_files,
     declarations = declaration_files,
   )
-
 
 def compile_ts(ctx,
                is_library,
@@ -292,6 +290,27 @@ def compile_ts(ctx,
   if not is_library:
     files += depset(tsickle_externs)
 
+  rerooted_es6_sources = []
+  es6_js_modules_roots = []
+
+  for source in es6_sources:
+    root = source.dirname
+    es6_js_modules_roots.append(root)
+
+    file_path = "%s/%s" % (root, source.basename.replace(".closure", ""))
+    rooted_file = ctx.actions.declare_file(file_path)
+
+    ctx.actions.expand_template(
+        output = rooted_file,
+        template = source,
+        substitutions = {}
+    )
+    rerooted_es6_sources.append(rooted_file)
+
+  transitive_es6_srcs = depset()
+  for dep in ctx.attr.deps:
+    transitive_es6_srcs += getattr(dep.typescript, "transitive_es6_srcs", [])
+
   return {
       "files": files,
       "runfiles": ctx.runfiles(
@@ -311,6 +330,7 @@ def compile_ts(ctx,
           "type_blacklisted_declarations": type_blacklisted_declarations,
           "tsickle_externs": tsickle_externs,
           "replay_params": replay_params,
+          "transitive_es6_srcs": transitive_es6_srcs + es6_sources,
       },
       # Expose the tags so that a Skylark aspect can access them.
       "tags": ctx.attr.tags,
