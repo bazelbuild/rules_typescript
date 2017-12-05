@@ -14,6 +14,7 @@
 
 """TypeScript rules.
 """
+
 # pylint: disable=unused-argument
 # pylint: disable=missing-docstring
 load(":common/compilation.bzl", "COMMON_ATTRIBUTES", "compile_ts", "ts_providers_dict_to_struct")
@@ -25,16 +26,10 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
   externs_files = []
   non_externs_files = []
   for output in outputs:
-    if output.basename.endswith(".externs.js"):
-      externs_files.append(output)
-    elif output.basename.endswith(".es5.MF"):
+    if output.basename.endswith(".es5.MF"):
       ctx.file_action(output, content="")
     else:
       non_externs_files.append(output)
-
-  # TODO(plf): For now we mock creation of files other than {name}.js.
-  for externs_file in externs_files:
-    ctx.file_action(output=externs_file, content="")
 
   action_inputs = inputs + [f for f in ctx.files.node_modules
                             if f.path.endswith(".ts") or f.path.endswith(".json")]
@@ -64,7 +59,6 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
           "supports-workers": str(int(ctx.attr.supports_workers)),
       },
   )
-
 
 def _devmode_compile_action(ctx, inputs, outputs, config_file_path):
   _compile_action(ctx, inputs, outputs, config_file_path)
@@ -114,7 +108,6 @@ def tsc_wrapped_tsconfig(ctx,
 # ts_library   #
 # ************ #
 
-
 def _ts_library_impl(ctx):
   """Implementation of ts_library.
 
@@ -132,26 +125,28 @@ def _ts_library_impl(ctx):
 ts_library = rule(
     _ts_library_impl,
     attrs = dict(COMMON_ATTRIBUTES, **{
-        "srcs":
-            attr.label_list(
-                allow_files=FileType([
-                    ".ts",
-                    ".tsx",
-                ]),
-                mandatory=True,),
+        "srcs": attr.label_list(
+            allow_files = FileType([
+                ".ts",
+                ".tsx",
+            ]),
+            mandatory = True,
+        ),
 
         # TODO(alexeagle): reconcile with google3: ts_library rules should
         # be portable across internal/external, so we need this attribute
         # internally as well.
-        "tsconfig":
-            attr.label(allow_files = True, single_file = True),
-        "compiler":
-            attr.label(
-                default=get_tsc(),
-                single_file=False,
-                allow_files=True,
-                executable=True,
-                cfg="host"),
+        "tsconfig": attr.label(
+            allow_files = True,
+            single_file = True,
+        ),
+        "compiler": attr.label(
+            default = get_tsc(),
+            single_file = False,
+            allow_files = True,
+            executable = True,
+            cfg = "host",
+        ),
         "supports_workers": attr.bool(default = True),
         # @// is special syntax for the "main" repository
         # The default assumes the user specified a target "node_modules" in their
@@ -159,6 +154,6 @@ ts_library = rule(
         "node_modules": attr.label(default = Label("@//:node_modules")),
     }),
     outputs = {
-        "tsconfig": "%{name}_tsconfig.json"
-    }
+        "tsconfig": "%{name}_tsconfig.json",
+    },
 )

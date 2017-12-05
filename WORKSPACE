@@ -16,8 +16,8 @@ workspace(name = "build_bazel_rules_typescript")
 
 git_repository(
     name = "build_bazel_rules_nodejs",
+    commit = "1a3a0dea51c0e53a2871fbfaba3be178a308a7a3",
     remote = "https://github.com/bazelbuild/rules_nodejs",
-    tag = "0.2.2",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
@@ -33,8 +33,8 @@ node_repositories(package_json = ["//:package.json"])
 
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.7.1/rules_go-0.7.1.tar.gz",
     sha256 = "341d5eacef704415386974bc82a1783a8b7ffbff2ab6ba02375e1ca20d9b031c",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.7.1/rules_go-0.7.1.tar.gz",
 )
 
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
@@ -42,3 +42,13 @@ load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_too
 go_rules_dependencies()
 
 go_register_toolchains()
+
+git_repository(
+    name = "io_bazel_rules_closure",
+    commit = "172f84fe96e07214fa7337b081648d4a61b45b93",
+    remote = "https://github.com/bazelbuild/rules_closure",
+)
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
+
+closure_repositories()
