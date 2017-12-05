@@ -87,7 +87,13 @@ def tsc_wrapped_tsconfig(ctx,
   config = create_tsconfig(ctx, files, srcs,
                            devmode_manifest=devmode_manifest,
                            **kwargs)
-  config["bazelOptions"]["nodeModulesPrefix"] = "node_modules"
+  # Default to assuming node_modules directory is located at the root of the workspace.
+  node_modules = 'node_modules'
+  if ctx.attr.node_modules.label.package:
+    node_modules = '%s/node_modules' % ctx.attr.node_modules.label.package
+
+  config["bazelOptions"]["nodeModulesPrefix"] = node_modules
+
   if config["compilerOptions"]["target"] == "es6":
     config["compilerOptions"]["module"] = "es2015"
   else:
