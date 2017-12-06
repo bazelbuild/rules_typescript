@@ -95,6 +95,20 @@ func main() {
 		}
 	}
 
+	profilerUrl := os.Getenv("IBAZEL_PROFILER_URL")
+	match = re.FindStringSubmatch(profilerUrl)
+	if match != nil && len(match) == 4 {
+		port, err := strconv.ParseUint(match[3], 10, 16)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Cannot determine profiler port from IBAZEL_PROFILER_URL")
+		} else {
+			profilerScheme := match[1]
+			profilerHost := match[2]
+			profilerPort := uint16(port)
+			scripts = append(scripts, fmt.Sprintf("\nwindow.IBazelProfilerOptions = { url: \"%s\", https: \"%s\" === \"https\", host: \"%s\", port: %d };", profilerUrl, profilerScheme, profilerHost, profilerPort))
+		}
+	}
+
 	for _, v := range concat_scripts {
 		js, err := loadScript(filepath.Join(*base, v))
 		if err != nil {
