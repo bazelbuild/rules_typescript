@@ -94,6 +94,27 @@ function runOneBuild(
   let diags: ts.Diagnostic[] = [];
   // Install extra diagnostic plugins
   if (!bazelOpts.disableStrictDeps) {
+    const ignoredFilesPrefixes = [
+      bazelOpts.nodeModulesPrefix,
+      compilerHost.realpath(bazelOpts.nodeModulesPrefix),
+    ];
+    if (options.rootDir) {
+      ignoredFilesPrefixes.push(...[
+        path.resolve(options.rootDir, 'node_modules'),
+        compilerHost.realpath(path.resolve(options.rootDir, 'node_modules')),
+      ]);
+      // compilerHost.realpath does not work inside of the bazel-sandbox in some or all cases
+      // so we determine the real exec folder from the root dir (bazel-sandbox path)
+      // and use that to resolve the realpath of node_modules
+      const sandboxRegex = /[\/\\]bazel-sandbox[\/\\][a-zA-Z0-9]+/;
+      if (options.rootDir.match(sandboxRegex)) {
+        const realExecDir = options.rootDir.replace(sandboxRegex, '');
+        ignoredFilesPrefixes.push(...[
+          path.resolve(realExecDir, 'node_modules'),
+          compilerHost.realpath(path.resolve(realExecDir, 'node_modules')),
+        ]);
+      }
+    }
     program = strictDepsPlugin.wrap(program, {
       ...bazelOpts,
       rootDir: options.rootDir,
@@ -101,12 +122,7 @@ function runOneBuild(
       // sourceFile found in the symbol table. Some paths have their symlinks
       // resolved by TypeScript, so we might need to resolve this prefix the
       // same way.
-      ignoredFilesPrefixes: [
-        path.resolve(options.rootDir, 'node_modules'),
-        compilerHost.realpath(path.resolve(options.rootDir, 'node_modules')),
-        bazelOpts.nodeModulesPrefix,
-        compilerHost.realpath(bazelOpts.nodeModulesPrefix)
-      ],
+      ignoredFilesPrefixes: ignoredFilesPrefixes,
     });
   }
   program = tsetsePlugin.wrap(program, bazelOpts.disabledTsetseRules);
