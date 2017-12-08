@@ -1,7 +1,6 @@
 {
     "description": "runtime dependencies for devserver",
     "devDependencies": {
-        "livereload": "0.6.3",
         "requirejs": "2.3.5"
     }
 }

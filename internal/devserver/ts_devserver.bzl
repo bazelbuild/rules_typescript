@@ -48,9 +48,7 @@ def _ts_devserver(ctx):
 
   # Requirejs is always needed so its included as the first script
   # in script_files before any user specified scripts for the devserver
-  # to concat in order. The livereload script is handled as a special
-  # case as the devserver may or not included depending on the presence
-  # of the IBAZEL_LIVERELOAD_URL env variable.
+  # to concat in order.
   script_files = depset()
   script_files += ctx.files._requirejs_script
   script_files += ctx.files.scripts
@@ -62,7 +60,6 @@ def _ts_devserver(ctx):
     ctx.executable._devserver,
     ctx.outputs.manifest,
     ctx.outputs.scripts_manifest,
-    ctx.file._livereload_script,
     ctx.file._requirejs_script]
   devserver_runfiles += ctx.files.static_files
   devserver_runfiles += ctx.files.scripts
@@ -81,7 +78,6 @@ RUNFILES="$PWD/.."
   -packages={workspace}/{package} \
   -manifest={workspace}/{manifest} \
   -scripts_manifest={workspace}/{scripts_manifest} \
-  -livereload_script={workspace}/{livereload_script} \
   -entry_module={entry_module} \
   "$@"
 """.format(
@@ -91,7 +87,6 @@ RUNFILES="$PWD/.."
     package = ctx.label.package,
     manifest = ctx.outputs.manifest.short_path,
     scripts_manifest = ctx.outputs.scripts_manifest.short_path,
-    livereload_script = ctx.file._livereload_script.short_path,
     entry_module = ctx.attr.entry_module))
   return [DefaultInfo(
       runfiles = ctx.runfiles(
@@ -116,7 +111,6 @@ ts_devserver = rule(
         # The entry_module should be the AMD module name of the entry module such as "__main__/src/index"
         # Devserver concats the following snippet after the bundle to load the application: require(["entry_module"]);
         "entry_module": attr.string(),
-        "_livereload_script": attr.label(allow_files = True, single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//:node_modules/livereload/ext/livereload.js")),
         "_requirejs_script": attr.label(allow_files = True, single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//:node_modules/requirejs/require.js")),
         "_devserver": attr.label(
             default = Label("//internal/devserver/main"),

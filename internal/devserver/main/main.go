@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/bazelbuild/rules_typescript/internal/concatjs/concatjs"
@@ -18,14 +16,13 @@ import (
 )
 
 var (
-	port             = flag.Int("port", 5432, "server port to listen on")
-	base             = flag.String("base", "", "server base (required, runfiles of the binary)")
-	pkgs             = flag.String("packages", "", "root package(s) to serve, comma-separated")
-	manifest         = flag.String("manifest", "", "sources manifest (.MF)")
-	scriptsManifest  = flag.String("scripts_manifest", "", "preScripts manifest (.MF)")
-	livereloadScript = flag.String("livereload_script", "", "path to live reload script")
-	servingPath      = flag.String("serving_path", "/_/ts_scripts.js", "path to serve the combined sources at")
-	entryModule      = flag.String("entry_module", "", "entry module name")
+	port            = flag.Int("port", 5432, "server port to listen on")
+	base            = flag.String("base", "", "server base (required, runfiles of the binary)")
+	pkgs            = flag.String("packages", "", "root package(s) to serve, comma-separated")
+	manifest        = flag.String("manifest", "", "sources manifest (.MF)")
+	scriptsManifest = flag.String("scripts_manifest", "", "preScripts manifest (.MF)")
+	servingPath     = flag.String("serving_path", "/_/ts_scripts.js", "path to serve the combined sources at")
+	entryModule     = flag.String("entry_module", "", "entry module name")
 )
 
 func main() {
@@ -51,34 +48,16 @@ func main() {
 	preScripts := make([]string, 0, 100)
 	postScripts := make([]string, 0, 1)
 
-	// Include the livereload script if IBAZEL_LIVERELOAD_URL is set and
-	// valid and the script is available. Also output a snippet before the
-	// livereload script that sets window.LiveReloadOptions which configures
-	// the endpoint livereload will use
+	// Include the livereload script if IBAZEL_LIVERELOAD_URL is set.
 	livereloadUrl := os.Getenv("IBAZEL_LIVERELOAD_URL")
-	re := regexp.MustCompile("^([a-zA-Z0-9]+)\\:\\/\\/([[a-zA-Z0-9\\.]+)\\:([0-9]+)")
-	match := re.FindStringSubmatch(livereloadUrl)
-	if match != nil && len(match) == 4 {
-		port, err := strconv.ParseUint(match[3], 10, 16)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Cannot determine livereload port from IBAZEL_LIVERELOAD_URL")
-		} else {
-			livereloadScheme := match[1]
-			livereloadHost := match[2]
-			livereloadPort := uint16(port)
-			if *livereloadScript != "" {
-				livereloadJs, err := loadScript(filepath.Join(*base, *livereloadScript))
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Failed to read livereload script: %v\n", err)
-				} else {
-					preScripts = append(preScripts, fmt.Sprintf("window.LiveReloadOptions = { https: \"%s\" === \"https\", host: \"%s\", port: %d };", livereloadScheme, livereloadHost, livereloadPort))
-					preScripts = append(preScripts, livereloadJs)
-					fmt.Printf("Serving livereload script for port %s://%s:%d\n", livereloadScheme, livereloadHost, livereloadPort)
-				}
-			} else {
-				fmt.Fprintf(os.Stderr, "livereload script not available\n")
-			}
-		}
+	if livereloadUrl != "" {
+		fmt.Printf("Serving livereload script from %s\n", livereloadUrl)
+		livereloadLoaderSnippet := fmt.Sprintf(`(function(){
+	const script = document.createElement('script');
+	script.src = "%s";
+	document.head.appendChild(script);
+})();`, livereloadUrl)
+		preScripts = append(preScripts, livereloadLoaderSnippet)
 	}
 
 	// Include all user scripts in preScripts. This should always include
