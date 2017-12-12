@@ -16,4 +16,5 @@ nodejs_binary(
     name = "karma_bin",
     entry_point = "karma/bin/karma",
     data = [":karma_concat_js"],
+    node_modules = "@build_bazel_rules_typescript_karma_deps//:node_modules",
 )

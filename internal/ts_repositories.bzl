@@ -26,3 +26,7 @@ def ts_repositories():
       name = "build_bazel_rules_typescript_devserver_deps",
       package_json = "@build_bazel_rules_typescript//internal/devserver:package.json",
   )
+  npm_install(
+      name = "build_bazel_rules_typescript_karma_deps",
+      package_json = "@build_bazel_rules_typescript//internal/karma:package.json",
+  )

@@ -6,7 +6,7 @@ load("@build_bazel_rules_nodejs//internal:node.bzl",
 _CONF_TMPL = "//internal/karma:karma.conf.js"
 _LOADER = "//internal/karma:test-main.js"
 
-def _ts_test_impl(ctx):
+def _ts_web_test_impl(ctx):
   conf = ctx.actions.declare_file(
       "%s.conf.js" % ctx.label.name,
       sibling=ctx.outputs.executable)
@@ -65,8 +65,8 @@ $KARMA ${{ARGV[@]}}
       ),
   )]
 
-ts_test = rule(
-    implementation = _ts_test_impl,
+ts_web_test = rule(
+    implementation = _ts_web_test_impl,
     test = True,
     attrs = {
         "srcs": attr.label_list(allow_files = ["js"]),
@@ -92,10 +92,10 @@ ts_test = rule(
 
 # This macro exists only to modify the users rule definition a bit.
 # DO NOT add composition of additional rules here.
-def ts_test_macro(tags = [], data = [], **kwargs):
-  ts_test(
+def ts_web_test_macro(tags = [], data = [], **kwargs):
+  ts_web_test(
       # Users don't need to know that this tag is required to run under ibazel
-      tags = tags + ["iblaze_notify_changes"],
+      tags = tags + ["ibazel_notify_changes"],
       # Our binary dependency must be in data[] for collect_data to pick it up
       # FIXME: maybe we can just ask the attr._karma for its runfiles attr
       data = data + ["@build_bazel_rules_typescript//internal/karma:karma_bin"],

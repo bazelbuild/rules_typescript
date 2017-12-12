@@ -20,7 +20,7 @@ load("//internal:build_defs.bzl", _ts_library = "ts_library")
 load("//internal:ts_config.bzl", _ts_config = "ts_config")
 load("//internal/devserver:ts_devserver.bzl", _ts_devserver = "ts_devserver_macro")
 load("//internal:ts_repositories.bzl", _ts_repositories = "ts_repositories")
-load("//internal:ts_test.bzl", _ts_test = "ts_web_test_macro")
+load("//internal:ts_web_test.bzl", _ts_web_test = "ts_web_test_macro")
 
 ts_library = _ts_library
 ts_config = _ts_config
