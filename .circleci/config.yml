@@ -33,7 +33,6 @@ jobs:
     steps:
       - checkout:
           <<: *post_checkout
-
       - restore_cache:
           key: *cache_key
       - run: bazel info release
@@ -48,7 +47,6 @@ jobs:
     steps:
       - checkout:
           <<: *post_checkout
-
       - restore_cache:
           key: *cache_key
       - run: bazel --bazelrc=/dev/null info release
@@ -62,7 +60,7 @@ jobs:
             - "node_modules"
 
   # Runs end-to-end browser tests.
-  test:
+  e2e_browser_test:
     <<: *job_defaults
     steps:
       - checkout:
@@ -74,6 +72,17 @@ jobs:
       - run: bazel run @yarn//:yarn test --script_path=yarn_test.sh
       - run: xvfb-run -a ./yarn_test.sh
 
+  # Runs devserver benchmark test.
+  devserver_benchmark_test:
+    <<: *job_defaults
+    steps:
+      - checkout:
+          <<: *post_checkout
+      - restore_cache:
+          key: *cache_key
+      - run: bazel run @yarn//:yarn
+      - run: $(bazel info bazel-bin)/external/yarn/yarn benchmark-test
+
 workflows:
   version: 2
   # Run the two builds in parallel, reporting separate status to github PRs.
@@ -81,4 +90,5 @@ workflows:
     jobs:
       - build
       - build_no_bazelrc
-      - test
+      - e2e_browser_test
+      - devserver_benchmark_test

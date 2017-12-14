@@ -12,7 +12,7 @@
         "typescript": ">=2.4.2"
     },
     "devDependencies": {
-        "@bazel/ibazel": "^0.2.0",
+        "@bazel/ibazel": "git+https://github.com/gregmagolan/bazel-watcher#dist-profiler-2",
         "@types/jasmine": "^2.8.2",
         "@types/node": "7.0.18",
         "@types/source-map": "^0.5.1",
@@ -20,12 +20,15 @@
         "concurrently": "^3.5.1",
         "protobufjs": "5.0.0",
         "protractor": "^5.2.0",
+        "puppeteer": "^0.13.0",
+        "tempy": "^0.2.1",
         "tsickle": "0.25.x",
         "tsutils": "2.12.1",
         "typescript": "2.5.x"
     },
     "scripts": {
         "pretest": "webdriver-manager update && bazel build examples/app:all",
-        "test": "concurrently \"bazel run examples/app:devserver\" protractor --kill-others --success first"
+        "test": "concurrently \"bazel run examples/app:devserver\" protractor --kill-others --success first",
+        "benchmark-test": "node devserver-benchmark-runner.js //examples/app:devserver examples/app/app.ts http://localhost:5432 300 10"
     }
 }
