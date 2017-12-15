@@ -60,6 +60,18 @@ func main() {
 		preScripts = append(preScripts, livereloadLoaderSnippet)
 	}
 
+	// Include the profiler script if IBAZEL_PROFILER_URL is set.
+	profilerUrl := os.Getenv("IBAZEL_PROFILER_URL")
+	if profilerUrl != "" {
+		fmt.Printf("Serving profiler script from %s\n", profilerUrl)
+		profilerLoaderSnippet := fmt.Sprintf(`(function(){
+	const script = document.createElement('script');
+	script.src = "%s";
+	document.head.appendChild(script);
+})();`, profilerUrl)
+		preScripts = append(preScripts, profilerLoaderSnippet)
+	}
+
 	// Include all user scripts in preScripts. This should always include
 	// the requirejs script which is added to scriptFiles by the devserver
 	// skylark rule.
