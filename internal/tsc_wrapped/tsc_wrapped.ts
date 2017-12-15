@@ -67,7 +67,7 @@ function runOneBuild(
   const allowNonHermeticReads = true;
 
   if (inputs) {
-    fileLoader = new CachedFileLoader(fileCache, allowNonHermeticReads);
+    fileLoader = new CachedFileLoader(fileCache);
     // Resolve the inputs to absolute paths to match TypeScript internals
     const resolvedInputs: {[path: string]: string} = {};
     for (const key of Object.keys(inputs)) {
@@ -86,9 +86,9 @@ function runOneBuild(
   const compilerHostDelegate =
       ts.createCompilerHost({target: ts.ScriptTarget.ES5});
 
+  const allowActionInputReads = true;
   const compilerHost = new CompilerHost(
-      files, options, bazelOpts, compilerHostDelegate, fileLoader,
-      allowNonHermeticReads);
+      files, options, bazelOpts, compilerHostDelegate, fileLoader, allowActionInputReads);
   if (allowNonHermeticReads) {
     (compilerHost as ts.CompilerHost).directoryExists =
         (directoryName: string) =>
@@ -106,28 +106,13 @@ function runOneBuild(
   if (!bazelOpts.disableStrictDeps) {
     const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
     if (options.rootDir) {
-      // compilerHost.realpath does not work inside of the bazel-sandbox in some
-      // or all cases so we determine the real exec folder from the root dir
-      // (bazel-sandbox path) and use that to resolve the realpath of
-      // node_modules
-      const sandboxRegex = /[\/\\]bazel-sandbox[\/\\][a-zA-Z0-9]+/;
-      if (options.rootDir.match(sandboxRegex)) {
-        const realExecDir = options.rootDir.replace(sandboxRegex, '');
-        ignoredFilesPrefixes.push(path.resolve(realExecDir, 'node_modules'));
-      } else {
-        ignoredFilesPrefixes.push(
-            path.resolve(options.rootDir, 'node_modules'));
-      }
+      ignoredFilesPrefixes.push(
+          path.resolve(options.rootDir, 'node_modules'));
     }
     program = strictDepsPlugin.wrap(program, {
       ...bazelOpts,
       rootDir: options.rootDir,
-      // The strict deps plugin will compare this path with the fileName of a
-      // sourceFile found in the symbol table. Some paths have their symlinks
-      // resolved by TypeScript, so we might need to resolve this prefix the
-      // same way.
-      ignoredFilesPrefixes: ignoredFilesPrefixes.concat(
-          ignoredFilesPrefixes.map(p => compilerHost.realpath(p))),
+      ignoredFilesPrefixes,
     });
   }
   program = tsetsePlugin.wrap(program, disabledTsetseRules);
