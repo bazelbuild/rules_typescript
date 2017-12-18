@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css?family=Spectral+SC');
+
+h1 {
+    font-family: 'Spectral SC', serif;
+    font-size: 24px;
+    color: forestgreen;
+}

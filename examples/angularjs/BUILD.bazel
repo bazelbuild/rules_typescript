@@ -1,0 +1,96 @@
+# Copyright 2017 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(default_visibility = ["//visibility:public"])
+
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_devserver", "ts_library")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary", "closure_js_library")
+load(":internal_node_module.bzl", "internal_node_module")
+load(":closure_ts_binary.bzl", "closure_ts_binary")
+
+
+filegroup(
+    name = "node_modules",
+    # Only include files needed for type-checking and runtime
+    srcs = glob([
+        "node_modules/**/*.js",
+        "node_modules/**/*.d.ts",
+        "node_modules/**/*.json"
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+ts_library(
+    name = "ts_library",
+    srcs = ["main.ts"],
+    deps = ["//examples/angularjs/hello-world"],
+    node_modules = "//examples/angularjs:node_modules",
+)
+
+STATIC_FILES = [
+    "index.html",
+    "node_modules/angular/angular.js",
+    "//examples/angularjs/hello-world:static-files",
+]
+
+# Create a live-reload enable development server:
+#
+# npm run devserver
+# ibazel run //examples/angular:devserver
+ts_devserver(
+    name = "devserver",
+    serving_path = "/bundle.js",
+    static_files = STATIC_FILES,
+    deps = [":ts_library"],
+)
+
+# We do not want closure to compile angular.js, and instead will serve angular.min.js.
+# Serving this file makes angular availible on the window as a global variable.
+# @types/angular defines angularjs as a commonJS module with an import path of 'angular'
+# The shim exports the global variable to make it importable from the import path.
+internal_node_module(
+    name = "angularjs_shim",
+    import_path = "angular",
+    main = "angularjs_shim.js",
+)
+
+closure_js_library(
+    name = "angularjs_externs",
+    srcs = ["node_modules/google-closure-compiler/contrib/externs/angular-1.6.js"],
+)
+
+# Create a closure minified production bundle.
+closure_ts_binary(
+    name = "bundle",
+    defs = [
+        "--jscomp_off=checkTypes",
+        # Needed to process the shim's commonJS module.
+        "--process_common_js_modules",
+    ],
+    deps = [
+        ":angularjs_externs",
+        ":angularjs_shim",
+        ":ts_library",
+    ],
+)
+
+# Create a production server to serve tbe bundle.
+#
+# npm run prodserver
+# ibazel run //examples/angular:devserver
+ts_devserver(
+    name = "prodserver",
+    # :bundle.js produced by closure_ts_binary
+    static_files = STATIC_FILES + [":bundle.js"],
+)

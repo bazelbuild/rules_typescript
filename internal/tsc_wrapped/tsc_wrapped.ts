@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as tsickle from 'tsickle';
 import * as ts from 'typescript';
 
 import {PLUGIN as tsetsePlugin} from '../tsetse/runner';
@@ -93,7 +94,7 @@ function runOneBuild(
   }
   let diags: ts.Diagnostic[] = [];
   // Install extra diagnostic plugins
-  if (!bazelOpts.disableStrictDeps) {
+  if (!bazelOpts.disableStrictDeps && !bazelOpts.nodeModulesPrefix) {
     const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
     if (options.rootDir) {
       // compilerHost.realpath does not work inside of the bazel-sandbox in some
@@ -143,6 +144,25 @@ function runOneBuild(
   if (diags.length > 0) {
     console.error(diagnostics.format(bazelOpts.target, diags));
     return false;
+  }
+
+  const emitResults: tsickle.EmitResult[] =
+      program.getSourceFiles()
+          .filter(isCompilationTarget)
+          .map(
+              file => tsickle.emitWithTsickle(
+                  program, compilerHost, (compilerHost as ts.CompilerHost),
+                  options, file));
+
+  const emitResult = tsickle.mergeEmitResults(emitResults);
+
+  let externs = '/** @externs */';
+  if (bazelOpts.tsickleGenerateExterns) {
+    externs += tsickle.getGeneratedExterns(emitResult.externs);
+  }
+
+  if (bazelOpts.tsickleExternsPath) {
+    fs.writeFileSync(bazelOpts.tsickleExternsPath, externs);
   }
 
   for (const sf of program.getSourceFiles().filter(isCompilationTarget)) {
