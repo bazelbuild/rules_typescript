@@ -45,6 +45,13 @@ export interface BazelOptions {
   /** Write generated externs to the given path. */
   tsickleExternsPath: string;
 
+  /** Write production mode JS files to this directory (a TreeArtifact) */
+  // NOTE: we might want to factor es5Mode as a special value for this option
+  // and remove it.
+  // TODO: consider just writing the tsickle generated externs into this tree
+  // and drop the extra declared output for it.
+  productionModeOutputTree: string;
+
   /** Paths of declarations whose types must not appear in result .d.ts. */
   typeBlackListPaths: string[];
 

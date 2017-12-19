@@ -97,6 +97,12 @@ def tsc_wrapped_tsconfig(ctx,
 
   if config["compilerOptions"]["target"] == "es6":
     config["compilerOptions"]["module"] = "es2015"
+    productionModeOutputTree = "/".join([
+      ctx.label.package,
+      ctx.label.name + ".prod",
+    ])
+    config["bazelOptions"]["productionModeOutputTree"] = productionModeOutputTree
+
   else:
     # The "typescript.es5_sources" provider is expected to work
     # in both nodejs and in browsers.
