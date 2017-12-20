@@ -20,6 +20,9 @@
 # TypeScript compiler and to editors.
 #
 
+"""Module mappings.
+"""
+
 def _get_deps(attrs, names):
   return [d for n in names if hasattr(attrs, n)
           for d in getattr(attrs, n)]
@@ -41,6 +44,16 @@ def get_module_mappings(label, attrs, srcs = [], workspace_name = None, mappings
   checking for collisions. If a module has a non-empty `module_root` attribute,
   all sources underneath it are treated as if they were rooted at a folder
   `module_name`.
+
+  Args:
+    label: TODO(alexeagle)
+    attrs: TODO(alexeagle)
+    srcs: TODO(alexeagle)
+    workspace_name: TODO(alexeagle)
+    mappings_attr: TODO(alexeagle)
+
+  Returns:
+    the module_mappings from the given attrs.
   """
   mappings = dict()
   all_deps =  _get_deps(attrs, names = _MODULE_MAPPINGS_DEPS_NAMES)
