@@ -15,11 +15,12 @@
 """Example of a rule that requires ES5 inputs.
 """
 
+load("@build_bazel_rules_nodejs//internal:node.bzl", "sources_aspect")
+
 def _es5_consumer(ctx):
   sources = depset()
   for d in ctx.attr.deps:
-    if hasattr(d, "typescript"):
-      sources += d.typescript.es5_sources
+    sources += d.node_sources
 
   return [DefaultInfo(
       files = sources,
@@ -29,6 +30,6 @@ def _es5_consumer(ctx):
 es5_consumer = rule(
     implementation = _es5_consumer,
     attrs = {
-        "deps": attr.label_list()
+        "deps": attr.label_list(aspects = [sources_aspect])
     }
 )
