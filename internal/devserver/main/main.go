@@ -61,14 +61,14 @@ func main() {
 	}
 
 	// Include the profiler script if IBAZEL_PROFILER_URL is set.
-	profilerUrl := os.Getenv("IBAZEL_PROFILER_URL")
-	if profilerUrl != "" {
-		fmt.Printf("Serving profiler script from %s\n", profilerUrl)
+	profilerScriptUrl := os.Getenv("IBAZEL_PROFILER_URL")
+	if profilerScriptUrl != "" {
+		fmt.Printf("Serving profiler script from %s\n", profilerScriptUrl)
 		profilerLoaderSnippet := fmt.Sprintf(`(function(){
 	const script = document.createElement('script');
 	script.src = "%s";
 	document.head.appendChild(script);
-})();`, profilerUrl)
+})();`, profilerScriptUrl)
 		preScripts = append(preScripts, profilerLoaderSnippet)
 	}
 
