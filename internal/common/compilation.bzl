@@ -93,7 +93,8 @@ def _collect_transitive_dts(ctx, deep=True):
       type_blacklisted_declarations=type_blacklisted_declarations
   )
 
-def _outputs(ctx, label):
+# FIXME(alexeagle): maybe remove this helper
+def _outputs(ctx, label, closure_file_artifacts = True):
   """Returns closure js, devmode js, and .d.ts output files.
 
   Args:
@@ -115,7 +116,8 @@ def _outputs(ctx, label):
     basename = "/".join(input_file.short_path.split("/")[trim:])
     dot = basename.rfind(".")
     basename = basename[:dot]
-    closure_js_files += [ctx.new_file(basename + ".closure.js")]
+    if closure_file_artifacts:
+      closure_js_files += [ctx.new_file(basename + ".closure.js")]
     devmode_js_files += [ctx.new_file(basename + ".js")]
     declaration_files += [ctx.new_file(basename + ".d.ts")]
   return struct(
@@ -132,7 +134,7 @@ def compile_ts(ctx,
                devmode_compile_action=None,
                jsx_factory=None,
                tsc_wrapped_tsconfig=None,
-               outputs=_outputs):
+               declare_outputs=_outputs):
   """Creates actions to compile TypeScript code.
 
   This rule is shared between ts_library and ts_declaration.
@@ -176,11 +178,6 @@ def compile_ts(ctx,
         src_declarations += [f]
         continue
 
-  outs = outputs(ctx, ctx.label)
-  transpiled_closure_js = outs.closure_js
-  transpiled_devmode_js = outs.devmode_js
-  gen_declarations = outs.declarations
-
   if has_sources and ctx.attr.runtime != "nodejs":
     # Note: setting this variable controls whether tsickle is run at all.
     tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
@@ -223,10 +220,22 @@ def compile_ts(ctx,
       tsickle_externs=tsickle_externs_path,
       type_blacklisted_declarations=type_blacklisted_declarations,
       allowed_deps=allowed_deps)
+
   # Do not produce declarations in ES6 mode, tsickle cannot produce correct
   # .d.ts (or even errors) from the altered Closure-style JS emit.
   tsconfig_es6["compilerOptions"]["declaration"] = False
   tsconfig_es6["compilerOptions"].pop("declarationDir")
+
+
+  if tsconfig_es6["bazelOptions"]["productionModeOutputTree"]:
+    outs = declare_outputs(ctx, ctx.label, closure_file_artifacts = False)
+    transpiled_closure_js = [ctx.experimental_new_directory(ctx.label.name + ".prod")]
+  else:
+    outs = declare_outputs(ctx, ctx.label)
+    transpiled_closure_js = outs.closure_js
+  transpiled_devmode_js = outs.devmode_js
+  gen_declarations = outs.declarations
+
   outputs = transpiled_closure_js + tsickle_externs
   if perf_trace and has_sources:
     perf_trace_file = ctx.new_file(ctx.label.name + ".es6.trace")

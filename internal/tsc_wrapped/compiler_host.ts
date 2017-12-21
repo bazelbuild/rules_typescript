@@ -312,8 +312,12 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     }
     fileName = this.flattenOutDir(fileName);
     if (!this.bazelOpts.es5Mode) {
-      // Write ES6 transpiled files to *.closure.js.
-      if (this.bazelOpts.locale) {
+      // Write ES6 transpiled files to a distinct output, to avoid colliding
+      // with devmode outputs.
+      // We either create a TreeArtifact, or write them as *.closure.js.
+      if (this.bazelOpts.productionModeOutputTree) {
+        fileName = path.join(this.bazelOpts.productionModeOutputTree, this.bazelOpts.workspaceName, fileName);
+      } else if (this.bazelOpts.locale) {
         // i18n paths are required to end with __locale.js so we put
         // the .closure segment before the __locale
         fileName = fileName.replace(/(__[^\.]+)?\.js$/, '.closure$1.js');
