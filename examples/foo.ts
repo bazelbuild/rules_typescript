@@ -24,5 +24,7 @@ export class Greeter implements Polite {
   }
 }
 
+console.log(globalVariable);
+
 export const greeter = new Greeter('Hello, world!');
 greeter.greet().then(msg => { document.body.innerHTML = msg; });
