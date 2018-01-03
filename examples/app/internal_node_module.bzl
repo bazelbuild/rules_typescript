@@ -22,7 +22,7 @@ def _internal_node_module(ctx):
     template = ctx.file.main,
     substitutions = {}
   )
-  return struct(closure_js_library = struct(srcs = [main_file]))
+  return struct(files = depset([main_file]))
 
 internal_node_module = rule(
     attrs = {

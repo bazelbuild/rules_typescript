@@ -79,9 +79,12 @@ closure_ts_binary(
     name = "bundle",
     defs = [
         "--jscomp_off=checkTypes",
+        "--jscomp_off=checkDebuggerStatement",
         # Needed to process the shim's commonJS module.
         "--process_common_js_modules",
     ],
+    dependency_mode = "STRICT",
+    entry_points = ["node_modules/build_bazel_rules_typescript/examples/app/main"],
     deps = [
         ":angularjs_externs",
         ":angularjs_shim_commonjs",
