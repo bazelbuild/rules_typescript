@@ -238,6 +238,8 @@ def closure_ng_binary(name, entry_point, defs = [], **kwargs):
 
   closure_ts_binary(
     name = name, 
+    dependency_mode = "STRICT",
+    entry_points = ["node_modules/%s" % entry_point],
     defs = defs + [
         # jscomp_off flags needed for libraries which examine 
         # global variables (ie typeof module === "undefined"). 
@@ -250,12 +252,9 @@ def closure_ng_binary(name, entry_point, defs = [], **kwargs):
         "--jscomp_off=unusedLocalVariables",
         "--jscomp_off=jsdocMissingType",
 
-        "--dependency_mode=STRICT", 
-
         ### @angular Dependencies 
         "--js=node_modules/zone.js/dist/zone_externs.js",
         "--js=node_modules/hammerjs/hammer.js",
-        "--js=%s/**.js" % rxjs_path,
 
         ### @angular packages
         "--package_json_entry_names=es2015",
@@ -263,13 +262,6 @@ def closure_ng_binary(name, entry_point, defs = [], **kwargs):
         "--js=node_modules/@angular/core/esm2015/core.js",
         "--js=node_modules/@angular/common/esm2015/common.js",
         "--js=node_modules/@angular/platform-browser/esm2015/platform-browser.js",
-
-        ### All other rerooted Typescript files in the users workspace.
-        "--js=%s/**.js" % rerooted_workspace_root,
-        "--js=!%s/**.ngsummary.js" % rerooted_workspace_root,
-
-        "--entry_point=node_modules/%s" % entry_point,
     ],
-    manually_specify_js = True,
     **kwargs
   )

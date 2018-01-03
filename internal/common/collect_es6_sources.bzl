@@ -42,7 +42,5 @@ def collect_es6_sources(ctx):
         rerooted_es6_sources += [rerooted_es6_source]
     if hasattr(dep, "closure_js_library"):
       rerooted_es6_sources += dep.closure_js_library.srcs
-    if hasattr(dep, "files"):
-      rerooted_es6_sources += dep.files 
     
   return rerooted_es6_sources
