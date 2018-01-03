@@ -229,9 +229,10 @@ def closure_ts_binary(name, deps, **kwargs):
     **kwargs
   )
 
-def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
+def closure_ng_binary(name, entry_point, defs = [], **kwargs):
   rerooted_node_modules_path = "**/%s_collect_es6_sources.es6/node_modules" % name
 
+  workspace_name = entry_point[:entry_point.index("/")]
   rerooted_workspace_root = "%s/%s" % (rerooted_node_modules_path, workspace_name)
   rxjs_path = "%s/rxjs" % rerooted_node_modules_path
 
@@ -241,12 +242,15 @@ def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
         # jscomp_off flags needed for libraries which examine 
         # global variables (ie typeof module === "undefined"). 
         "--jscomp_off=undefinedVars",
+
         # jscomp_off flags needed specifically for RXJS
         # TODO(mrmeku): Investigate whether these flags are needed from a tsickle bug.
         "--jscomp_off=checkTypes",
         "--jscomp_off=misplacedTypeAnnotation",
         "--jscomp_off=unusedLocalVariables",
         "--jscomp_off=jsdocMissingType",
+
+        "--dependency_mode=STRICT", 
 
         ### @angular Dependencies 
         "--js=node_modules/zone.js/dist/zone_externs.js",
@@ -263,6 +267,8 @@ def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
         ### All other rerooted Typescript files in the users workspace.
         "--js=%s/**.js" % rerooted_workspace_root,
         "--js=!%s/**.ngsummary.js" % rerooted_workspace_root,
+
+        "--entry_point=node_modules/%s" % entry_point,
     ],
     manually_specify_js = True,
     **kwargs
