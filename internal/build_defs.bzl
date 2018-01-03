@@ -227,41 +227,4 @@ def closure_ts_binary(name, deps, **kwargs):
     name = name,
     deps = [":" + _collect_es6_sources_label],
     **kwargs
-  )
-
-def closure_ng_binary(name, entry_point, defs = [], **kwargs):
-  rerooted_node_modules_path = "**/%s_collect_es6_sources.es6/node_modules" % name
-
-  workspace_name = entry_point[:entry_point.index("/")]
-  rerooted_workspace_root = "%s/%s" % (rerooted_node_modules_path, workspace_name)
-  rxjs_path = "%s/rxjs" % rerooted_node_modules_path
-
-  closure_ts_binary(
-    name = name, 
-    dependency_mode = "STRICT",
-    entry_points = ["node_modules/%s" % entry_point],
-    defs = defs + [
-        # jscomp_off flags needed for libraries which examine 
-        # global variables (ie typeof module === "undefined"). 
-        "--jscomp_off=undefinedVars",
-
-        # jscomp_off flags needed specifically for RXJS
-        # TODO(mrmeku): Investigate whether these flags are needed from a tsickle bug.
-        "--jscomp_off=checkTypes",
-        "--jscomp_off=misplacedTypeAnnotation",
-        "--jscomp_off=unusedLocalVariables",
-        "--jscomp_off=jsdocMissingType",
-
-        ### @angular Dependencies 
-        "--js=node_modules/zone.js/dist/zone_externs.js",
-        "--js=node_modules/hammerjs/hammer.js",
-
-        ### @angular packages
-        "--package_json_entry_names=es2015",
-        "--js=node_modules/@angular/**/package.json",
-        "--js=node_modules/@angular/core/esm2015/core.js",
-        "--js=node_modules/@angular/common/esm2015/common.js",
-        "--js=node_modules/@angular/platform-browser/esm2015/platform-browser.js",
-    ],
-    **kwargs
-  )
+  )  
