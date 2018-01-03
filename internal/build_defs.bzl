@@ -230,7 +230,7 @@ def closure_ts_binary(name, deps, **kwargs):
   )
 
 def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
-  rerooted_node_modules_path = "bazel-out/darwin-fastbuild/bin/src/%s_collect_es6_sources.es6/node_modules" % name
+  rerooted_node_modules_path = "**/%s_collect_es6_sources.es6/node_modules" % name
 
   rerooted_workspace_root = "%s/%s" % (rerooted_node_modules_path, workspace_name)
   rxjs_path = "%s/rxjs" % rerooted_node_modules_path
@@ -255,11 +255,7 @@ def closure_ng_binary(name, workspace_name, defs = [], **kwargs):
 
         ### @angular packages
         "--package_json_entry_names=es2015",
-        "--js=node_modules/@angular/core/package.json",
-        "--js=node_modules/@angular/common/package.json",
-        "--js=node_modules/@angular/platform-browser/package.json",
-        # Core must be specified individually and not globbed with packages which depend on it 
-        # (ie. @angular/animations).
+        "--js=node_modules/@angular/**/package.json",
         "--js=node_modules/@angular/core/esm2015/core.js",
         "--js=node_modules/@angular/common/esm2015/common.js",
         "--js=node_modules/@angular/platform-browser/esm2015/platform-browser.js",
