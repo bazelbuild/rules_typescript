@@ -55,6 +55,10 @@ def _compile_action(ctx, inputs, outputs, config_file_path):
     arguments = ["-p", config_file_path]
     mnemonic = "tsc"
 
+  outputs = non_externs_files
+  if not outputs:
+    return
+
   ctx.action(
       progress_message = "Compiling TypeScript (devmode) %s" % ctx.label,
       mnemonic = mnemonic,
