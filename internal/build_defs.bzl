@@ -189,7 +189,7 @@ def tsc_library(**kwargs):
 # closure_ts_binary   #
 # ******************* #
 def _collect_es6_sources_impl(ctx):
-  """Rule which wraps the rerooted_prod_files action for rules_closure.
+  """Rule which wraps the collect_es6_sources action for rules_closure.
 
   Args:
     ctx: the context.
@@ -197,22 +197,20 @@ def _collect_es6_sources_impl(ctx):
   Returns:
     A closure_js_library with the rerooted files.
   """
-  rerooted_prod_files = collect_es6_sources(ctx)
+  collected_es6_sources = collect_es6_sources(ctx)
 
   js_module_roots = depset()
-  for prod_file in rerooted_prod_files:
+  for prod_file in collected_es6_sources:
     if "node_modules/" in prod_file.dirname:
       js_module_roots += [prod_file.dirname[:prod_file.dirname.find('node_modules/')]]
 
   return struct(
-    files = rerooted_prod_files,
+    files = collected_es6_sources,
     closure_js_library = struct(
-      srcs = rerooted_prod_files,
-      js = [
-
-      ],
-      js_module_roots = js_module_roots
-  ))
+      srcs = collected_es6_sources,
+      js_module_roots = js_module_roots,
+    )
+  )
 
 _collect_es6_sources = rule(
     attrs = {"deps": attr.label_list(mandatory = True)},
