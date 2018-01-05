@@ -125,10 +125,10 @@ def create_tsconfig(ctx, files, srcs,
       # Has no effect in closure/ES2015 mode. Always true just for simplicity.
       "downlevelIteration": True,
 
-      # Do not type-check the lib.*.d.ts.
+      # Do not type-check the *.d.ts.
       # We think this shouldn't be necessary but haven't figured out why yet
       # and builds are faster with the setting on.
-      "skipDefaultLibCheck": True,
+      "skipLibCheck": True,
 
       "moduleResolution": "node",
 
