@@ -170,7 +170,8 @@ def create_tsconfig(ctx, files, srcs,
 
       # Interpret JSX as React calls (until someone asks for something different)
       "jsx": "react",
-      "jsxFactory": "React.createElement",
+      # Don't hardcode a default for jsxFactory, as this breaks TypeScript's
+      # support for JSX fragments in React.
 
       "noEmitOnError": False,
       "declaration": True,
