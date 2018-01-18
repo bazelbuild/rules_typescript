@@ -38,7 +38,8 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.3.1", # check for the latest tag when you install
+    # Update the tag below to the latest rules_nodejs release when installing.
+    tag = "0.3.1",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
