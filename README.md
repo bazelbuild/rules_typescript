@@ -32,9 +32,10 @@ containing:
 ```python
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
-# rules_nodejs provides build rules related to NPM and Yarn package management.
-# These rules are used for modeling the dependencies between user TypeScript
-# code and NPM or Yarn packages.
+# rules_nodejs provides build rules related to NPM and Yarn package management,
+# which are used for modeling the dependencies between user TypeScript code and
+# NPM or Yarn packages. It also provides testing and bundling rules that are
+# not specific to TypeScript (such as `jasmine_node_test` and `rollup_bundle`.)
 git_repository(
     name = "build_bazel_rules_nodejs",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
