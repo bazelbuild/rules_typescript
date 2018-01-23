@@ -209,19 +209,10 @@ export class FileCache<CachedType> implements LRUCache<CachedType> {
   }
 }
 
-/**
- * Returns true if the given filePath points to a file that should be read
- * non-hermetically.
- */
-export function isNonHermeticInput(filePath: string) {
-  // TODO(alexeagle): the indexOf(node_modules) is a hack, find a better
-  // way to identify these undeclared inputs.
-  return filePath.split(path.sep).indexOf('node_modules') !== -1;
-}
-
 export interface FileLoader {
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile;
+  fileExists(filePath: string): boolean;
 }
 
 /**
@@ -229,8 +220,11 @@ export interface FileLoader {
  */
 export class CachedFileLoader implements FileLoader {
   constructor(
-      private readonly cache: FileCache<ts.SourceFile>,
-      private readonly allowNonHermeticReads: boolean) {}
+      private readonly cache: FileCache<ts.SourceFile>) {}
+
+  fileExists(filePath: string) {
+    return this.cache.isKnownInput(filePath);
+  }
 
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile {
@@ -238,15 +232,6 @@ export class CachedFileLoader implements FileLoader {
     if (!sourceFile) {
       const sourceText = fs.readFileSync(filePath, 'utf8');
       sourceFile = ts.createSourceFile(fileName, sourceText, langVer, true);
-      if (this.allowNonHermeticReads && !this.cache.isKnownInput(filePath) &&
-          isNonHermeticInput(filePath)) {
-        // The cache can only hold and invalidate files with known digests. Non-
-        // hermetic inputs thus cannot be cached.
-        // TODO(alexeagle): this includes the expensive-to-check lib.d.ts & co,
-        // which will largely defeat the performance advantages of this cache.
-        // Find a way to express files from node_modules as a proper input.
-        return sourceFile;
-      }
       const entry = {
         digest: this.cache.getLastDigest(filePath),
         value: sourceFile
@@ -260,6 +245,10 @@ export class CachedFileLoader implements FileLoader {
 
 /** Load a source file from disk. */
 export class UncachedFileLoader implements FileLoader {
+  fileExists(filePath: string): boolean {
+    return ts.sys.fileExists(filePath);
+  }
+
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile {
     const sourceText = fs.readFileSync(filePath, 'utf8');
