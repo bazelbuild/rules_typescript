@@ -5,7 +5,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as process from 'process';
-import * as tmp from 'tmp';
+const tmp = require('tmp');
 ///<reference types="lib.dom"/>
 
 /**
