@@ -32,6 +32,13 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
         allow_files = True,
         cfg = "data",
     ),
+    # @// is special syntax for the "main" repository
+    # The default assumes the user specified a target "typings" in their
+    # root BUILD file.
+    "typings": attr.label(
+        default = Label("@//:typings"),
+        allow_files = [".d.ts"]
+    ),
     # TODO(evanm): make this the default and remove the option.
     "runtime": attr.string(default="browser"),
     # Used to determine module mappings

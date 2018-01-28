@@ -16,6 +16,7 @@
  */
 
 import * as path from 'path';
+import * as fs from 'fs';
 import * as ts from 'typescript';
 
 /**
@@ -154,6 +155,7 @@ export function parseTsconfig(
   // Allow Bazel users to control some of the bazel options.
   // Since TypeScript's "extends" mechanism applies only to "compilerOptions"
   // we have to repeat some of their logic to get the user's bazelOptions.
+  var userTypeRoots = []
   if (config.extends) {
     let userConfigFile =
         path.resolve(path.dirname(tsconfigFile), config.extends);
@@ -167,12 +169,23 @@ export function parseTsconfig(
       bazelOpts.disableStrictDeps = bazelOpts.disableStrictDeps ||
           userConfig.bazelOptions.disableStrictDeps;
     }
+    if (userConfig.compilerOptions && userConfig.compilerOptions.typeRoots) {
+      userTypeRoots = userConfig.compilerOptions.typeRoots;
+    }
   }
 
   const {options, errors, fileNames} =
       ts.parseJsonConfigFileContent(config, host, path.dirname(tsconfigFile));
   if (errors && errors.length) {
     return [null, errors, {target}];
+  }
+  if (userTypeRoots.length && options.rootDir) {
+    options.typeRoots = options.typeRoots || []
+    userTypeRoots.forEach((typeRoot: string) => {
+      const rerooted = path.join(options.rootDir as string, typeRoot);
+      const items = fs.readdirSync(rerooted);
+      (options.typeRoots as string[]).push(rerooted);
+    });
   }
 
   // Sort rootDirs with longest include directories first.
