@@ -41,7 +41,7 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file):
   if not action_outputs:
     return struct()
 
-  action_inputs = inputs + [f for f in ctx.files.node_modules + ctx.files._tsc_wrapped_deps
+  action_inputs = inputs + ctx.files.typings + [f for f in ctx.files.node_modules + ctx.files._tsc_wrapped_deps
                             if f.path.endswith(".js") or f.path.endswith(".ts") or f.path.endswith(".json")]
   if ctx.file.tsconfig:
     action_inputs += [ctx.file.tsconfig]
