@@ -15,6 +15,10 @@
 load("//internal:build_defs.bzl", ts_library = "tsc_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "jasmine_node_test")
 
+package(default_visibility = [
+    "//internal/tsc_wrapped:__subpackages__",
+])
+
 # Vanilla typescript compiler: run the tsc.js binary distributed by TypeScript
 nodejs_binary(
     name = "tsc",
@@ -37,6 +41,17 @@ ts_library(
         "tsconfig.ts",
         "umd_module_declaration_transform.ts",
         "worker.ts",
+        "plugin_api.ts",
+        "perf_trace.ts",
+        "tsetse/checker.ts",
+        "tsetse/error_code.ts",
+        "tsetse/failure.ts",
+        "tsetse/rule.ts",
+        "tsetse/runner.ts",
+        "tsetse/language_service_plugin.ts",
+        "tsetse/rules/ban_expect_truthy_promise_rule.ts",
+        "tsetse/rules/check_return_value_rule.ts",
+        "tsetse/rules/equals_nan_rule.ts",
     ],
     module_name = "@bazel/typescript",
     module_root = "index.d.ts",
@@ -47,23 +62,6 @@ ts_library(
         # see https://github.com/bazelbuild/bazel/issues/3155#issuecomment-308156976
         "//internal:worker_protocol.proto",
     ],
-    deps = [
-        ":perf_trace",
-        ":plugin_api",
-        "//internal/tsetse:runner",
-    ],
-)
-
-ts_library(
-    name = "plugin_api",
-    srcs = ["plugin_api.ts"],
-    visibility = ["//internal/tsetse:__pkg__"],
-)
-
-ts_library(
-    name = "perf_trace",
-    srcs = ["perf_trace.ts"],
-    visibility = ["//internal/tsetse:__pkg__"],
 )
 
 # Other ts_library rules will use this custom compiler, which calls the

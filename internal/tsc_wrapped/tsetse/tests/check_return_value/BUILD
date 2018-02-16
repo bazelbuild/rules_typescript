@@ -23,7 +23,7 @@ ts_library(
     name = "no_expected_diagnostics_test",
     testonly = 1,
     srcs = ["no_expected_diagnostics.ts"],
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
 )
 
 ts_library(
@@ -37,14 +37,14 @@ ts_library(
         "\(16,1\).*" + error_message,
         "\(19,1\).*" + error_message,
     ],
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
 )
 
 ts_library(
     name = "user_defined_check_return_value",
     testonly = 1,
     srcs = ["user_defined_check_return_value.ts"],
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
 )
 
 ts_library(
@@ -58,6 +58,6 @@ ts_library(
         "\(8,1\).*" + error_message,
         "\(14,1\).*" + error_message,
     ],
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
     deps = [":user_defined_check_return_value"],
 )
