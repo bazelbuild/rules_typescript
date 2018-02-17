@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//internal:build_defs.bzl", ts_library = "tsc_library")
+load("//internal:build_defs.bzl", "ts_library", "tsc_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "jasmine_node_test")
 
 package(default_visibility = [
@@ -28,7 +28,7 @@ nodejs_binary(
 )
 
 # Build our custom compiler using the vanilla one
-ts_library(
+tsc_library(
     name = "tsc_wrapped",
     srcs = [
         "compiler_host.ts",
@@ -81,7 +81,6 @@ ts_library(
     name = "test_lib",
     srcs = glob(["*_test.ts"]) + ["test_support.ts"],
     deps = [":tsc_wrapped"],
-    tsconfig = ":tsconfig.json",
 )
 
 jasmine_node_test(
