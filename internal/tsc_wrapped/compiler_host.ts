@@ -133,12 +133,12 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   /** Avoid using tsickle on files that aren't in srcs[] */
   shouldSkipTsickleProcessing(fileName: string): boolean {
-    return this.bazelOpts.compilationTargetSrc.indexOf(fileName) === -1;
+    return this.bazelOpts.compilationTargetSrc.indexOf(path.normalize(fileName)) === -1;
   }
 
   /** Whether the file is expected to be imported using a named module */
   shouldNameModule(fileName: string): boolean {
-    return this.bazelOpts.compilationTargetSrc.indexOf(fileName) !== -1;
+    return this.bazelOpts.compilationTargetSrc.indexOf(path.normalize(fileName)) !== -1;
   }
 
   /** Allows suppressing warnings for specific known libraries */
@@ -272,7 +272,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
     // path/to/file.ts ->
     // myWorkspace/path/to/file
-    return path.join(workspace, fileName.replace(/(\.d)?\.tsx?$/, ''));
+    return path.join(workspace, fileName.replace(/(\.d)?\.tsx?$/, '')).replace(/\\/g, '/');
   }
 
   /** Loads a source file from disk (or the cache). */
