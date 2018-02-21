@@ -74,7 +74,7 @@ export function checkModuleDeps(
     return fn.replace(/(\.d)?\.tsx?$/, '');
   }
   const allowedMap: {[fileName: string]: boolean} = {};
-  for (const d of allowedDeps) allowedMap[stripExt(d)] = true;
+  for (const d of allowedDeps) allowedMap[path.normalize(stripExt(d))] = true;
 
   const tc = program.getTypeChecker();
   const result: ts.Diagnostic[] = [];
