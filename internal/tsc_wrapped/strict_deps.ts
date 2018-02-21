@@ -96,7 +96,7 @@ export function checkModuleDeps(
       // Module imports can only have one declaration location.
       const declFileName = path.normalize(sym.declarations[0].getSourceFile().fileName);
       if (allowedMap[stripExt(declFileName)]) continue;
-      if (ignoredFilesPrefixes.some(p => declFileName.startsWith(p))) continue;
+      if (ignoredFilesPrefixes.some(p => !path.relative(p, declFileName).startsWith('..'))) continue;
       const importName = path.relative(rootDir, declFileName);
       result.push({
         file: sf,
