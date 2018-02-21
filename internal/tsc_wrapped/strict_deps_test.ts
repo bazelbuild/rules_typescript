@@ -83,7 +83,7 @@ describe('strict deps', () => {
     const diags = checkModuleDeps(p, ['p/sd3.ts'], ['/src/p/sd2.ts'], '/src');
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
-        .toMatch(/transitive dependency on p\/sd1.ts not allowed/);
+        .toMatch(/transitive dependency on p[\/\\]sd1.ts not allowed/);
   });
 
   it('reports errors for exports', () => {
@@ -96,7 +96,7 @@ describe('strict deps', () => {
     const diags = checkModuleDeps(p, ['p/sd3.ts'], ['/src/p/sd2.ts'], '/src');
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
-        .toMatch(/transitive dependency on p\/sd1.ts not allowed/);
+        .toMatch(/transitive dependency on p[\/\\]sd1.ts not allowed/);
   });
 
   it('supports files mapped in blaze-bin', () => {
@@ -112,7 +112,7 @@ describe('strict deps', () => {
         checkModuleDeps(p, ['/src/p/sd3.ts'], ['/src/blaze-bin/p/sd2.ts'], '/src');
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
-        .toMatch(/dependency on blaze-bin\/p\/sd1.ts not allowed/);
+        .toMatch(/transitive dependency on blaze-bin[\/\\]p[\/\\]sd1.ts not allowed/);
   });
 
   it('supports .d.ts files', () => {
@@ -128,6 +128,6 @@ describe('strict deps', () => {
         checkModuleDeps(p, ['/src/p/sd3.ts'], ['/src/blaze-bin/p/sd2.d.ts'], '/src');
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
-        .toMatch(/dependency on blaze-bin\/p\/sd1.d.ts not allowed/);
+        .toMatch(/transitive dependency on blaze-bin[\/\\]p[\/\\]sd1.d.ts not allowed/);
   });
 });

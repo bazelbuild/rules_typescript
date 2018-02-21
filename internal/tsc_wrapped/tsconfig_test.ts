@@ -38,8 +38,8 @@ describe('tsconfig', () => {
     };
     const host: ts.ParseConfigHost = {
       useCaseSensitiveFileNames: true,
-      fileExists: (path: string) => !!files[path],
-      readFile: (path: string) => files[path],
+      fileExists: (p: string) => !!files[path.normalize(p)],
+      readFile: (p: string) => files[path.normalize(p)],
       readDirectory(
           rootDir: string, extensions: ReadonlyArray<string>,
           excludes: ReadonlyArray<string>, includes: ReadonlyArray<string>,
