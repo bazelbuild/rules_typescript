@@ -47,7 +47,11 @@ ts_library(
     ],
 )
 
-# FIXME: not sure why this is broken
+# FIXME: not sure why this is broken after the tsetse workaround
+# Failure is:
+# ERROR: rules_typescript/internal/tsc_wrapped/tsetse/tests/ban_expect_truthy_promise/BUILD:51:1: Compiling TypeScript (devmode) //internal/tsc_wrapped/tsetse/tests/ban_expect_truthy_promise:negatives failed (Exit 1)
+# internal/tsc_wrapped/tsetse/tests/ban_expect_truthy_promise/negatives.ts(10,1): error TS21224: Value passed to expect() is of type Promise<number>, which is thenable. Promises are always truthy. Either use toBe(true) or await the value.
+#        See http://tsetse.info/ban-expect-truthy-promise
 # ts_library(
 #     name = "negatives",
 #     testonly = 1,
