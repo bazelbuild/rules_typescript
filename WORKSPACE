@@ -14,7 +14,7 @@
 
 workspace(name = "build_bazel_rules_typescript")
 
-# Using a pre-release snapshot to pick up a fix for module resolution
+# Using a pre-release snapshot to pick up a fix for puppeteer
 RULES_NODEJS_VERSION = "0162fdbe8ed986c9b5d5b79e53c98385ddaf6edd"
 
 http_archive(
