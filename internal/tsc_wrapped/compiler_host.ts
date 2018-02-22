@@ -279,6 +279,13 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void) {
+    // Temporary work around for Windows lib resolution.
+    // tsc requests lib files at the root path C:\lib.dom.d.ts
+    // This remaps it to where the file actually is a normalizes the slashes to match the cache.
+    if (/[A-Z]\:\/lib\./.test(fileName)) {
+      const defaultLibName = this.getDefaultLibFileName({target: ts.ScriptTarget.ES5});
+      fileName = defaultLibName.replace("lib.d.ts", fileName.substr(3)).replace(/\\/g, '/');
+    }
     return perfTrace.wrap(`getSourceFile ${fileName}`, () => {
       const sf = this.fileLoader.loadFile(fileName, fileName, languageVersion);
       if (this.options.module === ts.ModuleKind.AMD ||
