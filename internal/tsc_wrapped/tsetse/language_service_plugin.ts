@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as ts from 'typescript/lib/tsserverlibrary';
 
-import * as pluginApi from '../tsc_wrapped/plugin_api';
+import * as pluginApi from '../plugin_api';
 
 import {Checker} from './checker';
 import {registerRules} from './runner';

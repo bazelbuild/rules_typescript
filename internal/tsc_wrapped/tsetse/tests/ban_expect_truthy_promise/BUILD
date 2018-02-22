@@ -29,7 +29,7 @@ ts_library(
 ts_library(
     name = "positives",
     testonly = 1,
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
     srcs = [
         "positives.ts",
     ],
@@ -50,7 +50,7 @@ ts_library(
 ts_library(
     name = "negatives",
     testonly = 1,
-    tsconfig = "//internal/tsetse:tsconfig.json",
+    tsconfig = "//internal/tsc_wrapped:tsconfig.json",
     srcs = [
         "negatives.ts",
     ],
