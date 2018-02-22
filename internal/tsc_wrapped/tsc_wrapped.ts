@@ -94,7 +94,7 @@ function runOneBuild(
   fileCache.traceStats();
 
   function isCompilationTarget(sf: ts.SourceFile): boolean {
-    return (bazelOpts.compilationTargetSrc.indexOf(sf.fileName) !== -1);
+    return (bazelOpts.compilationTargetSrc.indexOf(path.normalize(sf.fileName)) !== -1);
   }
   let diags: ts.Diagnostic[] = [];
   // Install extra diagnostic plugins
