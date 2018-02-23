@@ -53,9 +53,9 @@ def _ts_web_test_impl(ctx):
   # polyfilling before test libraries load.
   # See https://github.com/karma-runner/karma/issues/699
   files_entries += [
-    "build_bazel_rules_typescript_karma_deps/node_modules/requirejs/require.js",
-    "build_bazel_rules_typescript_karma_deps/node_modules/karma-requirejs/lib/adapter.js",
-    "build_bazel_rules_typescript_karma_deps/node_modules/karma/requirejs.config.tpl.js",
+    "build_bazel_rules_typescript/external/build_bazel_rules_typescript_karma_deps/node_modules/requirejs/require.js",
+    "build_bazel_rules_typescript/external/build_bazel_rules_typescript_karma_deps/node_modules/karma-requirejs/lib/adapter.js",
+    "build_bazel_rules_typescript/external/build_bazel_rules_typescript_karma_deps/node_modules/karma/requirejs.config.tpl.js",
   ]
   # Finally we load the user's srcs and deps
   files_entries += [
