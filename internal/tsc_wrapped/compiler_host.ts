@@ -385,6 +385,10 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     return this.knownFiles.has(filePath);
   }
 
+  getDefaultLibLocation(): string {
+    return path.dirname(this.getDefaultLibFileName({target: ts.ScriptTarget.ES5}));
+  }
+
   getDefaultLibFileName(options: ts.CompilerOptions): string {
     if (this.bazelOpts.nodeModulesPrefix) {
       return path.join(
