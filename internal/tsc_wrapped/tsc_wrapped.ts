@@ -7,6 +7,7 @@ import {PLUGIN as tsetsePlugin} from '../tsetse/runner';
 import {CompilerHost} from './compiler_host';
 import * as diagnostics from './diagnostics';
 import {CachedFileLoader, FileCache, FileLoader, UncachedFileLoader} from './file_cache';
+import {normalizeSlashes} from './normalize_slashes';
 import {wrap} from './perf_trace';
 import {PLUGIN as strictDepsPlugin} from './strict_deps';
 import {BazelOptions, parseTsconfig} from './tsconfig';
@@ -71,7 +72,7 @@ function runOneBuild(
     // Resolve the inputs to absolute paths to match TypeScript internals
     const resolvedInputs: {[path: string]: string} = {};
     for (const key of Object.keys(inputs)) {
-      resolvedInputs[path.resolve(key)] = inputs[key];
+      resolvedInputs[normalizeSlashes(path.resolve(key))] = inputs[key];
     }
     fileCache.updateCache(resolvedInputs);
   } else {
@@ -102,7 +103,7 @@ function runOneBuild(
     const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
     if (options.rootDir) {
       ignoredFilesPrefixes.push(
-          path.resolve(options.rootDir, 'node_modules'));
+        path.resolve(options.rootDir, 'node_modules'));
     }
     program = strictDepsPlugin.wrap(program, {
       ...bazelOpts,

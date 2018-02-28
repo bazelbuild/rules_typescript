@@ -4,6 +4,7 @@ import * as tsickle from 'tsickle';
 import * as ts from 'typescript';
 
 import {FileLoader} from './file_cache';
+import {normalizeSlashes} from './normalize_slashes';
 import * as perfTrace from './perf_trace';
 import {BazelOptions} from './tsconfig';
 import {DEBUG, debug} from './worker';
@@ -255,7 +256,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     let fileName = this.rootDirsRelative(sf.fileName).replace(/(\.d)?\.tsx?$/, '');
 
     if (this.bazelOpts.moduleName) {
-      return path.join(this.bazelOpts.moduleName, path.relative(this.bazelOpts.package, fileName));
+      return normalizeSlashes(path.join(this.bazelOpts.moduleName, path.relative(this.bazelOpts.package, fileName)));
     }
 
     let workspace = this.bazelOpts.workspaceName;
@@ -277,7 +278,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
     // path/to/file ->
     // myWorkspace/path/to/file
-    return path.join(workspace, fileName);
+    return normalizeSlashes(path.join(workspace, fileName));
   }
 
   /** Loads a source file from disk (or the cache). */
@@ -381,6 +382,10 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       return result;
     }
     return this.knownFiles.has(filePath);
+  }
+
+  getDefaultLibLocation(): string {
+    return path.dirname(this.getDefaultLibFileName({target: ts.ScriptTarget.ES5}));
   }
 
   getDefaultLibFileName(options: ts.CompilerOptions): string {

@@ -18,6 +18,8 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {normalizeSlashes} from './normalize_slashes';
+
 /**
  * The configuration block provided by the tsconfig "bazelOptions".
  * Note that all paths here are relative to the rootDir, not absolute nor
@@ -218,7 +220,7 @@ export function parseTsconfig(
     tsconfigFile: string, host: ts.ParseConfigHost = ts.sys):
     [ParsedTsConfig|null, ts.Diagnostic[]|null, {target: string}] {
   // TypeScript expects an absolute path for the tsconfig.json file
-  tsconfigFile = path.resolve(tsconfigFile);
+  tsconfigFile = normalizeSlashes(path.resolve(tsconfigFile));
 
   const {config, error} = ts.readConfigFile(tsconfigFile, host.readFile);
   if (error) {
@@ -237,7 +239,7 @@ export function parseTsconfig(
   // we have to repeat some of their logic to get the user's bazelOptions.
   if (config.extends) {
     let userConfigFile =
-        path.resolve(path.dirname(tsconfigFile), config.extends);
+        normalizeSlashes(path.resolve(path.dirname(tsconfigFile), config.extends));
     if (!userConfigFile.endsWith('.json')) userConfigFile += '.json';
     const {config: userConfig, error} =
         ts.readConfigFile(userConfigFile, host.readFile);
@@ -279,14 +281,14 @@ export function parseTsconfig(
   // parseJsonConfigFileContent (because TypeScript doesn't know
   // about them). Transform them to also be absolute here.
   bazelOpts.compilationTargetSrc = bazelOpts.compilationTargetSrc.map(
-      f => path.resolve(options.rootDir!, f));
+      f => normalizeSlashes(path.resolve(options.rootDir!, f)));
   bazelOpts.allowedStrictDeps =
-      bazelOpts.allowedStrictDeps.map(f => path.resolve(options.rootDir!, f));
+      bazelOpts.allowedStrictDeps.map(f => normalizeSlashes(path.resolve(options.rootDir!, f)));
   bazelOpts.typeBlackListPaths =
-      bazelOpts.typeBlackListPaths.map(f => path.resolve(options.rootDir!, f));
+      bazelOpts.typeBlackListPaths.map(f => normalizeSlashes(path.resolve(options.rootDir!, f)));
   if (bazelOpts.nodeModulesPrefix) {
     bazelOpts.nodeModulesPrefix =
-        path.resolve(options.rootDir!, bazelOpts.nodeModulesPrefix);
+    normalizeSlashes(path.resolve(options.rootDir!, bazelOpts.nodeModulesPrefix));
   }
 
   let disabledTsetseRules: string[] = [];

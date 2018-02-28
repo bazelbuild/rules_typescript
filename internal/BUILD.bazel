@@ -18,7 +18,7 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files(["worker_protocol.proto"])
 
-load("//internal:build_defs.bzl", ts_library = "tsc_library")
+load("//internal:build_defs.bzl", "ts_library", "tsc_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "jasmine_node_test")
 
 # Vanilla typescript compiler: run the tsc.js binary distributed by TypeScript
@@ -30,7 +30,7 @@ nodejs_binary(
 )
 
 # Build our custom compiler using the vanilla one
-ts_library(
+tsc_library(
     name = "tsc_wrapped",
     srcs = glob([
       "tsc_wrapped/*.ts",

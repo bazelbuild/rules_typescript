@@ -18,6 +18,7 @@
 import * as path from 'path';
 import * as ts from 'typescript';
 
+import {normalizeSlashes} from './normalize_slashes';
 import {parseTsconfig} from './tsconfig';
 
 describe('tsconfig', () => {
@@ -31,9 +32,9 @@ describe('tsconfig', () => {
       bazelOptions: {},
     };
     const files = {
-      [path.resolve('path/to/user.tsconfig.json')]:
+      [normalizeSlashes(path.resolve('path/to/user.tsconfig.json'))]:
           '/*some comment*/\n' + JSON.stringify(userTsconfig),
-      [path.resolve('path/to/generated.tsconfig.json')]:
+      [normalizeSlashes(path.resolve('path/to/generated.tsconfig.json'))]:
           JSON.stringify(generatedTsconfig),
     };
     const host: ts.ParseConfigHost = {
