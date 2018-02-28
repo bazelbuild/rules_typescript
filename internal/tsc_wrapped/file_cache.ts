@@ -88,13 +88,18 @@ export class FileCache<CachedType> implements LRUCache<CachedType> {
    */
   updateCache(digests: {[filePath: string]: string}) {
     this.debug('updating digests:', digests);
-    this.lastDigests = digests;
-    for (const fp of Object.keys(digests)) {
+    const normalizedDigests: {[filePath: string]: string} = {}
+    for (let fp of Object.keys(digests)) {
+      const norm = fp.replace(/\\/g, '/');
+      normalizedDigests[norm] = digests[fp];
+    }
+    this.lastDigests = normalizedDigests;
+    for (let fp of Object.keys(normalizedDigests)) {
       const entry = this.fileCache[fp];
-      if (entry && entry.digest !== digests[fp]) {
+      if (entry && entry.digest !== normalizedDigests[fp]) {
         this.debug(
             'dropping file cache entry for', fp, 'digests', entry.digest,
-            digests[fp]);
+            normalizedDigests[fp]);
         delete this.fileCache[fp];
       }
     }
@@ -132,6 +137,9 @@ export class FileCache<CachedType> implements LRUCache<CachedType> {
 
   putCache(filePath: string, entry: CacheEntry<CachedType>, loadTimeMs: number):
       void {
+    filePath = filePath.replace(/\\/g, '/');
+    const readStart = Date.now();
+    this.cacheStats.readTimeMs += Date.now() - readStart;
     const dropped = this.maybeFreeMemory();
     this.fileCache[filePath] = entry;
     this.cacheStats.readTimeMs += loadTimeMs;

@@ -74,7 +74,7 @@ export function checkModuleDeps(
     return fn.replace(/(\.d)?\.tsx?$/, '');
   }
   const allowedMap: {[fileName: string]: boolean} = {};
-  for (const d of allowedDeps) allowedMap[stripExt(d)] = true;
+  for (const d of allowedDeps) allowedMap[path.normalize(stripExt(d))] = true;
 
   const tc = program.getTypeChecker();
   const result: ts.Diagnostic[] = [];
@@ -94,9 +94,9 @@ export function checkModuleDeps(
         continue;
       }
       // Module imports can only have one declaration location.
-      const declFileName = sym.declarations[0].getSourceFile().fileName;
+      const declFileName = path.normalize(sym.declarations[0].getSourceFile().fileName);
       if (allowedMap[stripExt(declFileName)]) continue;
-      if (ignoredFilesPrefixes.some(p => declFileName.startsWith(p))) continue;
+      if (ignoredFilesPrefixes.some(p => !path.relative(p, declFileName).startsWith('..'))) continue;
       const importName = path.relative(rootDir, declFileName);
       result.push({
         file: sf,
