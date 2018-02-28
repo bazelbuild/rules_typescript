@@ -32,6 +32,7 @@ ts_library(
         "file_cache.ts",
         "index.ts",
         "manifest.ts",
+        "path.ts",
         "strict_deps.ts",
         "tsc_wrapped.ts",
         "tsconfig.ts",

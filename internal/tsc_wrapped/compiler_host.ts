@@ -7,6 +7,7 @@ import {FileLoader} from './file_cache';
 import * as perfTrace from './perf_trace';
 import {BazelOptions} from './tsconfig';
 import {DEBUG, debug} from './worker';
+import {relative, join} from './path';
 
 export type ModuleResolver =
     (moduleName: string, containingFile: string,
@@ -69,7 +70,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       private moduleResolver: ModuleResolver = ts.resolveModuleName) {
     this.options = narrowTsOptions(options);
     this.relativeRoots =
-        this.options.rootDirs.map(r => path.relative(this.options.rootDir, r));
+        this.options.rootDirs.map(r => relative(this.options.rootDir, r));
     inputFiles.forEach((f) => {
       this.knownFiles.add(f);
     });
@@ -115,12 +116,12 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
     // outDir/relativeRoots[i]/path/to/file -> relativeRoots[i]/path/to/file
     if (fileName.startsWith(this.options.rootDir)) {
-      result = path.relative(this.options.outDir, fileName);
+      result = relative(this.options.outDir, fileName);
     }
 
     for (const dir of this.relativeRoots) {
       // relativeRoots[i]/path/to/file -> path/to/file
-      const rel = path.relative(dir, result);
+      const rel = relative(dir, result);
       if (!rel.startsWith('..')) {
         result = rel;
         // relativeRoots is sorted longest first so we can short-circuit
@@ -161,7 +162,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       if (fileName.startsWith(root)) {
         // rootDirs are sorted longest-first, so short-circuit the iteration
         // see tsconfig.ts.
-        return path.relative(root, fileName);
+        return relative(root, fileName);
       }
     }
     return fileName;
@@ -181,8 +182,8 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     // outDir/relativeRoots[i]/path/to/file ->
     // rootDir/relativeRoots[i]/path/to/file
     if (context.startsWith(this.options.outDir)) {
-      context = path.join(
-          this.options.rootDir, path.relative(this.options.outDir, context));
+      context = join(
+          this.options.rootDir, relative(this.options.outDir, context));
     }
 
     // Try to get the resolved path name from TS compiler host which can
@@ -211,7 +212,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       importPath = resolvedPath.replace(/(\.d)?\.tsx?$/, '');
       // Make sure all module names include the workspace name.
       if (importPath.indexOf(this.bazelOpts.workspaceName) !== 0) {
-        importPath = path.join(this.bazelOpts.workspaceName, importPath);
+        importPath = join(this.bazelOpts.workspaceName, importPath);
       }
     }
 
@@ -272,7 +273,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
     // path/to/file.ts ->
     // myWorkspace/path/to/file
-    return path.join(workspace, fileName.replace(/(\.d)?\.tsx?$/, ''));
+    return join(workspace, fileName.replace(/(\.d)?\.tsx?$/, ''));
   }
 
   /** Loads a source file from disk (or the cache). */
@@ -335,7 +336,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     }
 
     // Prepend the output directory.
-    fileName = path.join(this.options.outDir, fileName);
+    fileName = join(this.options.outDir, fileName);
 
     // Our file cache is based on mtime - so avoid writing files if they
     // did not change.
@@ -378,9 +379,13 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     return this.knownFiles.has(filePath);
   }
 
+  getDefaultLibLocation(): string {
+    return path.dirname(this.getDefaultLibFileName({target: ts.ScriptTarget.ES5}));
+  }
+
   getDefaultLibFileName(options: ts.CompilerOptions): string {
     if (this.bazelOpts.nodeModulesPrefix) {
-      return path.join(
+      return join(
           this.bazelOpts.nodeModulesPrefix, 'typescript/lib',
           ts.getDefaultLibFileName({target: ts.ScriptTarget.ES5}));
     }

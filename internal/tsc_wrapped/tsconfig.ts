@@ -17,6 +17,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
+import {resolve, normalize} from './path';
 
 /**
  * The configuration block provided by the tsconfig "bazelOptions".
@@ -209,7 +210,7 @@ export function parseTsconfig(
     tsconfigFile: string, host: ts.ParseConfigHost = ts.sys):
     [ParsedTsConfig|null, ts.Diagnostic[]|null, {target: string}] {
   // TypeScript expects an absolute path for the tsconfig.json file
-  tsconfigFile = path.resolve(tsconfigFile);
+  tsconfigFile = resolve(tsconfigFile);
 
   const {config, error} = ts.readConfigFile(tsconfigFile, host.readFile);
   if (error) {
@@ -228,7 +229,7 @@ export function parseTsconfig(
   // we have to repeat some of their logic to get the user's bazelOptions.
   if (config.extends) {
     let userConfigFile =
-        path.resolve(path.dirname(tsconfigFile), config.extends);
+        resolve(path.dirname(tsconfigFile), config.extends);
     if (!userConfigFile.endsWith('.json')) userConfigFile += '.json';
     const {config: userConfig, error} =
         ts.readConfigFile(userConfigFile, host.readFile);
@@ -263,21 +264,21 @@ export function parseTsconfig(
   // We normalize them to remove the intermediate parent directories.
   // This improves error messages and also matches logic in tsc_wrapped where we
   // expect normalized paths.
-  const files = fileNames.map(f => path.normalize(f));
+  const files = fileNames.map(f => normalize(f));
 
   // The bazelOpts paths in the tsconfig are relative to
   // options.rootDir (the workspace root) and aren't transformed by
   // parseJsonConfigFileContent (because TypeScript doesn't know
   // about them). Transform them to also be absolute here.
   bazelOpts.compilationTargetSrc = bazelOpts.compilationTargetSrc.map(
-      f => path.resolve(options.rootDir!, f));
+      f => resolve(options.rootDir!, f));
   bazelOpts.allowedStrictDeps =
-      bazelOpts.allowedStrictDeps.map(f => path.resolve(options.rootDir!, f));
+      bazelOpts.allowedStrictDeps.map(f => resolve(options.rootDir!, f));
   bazelOpts.typeBlackListPaths =
-      bazelOpts.typeBlackListPaths.map(f => path.resolve(options.rootDir!, f));
+      bazelOpts.typeBlackListPaths.map(f => resolve(options.rootDir!, f));
   if (bazelOpts.nodeModulesPrefix) {
     bazelOpts.nodeModulesPrefix =
-        path.resolve(options.rootDir!, bazelOpts.nodeModulesPrefix);
+        resolve(options.rootDir!, bazelOpts.nodeModulesPrefix);
   }
 
   let disabledTsetseRules: string[] = [];
