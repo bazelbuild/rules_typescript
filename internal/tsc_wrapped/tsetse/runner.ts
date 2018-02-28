@@ -4,8 +4,8 @@
 
 import * as ts from 'typescript';
 
-import * as perfTrace from '../tsc_wrapped/perf_trace';
-import * as pluginApi from '../tsc_wrapped/plugin_api';
+import * as perfTrace from '../perf_trace';
+import * as pluginApi from '../plugin_api';
 
 import {Checker} from './checker';
 import {AbstractRule} from './rule';

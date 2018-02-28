@@ -133,12 +133,12 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   /** Avoid using tsickle on files that aren't in srcs[] */
   shouldSkipTsickleProcessing(fileName: string): boolean {
-    return this.bazelOpts.compilationTargetSrc.indexOf(fileName) === -1;
+    return this.bazelOpts.compilationTargetSrc.indexOf(path.normalize(fileName)) === -1;
   }
 
   /** Whether the file is expected to be imported using a named module */
   shouldNameModule(fileName: string): boolean {
-    return this.bazelOpts.compilationTargetSrc.indexOf(fileName) !== -1;
+    return this.bazelOpts.compilationTargetSrc.indexOf(path.normalize(fileName)) !== -1;
   }
 
   /** Allows suppressing warnings for specific known libraries */
@@ -264,21 +264,28 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     // named by code in that repository.
     // As a workaround, check for the /external/ path segment, and fix up the
     // workspace name to be the name of the external repository.
-    if (fileName.startsWith('external/')) {
-      const parts = fileName.split('/');
+    if (!path.relative('external', fileName).startsWith('..')) {
+      const parts = fileName.replace(/\\/g, '/').split('/');
       workspace = parts[1];
       fileName = parts.slice(2).join('/');
     }
 
     // path/to/file.ts ->
     // myWorkspace/path/to/file
-    return path.join(workspace, fileName.replace(/(\.d)?\.tsx?$/, ''));
+    return path.join(workspace, fileName.replace(/(\.d)?\.tsx?$/, '')).replace(/\\/g, '/');
   }
 
   /** Loads a source file from disk (or the cache). */
   getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void) {
+    // Temporary work around for Windows lib resolution.
+    // tsc requests lib files at the root path C:\lib.dom.d.ts
+    // This remaps it to where the file actually is a normalizes the slashes to match the cache.
+    if (/[A-Z]\:\/lib\./.test(fileName)) {
+      const defaultLibName = this.getDefaultLibFileName({target: ts.ScriptTarget.ES5});
+      fileName = defaultLibName.replace("lib.d.ts", fileName.substr(3)).replace(/\\/g, '/');
+    }
     return perfTrace.wrap(`getSourceFile ${fileName}`, () => {
       const sf = this.fileLoader.loadFile(fileName, fileName, languageVersion);
       if (this.options.module === ts.ModuleKind.AMD ||
@@ -376,6 +383,10 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       return result;
     }
     return this.knownFiles.has(filePath);
+  }
+
+  getDefaultLibLocation(): string {
+    return path.dirname(this.getDefaultLibFileName({target: ts.ScriptTarget.ES5}));
   }
 
   getDefaultLibFileName(options: ts.CompilerOptions): string {

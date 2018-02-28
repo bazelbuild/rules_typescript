@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
 
-import {PLUGIN as tsetsePlugin} from '../tsetse/runner';
+import {PLUGIN as tsetsePlugin} from './tsetse/runner';
 
 import {CompilerHost} from './compiler_host';
 import * as diagnostics from './diagnostics';
@@ -94,7 +94,7 @@ function runOneBuild(
   fileCache.traceStats();
 
   function isCompilationTarget(sf: ts.SourceFile): boolean {
-    return (bazelOpts.compilationTargetSrc.indexOf(sf.fileName) !== -1);
+    return (bazelOpts.compilationTargetSrc.indexOf(path.normalize(sf.fileName)) !== -1);
   }
   let diags: ts.Diagnostic[] = [];
   // Install extra diagnostic plugins

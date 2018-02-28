@@ -7,4 +7,4 @@ class ClassWithTruthy {
 }
 
 new ClassWithTruthy().toBeTruthy();
-expect(Promise.resolve(1)).toBeTruthy();
+expect({}).toBeTruthy();
