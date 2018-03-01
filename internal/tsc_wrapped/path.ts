@@ -19,3 +19,7 @@ export function relative(a: string, b: string) {
 export function normalize(p: string) {
     return path.normalize(p).replace(/\\/g, '/');
 }
+
+// re-export other functions used
+export function dirname(p: string): string { return path.dirname(p); }
+export function basename(p: string): string { return path.basename(p); }

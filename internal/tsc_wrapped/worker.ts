@@ -1,4 +1,4 @@
-import {resolve} from './path';
+import * as path from './path';
 /* tslint:disable:no-require-imports */
 const protobufjs = require('protobufjs');
 const ByteBuffer = require('bytebuffer');
@@ -32,7 +32,7 @@ const workerpb = (function loadWorkerPb() {
   // Use node module resolution so we can find the .proto file in any of the root dirs
   const protoNamespace = protobufjs.loadProtoFile(require.resolve(protoPath));
   if (!protoNamespace) {
-    throw new Error('Cannot find ' + resolve(protoPath));
+    throw new Error('Cannot find ' + path.resolve(protoPath));
   }
   return protoNamespace.build('blaze.worker');
 })();
