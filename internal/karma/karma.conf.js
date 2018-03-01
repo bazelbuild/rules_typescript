@@ -30,13 +30,11 @@ if (fs.existsSync(manifestFile)) {
       throw new Error(`File not found in MANIFEST: ${f}`);
     }
   });
-} else {
-  files = files.map((f) => f.replace('build_bazel_rules_typescript/external/', ''));
 }
 
 let requireFiles = [
   TMPL_files
-].map((f) => f.replace('build_bazel_rules_typescript/external/', ''));
+];
 
 var requireConfigContent = `
 // A simplified version of Karma's requirejs.config.tpl.js for use with Karma under Bazel
