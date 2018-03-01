@@ -17,6 +17,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
+import {relative} from './path';
 
 import * as perfTrace from './perf_trace';
 import * as pluginApi from './plugin_api';
@@ -97,7 +98,7 @@ export function checkModuleDeps(
       const declFileName = sym.declarations[0].getSourceFile().fileName;
       if (allowedMap[stripExt(declFileName)]) continue;
       if (ignoredFilesPrefixes.some(p => declFileName.startsWith(p))) continue;
-      const importName = path.relative(rootDir, declFileName);
+      const importName = relative(rootDir, declFileName);
       result.push({
         file: sf,
         start: modSpec.getStart(),
