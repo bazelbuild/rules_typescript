@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const tmp = require('tmp');
 
+// When karma is configured to use Chrome it will look for a CHROME_BIN
+// environment variable. This line points Karma to use puppeteer.
+// See https://github.com/karma-runner/karma-chrome-launcher/blob/master/README.md#headless-chromium-with-puppeteer
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 let files = [
