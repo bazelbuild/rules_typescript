@@ -8,7 +8,16 @@ genrule(
   cmd = "echo 'export const a = 1;' > $@",
 )
 
+genrule(
+  name = "nested_dir_ts",
+  outs = ["subdir/bar.ts"],
+  cmd = "echo 'export const b = 2;' > $@",
+)
+
 ts_library(
   name = "generated_ts",
-  srcs = [":foo.ts"],
+  srcs = [
+    ":foo.ts",
+    ":subdir/bar.ts",
+  ],
 )
