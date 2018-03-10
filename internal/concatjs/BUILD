@@ -13,6 +13,7 @@ go_library(
     name = "concatjs",
     importpath = "github.com/bazelbuild/rules_typescript/internal/concatjs/concatjs",
     srcs = ["concatjs.go"],
+    visibility = ["//visibility:public"],
 )
 
 go_test(
