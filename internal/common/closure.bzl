@@ -4,7 +4,7 @@ def _closure_aspect_impl(target, ctx):
         return []
     if not(hasattr(target, 'closure_js_library')):
         return []
-    direct_typings = [target.clutz_dts]
+    direct_typings = target.clutz_dts
     srcs = ctx.rule.files.srcs        
 
     deps = getattr(ctx.rule.attr, 'deps', [])

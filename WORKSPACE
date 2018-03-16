@@ -48,9 +48,9 @@ node_repositories(
 # Using a fork to get support for clutz.
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "bf644d28e38678b32c3451b756dd10d573a92bbf389d8635d15f7a4f73c6732b",
-    strip_prefix = "rules_closure-ff38624368a4da08a23428659ae1a3232044a59e",
-    url = "http://github.com/ribrdb/rules_closure/archive/ff38624368a4da08a23428659ae1a3232044a59e.tar.gz",
+    sha256 = "f8392913b8aa2ce1e477181fa6b5761ca5c1872775a4e6895ef874b0265d7912",
+    strip_prefix = "rules_closure-2447dc5fc4a94adbbe772c7e943fd31d91ffe21f",
+    url = "http://github.com/ribrdb/rules_closure/archive/2447dc5fc4a94adbbe772c7e943fd31d91ffe21f.tar.gz",
 )
 
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")

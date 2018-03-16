@@ -155,10 +155,9 @@ function runOneBuild(
 
     const emitResult = tsickle.mergeEmitResults(emitResults);
 
-    if (bazelOpts.tsickleGenerateExterns && bazelOpts.tsickleExternsPath) {
-      fs.writeFileSync(
-          bazelOpts.tsickleExternsPath,
-          tsickle.getGeneratedExterns(emitResult.externs));
+    if (bazelOpts.tsickleExternsPath) {
+      const externs = bazelOpts.tsickleGenerateExterns ? tsickle.getGeneratedExterns(emitResult.externs) : '';
+      fs.writeFileSync(bazelOpts.tsickleExternsPath, externs);
     }
   } else {
     for (const sf of program.getSourceFiles().filter(isCompilationTarget)) {
@@ -170,7 +169,7 @@ function runOneBuild(
           });
       diags.push(...emitResult.diagnostics);
     }
-    if (bazelOpts.tsickleGenerateExterns && bazelOpts.tsickleExternsPath) {
+    if (bazelOpts.tsickleExternsPath) {
       fs.writeFileSync(bazelOpts.tsickleExternsPath, '');
     }
   }

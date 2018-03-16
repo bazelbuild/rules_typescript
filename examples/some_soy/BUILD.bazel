@@ -18,6 +18,7 @@ load(
     "@io_bazel_rules_closure//closure:defs.bzl",
     "closure_js_template_library",
     "closure_js_binary",
+    "closure_js_library",
 )
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 load("//:defs.bzl", "ts_library")
@@ -30,25 +31,65 @@ closure_js_template_library(
 ts_library(
     name = "main",
     srcs = ["main.ts"],
-    deps = [":template"],
+    deps = [
+        "@io_bazel_rules_closure//closure/library",
+        ":template",
+    ],
 )
 
 closure_js_binary(
-    name="bin",
-    deps=[":main"],
-    entry_points=["goog:build_bazel_rules_typescript.examples.some_soy.main"],
+    name = "render_soy_bin",
+    entry_points = ["goog:build_bazel_rules_typescript.examples.some_soy.main"],
+    deps = [":main"],
 )
 
 nodejs_binary(
     name = "some_soy",
     data = [
-        ":bin",
+        ":render_soy_bin",
     ],
-    entry_point = "build_bazel_rules_typescript/examples/some_soy/bin.js",
+    entry_point = "build_bazel_rules_typescript/examples/some_soy/render_soy_bin.js",
 )
 
 sh_test(
     name = "soy_render_test",
     srcs = ["soy_render_test.sh"],
     data = [":some_soy"],
+)
+
+ts_library(
+    name="custom_closure",
+    srcs=[":closure.d.ts"],
+    runtime_deps = [
+        "@io_bazel_rules_closure//closure/library",
+    ],
+    generate_externs = False,
+)
+
+ts_library(
+    name = "runtime_deps_main",
+    srcs = ["runtime_deps_main.ts"],
+    deps = [
+        ":custom_closure",
+    ],
+)
+
+closure_js_binary(
+    name = "runtime_deps_jsbin",
+    entry_points = ["goog:build_bazel_rules_typescript.examples.some_soy.runtime_deps_main"],
+    deps = [":runtime_deps_main"],
+)
+
+nodejs_binary(
+    name = "runtime_deps",
+    data = [
+        ":runtime_deps_jsbin",
+    ],
+    entry_point = "build_bazel_rules_typescript/examples/some_soy/runtime_deps_jsbin.js",
+)
+
+sh_test(
+    name = "runtime_deps_test",
+    srcs = ["runtime_deps_test.sh"],
+    data = [":runtime_deps"],
 )
