@@ -24,7 +24,6 @@ def _closure_aspect_impl(target, ctx):
             es5_sources=depset(srcs),
             transitive_es5_sources=transitive_es5_srcs,
             type_blacklisted_declarations=depset(transitive=[dep.typescript.type_blacklisted_declarations for dep in deps]),
-            runtime_deps=depset(transitive=[d.typescript.runtime_deps for d in deps]),
             tsickle_externs=[],
             replay_params=None,
             devmode_manifest=None,

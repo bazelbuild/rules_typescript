@@ -177,7 +177,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   /** Allows suppressing warnings for specific known libraries */
   shouldIgnoreWarningsForPath(filePath: string): boolean {
-    return this.bazelOpts.ignoreWarningPaths.some(
+    return this.bazelOpts.ignoreWarningPaths && this.bazelOpts.ignoreWarningPaths.some(
         p => !!filePath.match(new RegExp(p)));
   }
 
