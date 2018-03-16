@@ -43,7 +43,7 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
     # any closure JS code.
     "runtime_deps": attr.label_list(
         default = [],
-        providers = ["js", "closure_js_library"],
+        providers = [["js"], ["closure_js_library"]],
     ),
     "_additional_d_ts": attr.label_list(
         allow_files = True,
