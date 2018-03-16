@@ -1,0 +1,54 @@
+# Copyright 2017 The Bazel Authors. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+package(default_visibility = ["//visibility:public"])
+
+load(
+    "@io_bazel_rules_closure//closure:defs.bzl",
+    "closure_js_template_library",
+    "closure_js_binary",
+)
+load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
+load("//:defs.bzl", "ts_library")
+
+closure_js_template_library(
+    name = "template",
+    srcs = ["some.soy"],
+)
+
+ts_library(
+    name = "main",
+    srcs = ["main.ts"],
+    deps = [":template"],
+)
+
+closure_js_binary(
+    name="bin",
+    deps=[":main"],
+    entry_points=["goog:build_bazel_rules_typescript.examples.some_soy.main"],
+)
+
+nodejs_binary(
+    name = "some_soy",
+    data = [
+        ":bin",
+    ],
+    entry_point = "build_bazel_rules_typescript/examples/some_soy/bin.js",
+)
+
+sh_test(
+    name = "soy_render_test",
+    srcs = ["soy_render_test.sh"],
+    data = [":some_soy"],
+)

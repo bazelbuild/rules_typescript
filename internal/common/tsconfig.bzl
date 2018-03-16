@@ -124,6 +124,7 @@ def create_tsconfig(ctx, files, srcs,
       "target": str(ctx.label),
       "package": ctx.label.package,
       "tsickle": tsickle_externs != None,
+      "googmodule": tsickle_externs != None,
       "tsickleGenerateExterns": getattr(ctx.attr, "generate_externs", True),
       "tsickleExternsPath": tsickle_externs.path if tsickle_externs else "",
       "untyped": not getattr(ctx.attr, "tsickle_typed", False),
@@ -243,6 +244,9 @@ def create_tsconfig(ctx, files, srcs,
       # Implied by inlineSourceMap: True
       "sourceMap": False,
   }
+
+  if tsickle_externs != None:
+    compiler_options["module"] = "commonjs"
 
   if hasattr(ctx.attr, "node_modules"):
     compiler_options["typeRoots"] = ["/".join([p for p in [

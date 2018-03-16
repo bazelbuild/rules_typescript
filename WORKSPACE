@@ -43,6 +43,20 @@ node_repositories(
   package_json = ["//:package.json"],
   preserve_symlinks = True)
 
+# Closure compiler.
+# This is is needed for the closure interop example, users should not need to add it unless they want to use it.
+# Using a fork to get support for clutz.
+http_archive(
+    name = "io_bazel_rules_closure",
+    sha256 = "bf644d28e38678b32c3451b756dd10d573a92bbf389d8635d15f7a4f73c6732b",
+    strip_prefix = "rules_closure-ff38624368a4da08a23428659ae1a3232044a59e",
+    url = "http://github.com/ribrdb/rules_closure/archive/ff38624368a4da08a23428659ae1a3232044a59e.tar.gz",
+)
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
+
+closure_repositories()
+
 http_archive(
     name = "io_bazel_rules_go",
     urls = [

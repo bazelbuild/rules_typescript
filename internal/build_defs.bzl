@@ -24,16 +24,10 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
   externs_files = []
   action_outputs = []
   for output in outputs:
-    if output.basename.endswith(".externs.js"):
-      externs_files.append(output)
-    elif output.basename.endswith(".es5.MF"):
+    if output.basename.endswith(".es5.MF"):
       ctx.file_action(output, content="")
     else:
       action_outputs.append(output)
-
-  # TODO(plf): For now we mock creation of files other than {name}.js.
-  for externs_file in externs_files:
-    ctx.file_action(output=externs_file, content="")
 
   # A ts_library that has only .d.ts inputs will have no outputs,
   # therefore there are no actions to execute
@@ -111,6 +105,15 @@ def tsc_wrapped_tsconfig(ctx,
     ctx.attr.node_modules.label.package,
     "node_modules"
   ] if p])
+
+  if config["compilerOptions"]["target"] == "es6":
+    if not(config["bazelOptions"]["tsickle"]):
+      config["compilerOptions"]["module"] = "es2015"
+  else:
+    # The "typescript.es5_sources" provider is expected to work
+    # in both nodejs and in browsers.
+    # NOTE: tsc-wrapped will always name the enclosed AMD modules
+    config["compilerOptions"]["module"] = "umd"
 
   # If the user gives a tsconfig attribute, the generated file should extend
   # from the user's tsconfig.

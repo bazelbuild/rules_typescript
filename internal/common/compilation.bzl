@@ -15,6 +15,7 @@
 """Used for compilation by the different implementations of build_defs.bzl.
 """
 
+load(":common/closure.bzl", "closure_aspect")
 load(":common/module_mappings.bzl", "module_mappings_aspect")
 load(":common/json_marshal.bzl", "json_marshal")
 
@@ -22,6 +23,7 @@ BASE_ATTRIBUTES = dict()
 
 DEPS_ASPECTS = [
     module_mappings_aspect,
+    closure_aspect,
 ]
 
 # Attributes shared by any typescript-compatible rule (ts_library, ng_module)
@@ -41,7 +43,7 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
     # any closure JS code.
     "runtime_deps": attr.label_list(
         default = [],
-        providers = ["js"],
+        providers = ["js", "closure_js_library"],
     ),
     "_additional_d_ts": attr.label_list(
         allow_files = True,
@@ -188,9 +190,10 @@ def compile_ts(ctx,
   transpiled_devmode_js = outs.devmode_js
   gen_declarations = outs.declarations
 
-  if has_sources and ctx.attr.runtime != "nodejs":
-    # Note: setting this variable controls whether tsickle is run at all.
-    tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
+  if hasattr(ctx.attr,'tsickle_typed') and ctx.attr.tsickle_typed:
+    if has_sources and ctx.attr.runtime != "nodejs":
+      # Note: setting this variable controls whether tsickle is run at all.
+      tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
 
   dep_declarations = _collect_dep_declarations(ctx)
   input_declarations = dep_declarations.transitive + src_declarations
