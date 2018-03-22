@@ -199,3 +199,54 @@ ts_library = rule(
 It produces declarations files (`.d.ts`) which are used for compiling downstream
 TypeScript targets and JavaScript for the browser and Closure compiler.
 """
+
+def _ts_declaration_impl(ctx):
+  """Implementation of ts_declaration.
+
+  Args:
+    ctx: the context.
+
+  Returns:
+    the struct returned by the call to compile_ts.
+  """
+  ts_providers = compile_ts(ctx, is_library=False,
+                            compile_action=_compile_action,
+                            devmode_compile_action=_devmode_compile_action,
+                            tsc_wrapped_tsconfig=tsc_wrapped_tsconfig)
+  return ts_providers_dict_to_struct(ts_providers)
+
+ts_declaration = rule(
+    _ts_declaration_impl,
+    attrs = dict(COMMON_ATTRIBUTES, **{
+        "srcs":
+            attr.label_list(
+                allow_files=FileType([
+                    ".ts",
+                    ".tsx",
+                ]),
+                mandatory=True,),
+
+        # TODO(alexeagle): reconcile with google3: ts_library rules should
+        # be portable across internal/external, so we need this attribute
+        # internally as well.
+        "tsconfig":
+            attr.label(allow_files = True, single_file = True),
+        "compiler":
+            attr.label(
+                default=get_tsc(),
+                single_file=False,
+                allow_files=True,
+                executable=True,
+                cfg="host"),
+        "supports_workers": attr.bool(default = True),
+        "tsickle_typed": attr.bool(default = True),
+        "_tsc_wrapped_deps": attr.label(default = Label("@build_bazel_rules_typescript_tsc_wrapped_deps//:node_modules")),
+        # @// is special syntax for the "main" repository
+        # The default assumes the user specified a target "node_modules" in their
+        # root BUILD file.
+        "node_modules": attr.label(default = Label("@//:node_modules")),
+    }),
+    outputs = {
+        "tsconfig": "%{name}_tsconfig.json"
+    }
+)

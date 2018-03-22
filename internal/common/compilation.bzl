@@ -192,8 +192,9 @@ def compile_ts(ctx,
 
   if hasattr(ctx.attr,'tsickle_typed') and ctx.attr.tsickle_typed:
     if has_sources and ctx.attr.runtime != "nodejs":
-      # Note: setting this variable controls whether tsickle is run at all.
-      tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
+      if is_library or ctx.attr.generate_externs:
+        # Note: setting this variable controls whether tsickle is run at all.
+        tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
 
   dep_declarations = _collect_dep_declarations(ctx)
   input_declarations = dep_declarations.transitive + src_declarations
