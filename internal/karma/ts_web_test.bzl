@@ -76,6 +76,10 @@ def _ts_web_test_impl(ctx):
           "TMPL_headlessbrowser": "%sHeadless" % _BROWSER,
       })
 
+  karma_executable_path = ctx.executable._karma.short_path
+  if karma_executable_path.startswith('..'):
+    karma_executable_path = "external" + karma_executable_path[2:]
+
   ctx.actions.write(
       output = ctx.outputs.executable,
       is_executable = True,
@@ -105,7 +109,7 @@ if [ ! -z "$TEST_TMPDIR" ]; then
 fi
 
 $KARMA ${{ARGV[@]}}
-""".format(TMPL_karma = ctx.executable._karma.short_path.replace('..', 'external'),
+""".format(TMPL_karma = karma_executable_path,
            TMPL_conf = conf.short_path))
   return [DefaultInfo(
       runfiles = ctx.runfiles(

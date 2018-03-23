@@ -5,23 +5,22 @@ const fs = require('fs');
 const tmp = require('tmp');
 
 // When karma is configured to use Chrome it will look for a CHROME_BIN
-// environment variable. This line points Karma to use puppeteer.
-// See https://github.com/karma-runner/karma-chrome-launcher/blob/master/README.md#headless-chromium-with-puppeteer
+// environment variable. This line points Karma to use puppeteer instead.
+// See
+// https://github.com/karma-runner/karma-chrome-launcher/blob/master/README.md#headless-chromium-with-puppeteer
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 let files = [
   TMPL_files
 ];
 
-const manifestFile = path.join(process.env.TEST_SRCDIR, "MANIFEST");
+const manifestFile = path.join(process.env.TEST_SRCDIR, 'MANIFEST');
 if (fs.existsSync(manifestFile)) {
   const manifest = {};
-  fs.readFileSync(manifestFile, { encoding: 'utf8' })
-    .split('\n')
-    .forEach((l) => {
-      const m = l.split(' ');
-      manifest[m[0]] = m[1];
-    });
+  for (l of fs.readFileSync(manifestFile, 'utf8').split('\n')) {
+    const m = l.split(' ');
+    manifest[m[0]] = m[1];
+  }
   const manifestKeys = Object.keys(manifest);
   files = files.map((f) => {
     if (manifestKeys.includes(f)) {
@@ -32,14 +31,11 @@ if (fs.existsSync(manifestFile)) {
   });
 }
 
-let requireFiles = [
-  TMPL_files
-];
-
 var requireConfigContent = `
-// A simplified version of Karma's requirejs.config.tpl.js for use with Karma under Bazel
+// A simplified version of Karma's requirejs.config.tpl.js for use with Karma under Bazel.
+// This does an explicit \`require\` on each script in the files, otherwise nothing will be loaded.
 (function(){
-  var allFiles = ` + JSON.stringify(requireFiles) + `;
+  var allFiles = ${JSON.stringify([TMPL_files])};
   var allTestFiles = [];
   allFiles.forEach(function (file) {
     if (/(spec|test)\\.js$/i.test(file)) {
@@ -50,8 +46,8 @@ var requireConfigContent = `
 })();
 `;
 
-const requireConfigFile = tmp.fileSync({keep: false, postfix: '.js', dir: process.env['TEST_TMPDIR']});
-console.log('Writing require config file to ', requireConfigFile.name);
+const requireConfigFile = tmp.fileSync(
+    {keep: false, postfix: '.js', dir: process.env['TEST_TMPDIR']});
 fs.writeFileSync(requireConfigFile.name, requireConfigContent);
 files.push(requireConfigFile.name);
 
@@ -105,7 +101,6 @@ module.exports = function(config) {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: 'TMPL_runfiles_path',
 
-    // files
-    files: files,
+    files,
   })
 }
