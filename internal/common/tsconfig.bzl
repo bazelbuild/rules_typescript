@@ -75,6 +75,12 @@ def create_tsconfig(ctx, files, srcs,
           ctx.attr.node_modules.label.package,
           "node_modules",
           "*"] if p]))
+      node_modules_mappings.append("/".join([p for p in [
+          ctx.attr.node_modules.label.workspace_root,
+          ctx.attr.node_modules.label.package,
+          "node_modules",
+          "@types",
+          "*"] if p]))
 
     module_roots = {
         "*": node_modules_mappings,
