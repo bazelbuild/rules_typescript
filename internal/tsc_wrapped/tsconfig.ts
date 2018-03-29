@@ -124,6 +124,12 @@ export interface BazelOptions {
    * ts_library.
    */
   moduleName?: string;
+
+  /**
+   * An explicit entry point for this module, given by the module_root attribute
+   * on a ts_library.
+   */
+  moduleRoot?: string;
 }
 
 export interface ParsedTsConfig {
@@ -236,7 +242,9 @@ export function parseTsconfig(
     return [null, [error], {target: ''}];
   }
 
-  const bazelOpts: BazelOptions = config.bazelOptions;
+  // Handle bazel specific options, but make sure not to crash when reading a
+  // vanilla tsconfig.json.
+  const bazelOpts: BazelOptions = config.bazelOptions || {};
   const target = bazelOpts.target;
   bazelOpts.allowedStrictDeps = bazelOpts.allowedStrictDeps || [];
   bazelOpts.typeBlackListPaths = bazelOpts.typeBlackListPaths || [];
