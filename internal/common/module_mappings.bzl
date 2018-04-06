@@ -70,11 +70,10 @@ def get_module_mappings(label, attrs, srcs = [], workspace_name = None, mappings
     mn = attrs.module_name
     if not mn:
       mn = label.name
-    mr = label.package
-    if workspace_name:
-      mr = "%s/%s" % (workspace_name, mr)
-    elif label.workspace_root:
-      mr = "%s/%s" % (label.workspace_root, mr)
+    mr = "/".join([p for p in [
+      workspace_name if workspace_name else label.workspace_root,
+      label.package,
+    ] if p])
     if attrs.module_root and attrs.module_root != ".":
       mr = "%s/%s" % (mr, attrs.module_root)
       if attrs.module_root.endswith(".ts"):
@@ -94,6 +93,11 @@ def get_module_mappings(label, attrs, srcs = [], workspace_name = None, mappings
       fail(("duplicate module mapping at %s: %s maps to both %s and %s" %
             (label, mn, mappings[mn], mr)), "deps")
     mappings[mn] = mr
+    # If module_root ends in .d.ts then we add an alternate mapping
+    # to be permissive when mapping imports that look like
+    # "module_name/module_root"
+    if attrs.module_root.endswith(".d.ts"):
+      mappings["%s/%s" % (mn, attrs.module_root.replace(".d.ts", ""))] = mr
   debug("Mappings at %s: %s", (label, mappings))
   return mappings
 
