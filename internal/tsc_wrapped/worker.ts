@@ -29,12 +29,23 @@ const workerpb = (function loadWorkerPb() {
   // 'external/bazel_tools/src/main/protobuf/worker_protocol.proto';
   const protoPath = 'build_bazel_rules_typescript/internal/worker_protocol.proto';
 
-  // Use node module resolution so we can find the .proto file in any of the root dirs
-  const protoNamespace = protobufjs.loadProtoFile(require.resolve(protoPath));
-  if (!protoNamespace) {
-    throw new Error('Cannot find ' + path.resolve(protoPath));
+  if (protobufjs.loadProtoFile) {
+    // Protobuf.js version 5
+    // Use node module resolution so we can find the .proto file in any of the root dirs
+    const protoNamespace = protobufjs.loadProtoFile(require.resolve(protoPath));
+    if (!protoNamespace) {
+      throw new Error('Cannot find ' + path.resolve(protoPath));
+    }
+    return protoNamespace.build('blaze.worker');
+  } else {
+    // Protobuf.js Version 6
+    // Use node module resolution so we can find the .proto file in any of the root dirs
+    const protoNamespace = protobufjs.loadSync(require.resolve(protoPath));
+    if (!protoNamespace) {
+      throw new Error('Cannot find ' + path.resolve(protoPath));
+    }
+    return protoNamespace.lookup('blaze.worker');
   }
-  return protoNamespace.build('blaze.worker');
 })();
 
 interface Input {
