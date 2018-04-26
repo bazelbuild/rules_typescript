@@ -21,7 +21,7 @@ load(":executables.bzl", "get_tsc")
 load(":common/tsconfig.bzl", "create_tsconfig")
 load(":ts_config.bzl", "TsConfigInfo")
 
-def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts):
+def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, devmode):
   externs_files = []
   action_outputs = []
   for output in outputs:
@@ -62,7 +62,7 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts):
     mnemonic = "tsc"
 
   ctx.action(
-      progress_message = "Compiling TypeScript (devmode) %s" % ctx.label,
+      progress_message = "Compiling TypeScript %s %s" % ("(devmode)" if devmode else "(prodmode)", ctx.label),
       mnemonic = mnemonic,
       inputs = action_inputs,
       outputs = action_outputs,
@@ -84,7 +84,10 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts):
 
 
 def _devmode_compile_action(ctx, inputs, outputs, tsconfig_file, node_opts):
-  _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts)
+  _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, True)
+
+def _prodmode_compile_action(ctx, inputs, outputs, tsconfig_file, node_opts):
+  _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, False)
 
 def tsc_wrapped_tsconfig(ctx,
                          files,
@@ -149,7 +152,7 @@ def _ts_library_impl(ctx):
     the struct returned by the call to compile_ts.
   """
   ts_providers = compile_ts(ctx, is_library=True,
-                            compile_action=_compile_action,
+                            compile_action=_prodmode_compile_action,
                             devmode_compile_action=_devmode_compile_action,
                             tsc_wrapped_tsconfig=tsc_wrapped_tsconfig)
   return ts_providers_dict_to_struct(ts_providers)
