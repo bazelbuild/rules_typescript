@@ -11,7 +11,8 @@ const tmp = require('tmp');
 process.env.CHROME_BIN = require('puppeteer').executablePath();
 
 let files = [
-TMPL_files
+TMPL_bootstrap_files
+TMPL_user_files
 ];
 
 // On Windows, runfiles will not be in the runfiles folder but inteaad
@@ -45,7 +46,7 @@ var requireConfigContent = `
 // This does an explicit \`require\` on each test script in the files, otherwise nothing will be loaded.
 (function(){
   var allFiles = [
-TMPL_files
+TMPL_user_files
   ];
   var allTestFiles = [];
   allFiles.forEach(function (file) {
