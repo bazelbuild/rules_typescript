@@ -37,3 +37,14 @@ filegroup(
     ]),
     visibility = ["//visibility:public"],
 )
+
+# Runtime libraries needed by the protobufjs library.
+# Any JS code produced by the ts_proto_library rule has a runtime dependency on these scripts.
+filegroup(
+    name = "protobufjs_bootstrap_scripts",
+    srcs = [
+        "@build_bazel_rules_typescript_protobufs_compiletime_deps//:node_modules/long/dist/long.js",
+        "@build_bazel_rules_typescript_protobufs_compiletime_deps//:node_modules/protobufjs/dist/minimal/protobuf.min.js",
+    ],
+    visibility = ["//visibility:public"],
+)
