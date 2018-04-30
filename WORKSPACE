@@ -16,9 +16,9 @@ workspace(name = "build_bazel_rules_typescript")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    url = "https://github.com/bazelbuild/rules_nodejs/archive/d32d51db230f7b4749682592e43b1dff92bdbb83.zip",
-    strip_prefix = "rules_nodejs-d32d51db230f7b4749682592e43b1dff92bdbb83",
-    sha256 = "7d8bfe77001dba22273b910a325042af4ad83deec5421fe666c03fbe019111dc",
+    url = "https://github.com/alexeagle/rules_nodejs/archive/a9b6b6517b92b3342686f6982e5c9d85c0c68cf3.zip",
+    strip_prefix = "rules_nodejs-a9b6b6517b92b3342686f6982e5c9d85c0c68cf3",
+    #sha256 = "7d8bfe77001dba22273b910a325042af4ad83deec5421fe666c03fbe019111dc",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories", "yarn_install")

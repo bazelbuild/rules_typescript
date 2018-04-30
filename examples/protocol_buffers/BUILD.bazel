@@ -30,5 +30,4 @@ ts_web_test(
     name = "test",
     deps = ["test_lib"],
     bootstrap = ["@build_bazel_rules_typescript//:protobufjs_bootstrap_scripts"],
-    srcs = ["require.config.js"],
 )
