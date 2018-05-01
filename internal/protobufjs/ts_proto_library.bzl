@@ -13,6 +13,7 @@ def _run_pbjs(actions, executable, output_name, proto_files, suffix = ".js", wra
   args = actions.args()
   args.add(["--target", "static-module"])
   args.add(["--wrap", wrap])
+  args.add("--strict-long") # Force usage of Long type with int64 fields
   args.add(["--out", js_file.path + ".tmpl"])
   args.add([f.path for f in proto_files])
 

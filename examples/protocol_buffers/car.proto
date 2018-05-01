@@ -8,4 +8,5 @@ message Car {
   int32 year = 3;
   Tire front_tires = 4;
   Tire rear_tires = 5;
+  int64 mileage = 6;
 }

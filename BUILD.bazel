@@ -49,6 +49,9 @@ js_library(
     ],
     # Make devmode loading work when it does require("protobufjs/minimal")
     # so this is shimmed to define it to equal global.protobuf
-    amd_names = {"protobufjs/minimal": "protobuf"},
+    amd_names = {
+        "long": "Long",
+        "protobufjs/minimal": "protobuf",
+    },
     visibility = ["//visibility:public"],
 )
