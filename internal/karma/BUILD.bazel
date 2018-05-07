@@ -24,3 +24,8 @@ nodejs_binary(
     data = [":karma_concat_js"],
     node_modules = "@build_bazel_rules_typescript_karma_deps//:node_modules",
 )
+
+sh_binary(
+  name = "extract",
+  srcs = ["extract.sh"],
+)
