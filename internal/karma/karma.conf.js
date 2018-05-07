@@ -3,12 +3,22 @@
 const path = require('path');
 const fs = require('fs');
 const tmp = require('tmp');
+const os = require('os');
 
 // When karma is configured to use Chrome it will look for a CHROME_BIN
-// environment variable. This line points Karma to use puppeteer instead.
-// See
+// environment variable.
 // https://github.com/karma-runner/karma-chrome-launcher/blob/master/README.md#headless-chromium-with-puppeteer
-process.env.CHROME_BIN = require('puppeteer').executablePath();
+const chromeBinBase = 'TMPL_chrome_bin_base';
+const chromeBinPlatform = TMPL_chrome_bin_platform;
+const platform = os.platform();
+if (platform === 'darwin')
+  process.env.CHROME_BIN = path.join(chromeBinBase, chromeBinPlatform['darwin_amd64'])
+else if (platform === 'linux')
+  process.env.CHROME_BIN = path.join(chromeBinBase, chromeBinPlatform['linux_amd64'])
+else if (platform === 'win32')
+  process.env.CHROME_BIN = path.join(chromeBinBase, chromeBinPlatform['windows_amd64'])
+else
+  throw new Error(`Unknown platform ${platform}`);
 
 let files = [
   TMPL_bootstrap_files

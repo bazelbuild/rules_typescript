@@ -15,6 +15,7 @@
 "Install toolchain dependencies"
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "yarn_install")
+load("//internal/karma:browser_repository.bzl", "browser_repository")
 
 def ts_setup_workspace():
   """This repository rule should be called from your WORKSPACE file.
@@ -44,3 +45,18 @@ def ts_setup_workspace():
       package_json = "@build_bazel_rules_typescript//internal/protobufjs:package.json",
       yarn_lock = "@build_bazel_rules_typescript//internal/protobufjs:yarn.lock",
   )
+
+  browser_repository(
+      name="build_bazel_rules_typescript_chromium",
+      amd64_sha256="51a189382cb5272d240a729da0ae77d0211c1bbc0d10b701a2723b5b068c1e3a",
+      amd64_urls=[
+          "http://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/539259/chrome-linux.zip"
+      ],
+      macos_sha256="866ec9aa4e07cc86ae1d5aeb6e9bdafb5f94989c7c0be661302930ad667f41f3",
+      macos_urls=[
+          "http://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/539251/chrome-mac.zip"
+      ],
+      windows_sha256="be4fcc7257d85c12ae2de10aef0150ddbb7b9ecbd5ada6a898d247cf867a058a",
+      windows_urls=[
+          "http://commondatastorage.googleapis.com/chromium-browser-snapshots/Win_x64/539249/chrome-win32.zip"
+      ])

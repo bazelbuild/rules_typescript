@@ -7,7 +7,6 @@
     "karma-jasmine": "1.1.1",
     "karma-sourcemap-loader": "0.3.7",
     "karma-requirejs": "1.1.0",
-    "puppeteer": "1.1.0",
     "requirejs": "2.3.5",
     "tmp": "0.0.33"
   }

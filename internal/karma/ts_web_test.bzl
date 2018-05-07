@@ -24,6 +24,14 @@ _CONF_TMPL = "//internal/karma:karma.conf.js"
 _BROWSER = "Chrome"
 
 def _ts_web_test_impl(ctx):
+  browser_out_dir = ctx.actions.declare_directory(ctx.label.name + ".browser")
+  ctx.actions.run(
+      executable=ctx.executable._extract,
+      arguments=[ctx.file._browser_archive.path, browser_out_dir.path, ctx.attr._browser_strip_prefix],
+      progress_message="Extracting %s" % ctx.file._browser_archive.short_path,
+      inputs=[ctx.file._browser_archive],
+      outputs=[browser_out_dir])
+
   conf = ctx.actions.declare_file(
       "%s.conf.js" % ctx.label.name,
       sibling=ctx.outputs.executable)
@@ -77,6 +85,8 @@ def _ts_web_test_impl(ctx):
       output = conf,
       template =  ctx.file._conf_tmpl,
       substitutions = {
+          "TMPL_chrome_bin_base": browser_out_dir.short_path,
+          "TMPL_chrome_bin_platform": str(ctx.attr._browser_entry),
           "TMPL_runfiles_path": "/".join([".."] * config_segments),
           "TMPL_bootstrap_files": "\n".join(["      '%s'," % e for e in bootstrap_entries]),
           "TMPL_user_files": "\n".join(["      '%s'," % e for e in user_entries]),
@@ -123,7 +133,7 @@ $KARMA ${{ARGV[@]}}
   return [DefaultInfo(
       runfiles = ctx.runfiles(
           files = ctx.files.srcs + ctx.files.deps + ctx.files.bootstrap + [
-              conf, amd_names_shim
+              conf, amd_names_shim, browser_out_dir
           ],
           transitive_files = files,
           # Propagate karma_bin and its runfiles
@@ -152,7 +162,28 @@ ts_web_test = rule(
         ),
         "data": attr.label_list(
             doc = "Runtime dependencies",
-            cfg = "data"),
+            cfg = "data",
+        ),
+        "_browser_archive": attr.label(
+            default = Label("@build_bazel_rules_typescript_chromium//file"),
+            single_file = True,
+            allow_files = True,
+        ),
+        "_browser_strip_prefix": attr.string(
+          default = "chrome-*",
+        ),
+        "_browser_entry": attr.string_dict(
+          default = {
+            "linux_amd64": "chrome",
+            "darwin_amd64": "Chromium.app/Contents/MacOS/chromium",
+            "windows_amd64": "chrome.exe"},
+        ),
+        "_extract": attr.label(
+            default = Label("//internal/karma:extract"),
+            allow_files = True,
+            cfg = "host",
+            executable = True,
+        ),
         "_karma": attr.label(
             default = Label("//internal/karma:karma_bin"),
             executable = True,
