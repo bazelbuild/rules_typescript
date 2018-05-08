@@ -74,9 +74,9 @@ gazelle_dependencies()
 
 http_archive(
     name = "io_bazel_rules_webtesting",
-    url = "https://github.com/gregmagolan/rules_webtesting/archive/4df044f609e4ef2608cf7a4e1ebb06bb04a1eea6.zip",
-    strip_prefix = "rules_webtesting-4df044f609e4ef2608cf7a4e1ebb06bb04a1eea6",
-    sha256 = "ac4062bfb8751807a3dbae7586c3521ad4124f5006f16ac54b2fd5150dc36387",
+    url = "https://github.com/bazelbuild/rules_webtesting/archive/22eb91570ebe85d24bd21038c986f672178c1e9a.zip",
+    strip_prefix = "rules_webtesting-22eb91570ebe85d24bd21038c986f672178c1e9a",
+    sha256 = "539bd1d3eec6a523779be62bf5d3a232af32d9861dd50c72e8a1b24196461c4b",
 )
 
 load("@io_bazel_rules_webtesting//web:repositories.bzl", "browser_repositories", "web_test_repositories")
