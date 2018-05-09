@@ -89,6 +89,7 @@ def ts_web_test_suite(
 
   web_test_suite(
       name=name,
+      launcher=":"+wrapped_test_name,
       args=args,
       browsers=browsers,
       browser_overrides=browser_overrides,
