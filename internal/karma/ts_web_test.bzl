@@ -182,3 +182,32 @@ cancel the `bazel run` command.
 Currently this rule uses Karma as the test runner, but this is an implementation
 detail. We might switch to another runner like Jest in the future.
 """
+
+# This macro exists only to modify the users rule definition a bit.
+# DO NOT add composition of additional rules here.
+def ts_web_test_macro(tags = [], data = [], **kwargs):
+  """ibazel wrapper for `ts_web_test`
+
+  This macro re-exposes the `ts_web_test` rule with some extra tags so that
+  it behaves correctly under ibazel.
+
+  This is re-exported in `//:defs.bzl` as `ts_web_test` so if you load the rule
+  from there, you actually get this macro.
+
+  Args:
+    tags: standard Bazel tags, this macro adds a couple for ibazel
+    data: runtime dependencies
+    **kwargs: passed through to `ts_web_test`
+  """
+
+  ts_web_test(
+      tags = tags + [
+          # Users don't need to know that this tag is required to run under ibazel
+          "ibazel_notify_changes",
+          # Always attach this label to allow filtering, eg. envs w/ no browser
+          "browser:chromium-system",
+      ],
+      # Our binary dependency must be in data[] for collect_data to pick it up
+      # FIXME: maybe we can just ask the attr._karma for its runfiles attr
+      data = data + ["@build_bazel_rules_typescript//internal/karma:karma_bin"],
+      **kwargs)

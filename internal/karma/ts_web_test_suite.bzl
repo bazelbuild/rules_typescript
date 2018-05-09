@@ -19,7 +19,7 @@ load("@io_bazel_rules_webtesting//web/internal:constants.bzl", "DEFAULT_WRAPPED_
 
 def ts_web_test_suite(
   name,
-  browsers,
+  browsers=["@io_bazel_rules_webtesting//browsers:chromium-local"],
   args=None,
   browser_overrides=None,
   config=None,

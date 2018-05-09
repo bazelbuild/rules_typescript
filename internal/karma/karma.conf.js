@@ -4,27 +4,26 @@ const path = require('path');
 const fs = require('fs');
 const tmp = require('tmp');
 
-if (!process.env['WEB_TEST_METADATA']) {
-  throw new Error('WEB_TEST_METADATA not defined');
-}
-const webTestMetadata = require(process.env['WEB_TEST_METADATA']);
-const webTestNamedFiles = webTestMetadata['webTestFiles'][0]['namedFiles'];
-
 const browsers = [];
-if (webTestNamedFiles['CHROMIUM']) {
-  // When karma is configured to use Chrome it will look for a CHROME_BIN
-  // environment variable.
-  process.env.CHROME_BIN = path.join("external", webTestNamedFiles['CHROMIUM']);
-  browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
-}
-if (webTestNamedFiles['FIREFOX']) {
-  // When karma is configured to use Firefox it will look for a FIREFOX_BIN
-  // environment variable.
-  process.env.FIREFOX_BIN = path.join("external", webTestNamedFiles['FIREFOX']);
-  browsers.push(process.env['DISPLAY'] ? 'Firefox': 'FirefoxHeadless');
+if (process.env['WEB_TEST_METADATA']) {
+  const webTestMetadata = require(process.env['WEB_TEST_METADATA']);
+  const webTestNamedFiles = webTestMetadata['webTestFiles'][0]['namedFiles'];
+  if (webTestNamedFiles['CHROMIUM']) {
+    // When karma is configured to use Chrome it will look for a CHROME_BIN
+    // environment variable.
+    process.env.CHROME_BIN = path.join("external", webTestNamedFiles['CHROMIUM']);
+    browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
+  }
+  if (webTestNamedFiles['FIREFOX']) {
+    // When karma is configured to use Firefox it will look for a FIREFOX_BIN
+    // environment variable.
+    process.env.FIREFOX_BIN = path.join("external", webTestNamedFiles['FIREFOX']);
+    browsers.push(process.env['DISPLAY'] ? 'Firefox': 'FirefoxHeadless');
+  }
 }
 if (!browsers.length) {
-  throw new Error('No browsers configured');
+  console.warn('No browsers configured. Configuring Karma to use system Chrome.');
+  browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
 }
 
 let files = [
