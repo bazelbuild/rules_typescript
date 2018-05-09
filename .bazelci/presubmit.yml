@@ -6,7 +6,7 @@ platforms:
     build_targets:
     - "..."
     test_flags:
-    - "--test_tag_filters=-browser:Chrome,-browser:Firefox"
+    - "--test_tag_filters=-browser:chromium-local,-browser:firefox-local"
     test_targets:
     - "..."
   ubuntu1604:
@@ -15,7 +15,7 @@ platforms:
     build_targets:
     - "..."
     test_flags:
-    - "--test_tag_filters=-browser:Chrome,-browser:Firefox"
+    - "--test_tag_filters=-browser:chromium-local,-browser:firefox-local"
     test_targets:
     - "..."
   macos:
@@ -24,7 +24,7 @@ platforms:
     build_targets:
     - "..."
     test_flags:
-    - "--test_tag_filters=-browser:Firefox"
+    - "--test_tag_filters=-browser:firefox-local"
     test_targets:
     - "..."
   windows:
