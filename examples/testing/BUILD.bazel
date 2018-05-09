@@ -21,4 +21,8 @@ ts_web_test_suite(
       "@io_bazel_rules_webtesting//browsers:chromium-local",
       "@io_bazel_rules_webtesting//browsers:firefox-local",
     ],
+    browser_overrides = {
+      'chromium-local': {'tags': ['browser:Chrome']},
+      'firefox-local': {'tags': ['browser:Firefox']},
+    },
 )

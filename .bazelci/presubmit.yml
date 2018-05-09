@@ -23,6 +23,8 @@ platforms:
     - "@yarn//:yarn"
     build_targets:
     - "..."
+    test_flags:
+    - "--test_tag_filters=-browser:Firefox"
     test_targets:
     - "..."
   windows:
