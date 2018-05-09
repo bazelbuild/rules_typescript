@@ -6,7 +6,7 @@ platforms:
     build_targets:
     - "..."
     test_flags:
-    - "--test_tag_filters=-browser:Chrome"
+    - "--test_tag_filters=-browser:Chrome,-browser:Firefox"
     test_targets:
     - "..."
   ubuntu1604:
@@ -15,7 +15,7 @@ platforms:
     build_targets:
     - "..."
     test_flags:
-    - "--test_tag_filters=-browser:Chrome"
+    - "--test_tag_filters=-browser:Chrome,-browser:Firefox"
     test_targets:
     - "..."
   macos:
