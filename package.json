@@ -8,9 +8,6 @@
     ],
     "homepage": "https://github.com/bazelbuild/rules_typescript",
     "license": "Apache-2.0",
-    "peerDependencies": {
-        "typescript": ">=2.4.2"
-    },
     "devDependencies": {
         "@bazel/ibazel": "^0.2.0",
         "@types/jasmine": "^2.8.2",
@@ -24,7 +21,7 @@
         "protractor": "^5.2.0",
         "tsickle": "0.25.x",
         "tsutils": "2.20.0",
-        "typescript": "2.6.x"
+        "typescript": "2.7.2"
     },
     "scripts": {
         "pretest": "webdriver-manager update && bazel build examples/app:all",
