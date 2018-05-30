@@ -35,6 +35,8 @@ filegroup(
         "node_modules/**/*.js",
         "node_modules/**/*.d.ts",
         "node_modules/**/*.json"
+    ] + [
+        "node_modules/http-server/**",
     ]),
     visibility = ["//visibility:public"],
 )
