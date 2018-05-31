@@ -28,7 +28,7 @@ export class Checker {
    */
   private nodeHandlersMap = new Map<ts.SyntaxKind, Handler[]>();
   private failures: Failure[] = [];
-  private currentSourceFile: ts.SourceFile;
+  private currentSourceFile: ts.SourceFile | undefined;
   // currentCode will be set before invoking any handler functions so the value
   // initialized here is never used.
   private currentCode = 0;
@@ -53,6 +53,12 @@ export class Checker {
   on(nodeKind: ts.SyntaxKind.CallExpression,
      handlerFunction: (checker: Checker, node: ts.CallExpression) => void,
      code: number): void;
+  on(nodeKind: ts.SyntaxKind.PropertyDeclaration,
+     handlerFunction: (checker: Checker, node: ts.PropertyDeclaration) => void,
+     code: number): void;
+  on(nodeKind: ts.SyntaxKind.ElementAccessExpression,
+     handlerFunction: (checker: Checker, node: ts.ElementAccessExpression) => void,
+     code: number): void;
   on(nodeKind: ts.SyntaxKind,
      handlerFunction: (checker: Checker, node: ts.Node) => void,
      code: number): void;
@@ -74,6 +80,9 @@ export class Checker {
    * `addFailureAtNode` is preferred.
    */
   private addFailure(start: number, end: number, failureText: string) {
+    if (!this.currentSourceFile) {
+      throw new Error('Source file not defined');
+    }
     if (start >= end || end > this.currentSourceFile.end || start < 0) {
       // Since only addFailureAtNode() is exposed for now this shouldn't happen.
       throw new Error(

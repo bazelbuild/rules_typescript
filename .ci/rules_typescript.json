@@ -5,8 +5,8 @@
             {"node": "ubuntu_16.04-x86_64"}
         ],
         "parameters": {
-            "configure": ["$BAZEL run @yarn//:yarn"],
-            "test_tag_filters": ["-browser:Chrome"]
+            "configure": ["$BAZEL run @nodejs//:yarn"],
+            "test_tag_filters": ["-browser:chromium-local"]
         }
     },
     {
@@ -14,7 +14,8 @@
             {"node": "darwin-x86_64"}
         ],
         "parameters": {
-            "configure": ["$BAZEL run @yarn//:yarn"]
+            "configure": ["$BAZEL run @nodejs//:yarn"],
+            "test_tag_filters": ["-browser:chromium-local"]
         }
     }
 ]

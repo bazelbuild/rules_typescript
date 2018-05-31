@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-
+import 'jasmine';
 import * as ts from 'typescript';
 
 import {checkModuleDeps} from './strict_deps';
@@ -66,8 +66,9 @@ describe('strict deps', () => {
       '/src/node_modules/somepkg/index.d.ts': 'export const a = 1;',
       '/src/p/sd1.ts': 'import {a} from "somepkg";',
     });
-    const diags =
-        checkModuleDeps(p, ['p/sd1.ts'], [], '/src', ['/src/node_modules']);
+    const diags = checkModuleDeps(
+        p.getSourceFile('p/sd1.ts')!, p.getTypeChecker(), [], '/src', false,
+        ['/src/node_modules']);
     expect(diags.length).toBe(0, diags);
   });
 
@@ -80,7 +81,9 @@ describe('strict deps', () => {
           import {x} from "./sd1";
           export let z = x + y;`,
     });
-    const diags = checkModuleDeps(p, ['p/sd3.ts'], ['/src/p/sd2.ts'], '/src');
+    const diags = checkModuleDeps(
+        p.getSourceFile('p/sd3.ts')!, p.getTypeChecker(), ['/src/p/sd2.ts'],
+        '/src', false);
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
         .toMatch(/transitive dependency on p\/sd1.ts not allowed/);
@@ -93,7 +96,9 @@ describe('strict deps', () => {
           export let y = x;`,
       '/src/p/sd3.ts': `export {x} from "./sd1";`,
     });
-    const diags = checkModuleDeps(p, ['p/sd3.ts'], ['/src/p/sd2.ts'], '/src');
+    const diags = checkModuleDeps(
+        p.getSourceFile('p/sd3.ts')!, p.getTypeChecker(), ['/src/p/sd2.ts'],
+        '/src', false);
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
         .toMatch(/transitive dependency on p\/sd1.ts not allowed/);
@@ -108,8 +113,9 @@ describe('strict deps', () => {
           import {x} from "./sd1";
           export let z = x + y;`,
     });
-    const diags =
-        checkModuleDeps(p, ['/src/p/sd3.ts'], ['/src/blaze-bin/p/sd2.ts'], '/src');
+    const diags = checkModuleDeps(
+        p.getSourceFile('/src/p/sd3.ts')!, p.getTypeChecker(),
+        ['/src/blaze-bin/p/sd2.ts'], '/src', false);
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
         .toMatch(/dependency on blaze-bin\/p\/sd1.ts not allowed/);
@@ -124,10 +130,23 @@ describe('strict deps', () => {
           import {x} from "./sd1";
           export let z = x + y;`,
     });
-    const diags =
-        checkModuleDeps(p, ['/src/p/sd3.ts'], ['/src/blaze-bin/p/sd2.d.ts'], '/src');
+    const diags = checkModuleDeps(
+        p.getSourceFile('/src/p/sd3.ts')!, p.getTypeChecker(),
+        ['/src/blaze-bin/p/sd2.d.ts'], '/src', false);
     expect(diags.length).toBe(1);
     expect(diags[0].messageText)
         .toMatch(/dependency on blaze-bin\/p\/sd1.d.ts not allowed/);
+  });
+
+  it('skips failures on goog: schema deep imports when flag is set', () => {
+    const p = createProgram({
+      '/src/blaze-bin/p/clutz.d.ts':
+          `declare module 'goog:x' { export let x:string; }`,
+      '/src/p/prog.ts': `import {x} from 'goog:x';`
+    });
+    const diags = checkModuleDeps(
+        p.getSourceFile('/src/p/prog.ts')!, p.getTypeChecker(), [], '/src',
+        true);
+    expect(diags.length).toBe(0);
   });
 });

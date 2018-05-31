@@ -25,8 +25,14 @@ export interface StrictDepsPluginConfig {
   compilationTargetSrc: string[];
   allowedStrictDeps: string[];
   rootDir: string;
+  // This flag turns off strict deps checking on imports from 'goog:*'
+  // This schema is used by clutz to generate a bridge with closure modules.
+  // There is no good reason to use this flag, it is only used for gradual
+  // rolling out of the strictness checks.
+  skipGoogSchemeDepsChecking: boolean;
   // Paths where users may freely import without declared dependencies.
-  // This is used in Bazel where dependencies on node_modules may be undeclared.
+  // This is used in Bazel where dependencies on node_modules may be
+  // undeclared.
   ignoredFilesPrefixes?: string[];
 }
 
@@ -57,8 +63,9 @@ export const PLUGIN: pluginApi.Plugin = {
       const result = [...program.getSemanticDiagnostics(sourceFile)];
       perfTrace.wrap('checkModuleDeps', () => {
         result.push(...checkModuleDeps(
-            program, config.compilationTargetSrc, config.allowedStrictDeps,
-            config.rootDir, config.ignoredFilesPrefixes));
+            sourceFile, program.getTypeChecker(), config.allowedStrictDeps,
+            config.rootDir, config.skipGoogSchemeDepsChecking,
+            config.ignoredFilesPrefixes));
       });
       return result;
     };
@@ -68,47 +75,49 @@ export const PLUGIN: pluginApi.Plugin = {
 
 // Exported for testing
 export function checkModuleDeps(
-    program: ts.Program, filesToCheck: string[], allowedDeps: string[],
-    rootDir: string, ignoredFilesPrefixes: string[] = []): ts.Diagnostic[] {
+    sf: ts.SourceFile, tc: ts.TypeChecker, allowedDeps: string[],
+    rootDir: string, skipGoogSchemeDepsChecking: boolean,
+    ignoredFilesPrefixes: string[] = []): ts.Diagnostic[] {
   function stripExt(fn: string) {
     return fn.replace(/(\.d)?\.tsx?$/, '');
   }
   const allowedMap: {[fileName: string]: boolean} = {};
   for (const d of allowedDeps) allowedMap[stripExt(d)] = true;
 
-  const tc = program.getTypeChecker();
   const result: ts.Diagnostic[] = [];
-  for (const fileName of filesToCheck) {
-    const sf = program.getSourceFile(fileName);
-    for (const stmt of sf.statements) {
-      if (stmt.kind !== ts.SyntaxKind.ImportDeclaration &&
-          stmt.kind !== ts.SyntaxKind.ExportDeclaration) {
-        continue;
-      }
-      const id = stmt as ts.ImportDeclaration | ts.ExportDeclaration;
-      const modSpec = id.moduleSpecifier;
-      if (!modSpec) continue;  // E.g. a bare "export {x};"
-
-      const sym = tc.getSymbolAtLocation(modSpec);
-      if (!sym || !sym.declarations || sym.declarations.length < 1) {
-        continue;
-      }
-      // Module imports can only have one declaration location.
-      const declFileName = sym.declarations[0].getSourceFile().fileName;
-      if (allowedMap[stripExt(declFileName)]) continue;
-      if (ignoredFilesPrefixes.some(p => declFileName.startsWith(p))) continue;
-      const importName = path.posix.relative(rootDir, declFileName);
-      result.push({
-        file: sf,
-        start: modSpec.getStart(),
-        length: modSpec.getEnd() - modSpec.getStart(),
-        messageText: `transitive dependency on ${importName} not allowed. ` +
-            `Please add the BUILD target to your rule's deps.`,
-        category: ts.DiagnosticCategory.Error,
-        // semantics are close enough, needs taze.
-        code: TS_ERR_CANNOT_FIND_MODULE,
-      });
+  for (const stmt of sf.statements) {
+    if (stmt.kind !== ts.SyntaxKind.ImportDeclaration &&
+        stmt.kind !== ts.SyntaxKind.ExportDeclaration) {
+      continue;
     }
+    const id = stmt as ts.ImportDeclaration | ts.ExportDeclaration;
+    const modSpec = id.moduleSpecifier;
+    if (!modSpec) continue;  // E.g. a bare "export {x};"
+
+    if (ts.isStringLiteral(modSpec) && modSpec.text.startsWith('goog:') &&
+        skipGoogSchemeDepsChecking) {
+      continue;
+    }
+
+    const sym = tc.getSymbolAtLocation(modSpec);
+    if (!sym || !sym.declarations || sym.declarations.length < 1) {
+      continue;
+    }
+    // Module imports can only have one declaration location.
+    const declFileName = sym.declarations[0].getSourceFile().fileName;
+    if (allowedMap[stripExt(declFileName)]) continue;
+    if (ignoredFilesPrefixes.some(p => declFileName.startsWith(p))) continue;
+    const importName = path.posix.relative(rootDir, declFileName);
+    result.push({
+      file: sf,
+      start: modSpec.getStart(),
+      length: modSpec.getEnd() - modSpec.getStart(),
+      messageText: `transitive dependency on ${importName} not allowed. ` +
+          `Please add the BUILD target to your rule's deps.`,
+      category: ts.DiagnosticCategory.Error,
+      // semantics are close enough, needs taze.
+      code: TS_ERR_CANNOT_FIND_MODULE,
+    });
   }
   return result;
 }

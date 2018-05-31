@@ -22,7 +22,8 @@ _DEBUG = False
 def create_tsconfig(ctx, files, srcs,
                     devmode_manifest=None, tsickle_externs=None, type_blacklisted_declarations=[],
                     out_dir=None, disable_strict_deps=False, allowed_deps=depset(),
-                    extra_root_dirs=[], module_path_prefixes=None, module_roots=None):
+                    extra_root_dirs=[], module_path_prefixes=None, module_roots=None,
+                    skip_goog_scheme_deps_checking=False):
   """Creates an object representing the TypeScript configuration to run the compiler under Bazel.
 
   Args:
@@ -39,6 +40,7 @@ def create_tsconfig(ctx, files, srcs,
     extra_root_dirs: Extra root dirs to be passed to tsc_wrapped.
     module_path_prefixes: additional locations to resolve modules
     module_roots: standard locations to resolve modules
+    skip_goog_scheme_deps_checking: whether imports from 'goog:*' should be strict deps checked
 
   Returns:
     A nested dict that corresponds to a tsconfig.json structure
@@ -75,6 +77,17 @@ def create_tsconfig(ctx, files, srcs,
           ctx.attr.node_modules.label.package,
           "node_modules",
           "*"] if p]))
+      # TypeScript needs to look up ambient types from a 'node_modules'
+      # directory, but when Bazel manages the dependencies, this directory
+      # isn't in the project so TypeScript won't find it.
+      # We can add it to the path mapping to make this lookup work.
+      # See https://github.com/bazelbuild/rules_typescript/issues/179
+      node_modules_mappings.append("/".join([p for p in [
+          ctx.attr.node_modules.label.workspace_root,
+          ctx.attr.node_modules.label.package,
+          "node_modules",
+          "@types",
+          "*"] if p]))
 
     module_roots = {
         "*": node_modules_mappings,
@@ -82,14 +95,25 @@ def create_tsconfig(ctx, files, srcs,
     }
   module_mappings = get_module_mappings(ctx.label, ctx.attr, srcs = srcs)
 
+  # To determine the path for auto-imports, TypeScript's language service
+  # considers paths in the order they appear in tsconfig.json.
+  # We want explicit module mappings ("@angular/core") to take precedence over
+  # the general "*" mapping (which would create "third_party/javascript/..."),
+  # so we create a new hash that contains the module_mappings and insert the
+  # default lookup locations at the end.
+  mapped_module_roots = {}
   for name, path in module_mappings.items():
     # Each module name maps to the immediate path, to resolve "index(.d).ts",
     # or module mappings that directly point to files (like index.d.ts).
-    module_roots[name] = ["%s%s" % (p, path.replace(".d.ts", "")) for p in module_path_prefixes]
+    mapped_module_roots[name] = ["%s%s" % (p, path.replace(".d.ts", ""))
+                                 for p in module_path_prefixes]
     if not path.endswith(".d.ts"):
       # If not just mapping to a single .d.ts file, include a path glob that
       # maps the entire module root.
-      module_roots["{}/*".format(name)] = ["%s%s/*" % (p, path) for p in module_path_prefixes]
+      mapped_module_roots["{}/*".format(name)] = ["%s%s/*" % (p, path)
+                                                  for p in module_path_prefixes]
+  for name, path in module_roots.items():
+    mapped_module_roots[name] = path
 
   # Options for running the TypeScript compiler under Bazel.
   # See javascript/typescript/compiler/tsc_wrapped.ts:BazelOptions.
@@ -104,23 +128,29 @@ def create_tsconfig(ctx, files, srcs,
       "tsickleExternsPath": tsickle_externs.path if tsickle_externs else "",
       "untyped": not getattr(ctx.attr, "tsickle_typed", False),
       "typeBlackListPaths": [f.path for f in type_blacklisted_declarations],
-
+      # This is overridden by first-party javascript/typescript/tsconfig.bzl
+      "ignoreWarningPaths": [],
       "es5Mode": devmode_manifest != None,
       "manifest": devmode_manifest if devmode_manifest else "",
       # Explicitly tell the compiler which sources we're interested in (emitting
       # and type checking).
       "compilationTargetSrc": [s.path for s in srcs],
       "addDtsClutzAliases": getattr(ctx.attr, "add_dts_clutz_aliases", False),
+      "typeCheckDependencies": getattr(ctx.attr, "internal_testing_type_check_dependencies", False),
       "expectedDiagnostics": getattr(ctx.attr, "expected_diagnostics", []),
+      "skipGoogSchemeDepsChecking": skip_goog_scheme_deps_checking,
   }
 
   if disable_strict_deps:
     bazel_options["disableStrictDeps"] = disable_strict_deps
+    bazel_options["allowedStrictDeps"] = []
   else:
     bazel_options["allowedStrictDeps"] = [f.path for f in allowed_deps]
 
   if hasattr(ctx.attr, "module_name") and ctx.attr.module_name:
     bazel_options["moduleName"] = ctx.attr.module_name
+  if hasattr(ctx.attr, "module_root") and ctx.attr.module_root:
+    bazel_options["moduleRoot"] = ctx.attr.module_root
 
   if "TYPESCRIPT_WORKER_CACHE_SIZE_MB" in ctx.var:
     max_cache_size_mb = int(ctx.var["TYPESCRIPT_WORKER_CACHE_SIZE_MB"])
@@ -169,7 +199,7 @@ def create_tsconfig(ctx, files, srcs,
       "baseUrl": workspace_path,
 
       # "short name" mappings for npm packages, such as "@angular/core"
-      "paths": module_roots,
+      "paths": mapped_module_roots,
 
       # Inline const enums.
       "preserveConstEnums": False,

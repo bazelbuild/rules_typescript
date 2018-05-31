@@ -1,4 +1,4 @@
-load("@build_bazel_rules_typescript//:defs.bzl", "ts_library", "ts_web_test")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_library", "ts_web_test_suite")
 
 ts_library(
     name = "lib",
@@ -7,14 +7,37 @@ ts_library(
 
 ts_library(
     name = "tests",
-    srcs = ["decrement.spec.ts"],
+    srcs = glob(["*.spec.ts"]),
     deps = [":lib"],
+    tsconfig = ":tsconfig.json",
     testonly = 1,
 )
 
-ts_web_test(
+ts_web_test_suite(
     name = "testing",
     deps = [
       ":tests",
+    ],
+    static_files = [
+      "static_script.js",
+    ],
+    browsers = [
+      "@io_bazel_rules_webtesting//browsers:chromium-local",
+      "@io_bazel_rules_webtesting//browsers:firefox-local",
+    ],
+)
+
+ts_web_test_suite(
+    name = "testing_sauce",
+    deps = [
+      ":tests",
+    ],
+    browsers = [
+      "@io_bazel_rules_webtesting//browsers/sauce:chrome-win10",
+    ],
+    tags = [
+        "sauce",
+        # TODO(alexeagle): enable on CI once we have set the SAUCE env variables
+        "manual",
     ],
 )

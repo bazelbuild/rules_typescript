@@ -33,6 +33,23 @@ export function narrowTsOptions(options: ts.CompilerOptions): BazelTsOptions {
   return options as BazelTsOptions;
 }
 
+function validateBazelOptions(bazelOpts: BazelOptions) {
+  if (!bazelOpts.isJsTranspilation) return;
+
+  if (bazelOpts.compilationTargetSrc &&
+      bazelOpts.compilationTargetSrc.length > 1) {
+    throw new Error("In JS transpilation mode, only one file can appear in " +
+                    "bazelOptions.compilationTargetSrc.");
+  }
+
+  if (!bazelOpts.transpiledJsOutputFileName) {
+    throw new Error("In JS transpilation mode, transpiledJsOutputFileName " +
+                    "must be specified in tsconfig.");
+  }
+}
+
+const TS_EXT = /(\.d)?\.tsx?$/;
+
 /**
  * CompilerHost that knows how to cache parsed files to improve compile times.
  */
@@ -58,6 +75,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   transformDecorators: boolean;
   transformTypesToClosure: boolean;
   addDtsClutzAliases: boolean;
+  isJsTranspilation: boolean;
   options: BazelTsOptions;
   host: ts.ModuleResolutionHost = this;
 
@@ -91,6 +109,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       this.directoryExists = delegate.directoryExists.bind(delegate);
     }
 
+    validateBazelOptions(bazelOpts);
     this.googmodule = bazelOpts.googmodule;
     this.es5Mode = bazelOpts.es5Mode;
     this.prelude = bazelOpts.prelude;
@@ -99,6 +118,20 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     this.transformDecorators = bazelOpts.tsickle;
     this.transformTypesToClosure = bazelOpts.tsickle;
     this.addDtsClutzAliases = bazelOpts.addDtsClutzAliases;
+    this.isJsTranspilation = Boolean(bazelOpts.isJsTranspilation);
+  }
+
+  /**
+   * For the given potentially absolute input file path (typically .ts), returns
+   * the relative output path. For example, for
+   * /path/to/root/blaze-out/k8-fastbuild/genfiles/my/file.ts, will return
+   * my/file.js or my/file.closure.js (depending on ES5 mode).
+   */
+  relativeOutputPath(fileName: string) {
+    let result = this.rootDirsRelative(fileName);
+    result = result.replace(/(\.d)?\.[jt]sx?$/, '');
+    if (!this.bazelOpts.es5Mode) result += '.closure';
+    return result + '.js';
   }
 
   /**
@@ -133,7 +166,8 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
 
   /** Avoid using tsickle on files that aren't in srcs[] */
   shouldSkipTsickleProcessing(fileName: string): boolean {
-    return this.bazelOpts.compilationTargetSrc.indexOf(fileName) === -1;
+    return this.bazelOpts.isJsTranspilation ||
+           this.bazelOpts.compilationTargetSrc.indexOf(fileName) === -1;
   }
 
   /** Whether the file is expected to be imported using a named module */
@@ -147,8 +181,16 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
         p => !!filePath.match(new RegExp(p)));
   }
 
+  /**
+   * fileNameToModuleId gives the module ID for an input source file name.
+   * @param fileName an input source file name, e.g.
+   *     /root/dir/bazel-out/host/bin/my/file.ts.
+   * @return the canonical path of a file within blaze, without /genfiles/ or
+   *     /bin/ path parts, excluding a file extension. For example, "my/file".
+   */
   fileNameToModuleId(fileName: string): string {
-    return this.flattenOutDir(fileName.substring(0, fileName.lastIndexOf('.')));
+    return this.relativeOutputPath(
+        fileName.substring(0, fileName.lastIndexOf('.')));
   }
 
   /**
@@ -208,7 +250,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     }
     if (resolvedPath) {
       // Strip file extensions.
-      importPath = resolvedPath.replace(/(\.d)?\.tsx?$/, '');
+      importPath = resolvedPath.replace(TS_EXT, '');
       // Make sure all module names include the workspace name.
       if (importPath.indexOf(this.bazelOpts.workspaceName) !== 0) {
         importPath = path.join(this.bazelOpts.workspaceName, importPath);
@@ -252,8 +294,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     if (!this.shouldNameModule(sf.fileName)) return undefined;
     // /build/work/bazel-out/local-fastbuild/bin/path/to/file.ts
     // -> path/to/file
-    let fileName =
-        this.rootDirsRelative(sf.fileName).replace(/(\.d)?\.tsx?$/, '');
+    let fileName = this.rootDirsRelative(sf.fileName).replace(TS_EXT, '');
 
     let workspace = this.bazelOpts.workspaceName;
 
@@ -275,6 +316,18 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     if (this.bazelOpts.moduleName) {
       const relativeFileName = path.relative(this.bazelOpts.package, fileName);
       if (!relativeFileName.startsWith('..')) {
+        if (this.bazelOpts.moduleRoot &&
+            this.bazelOpts.moduleRoot.replace(TS_EXT, '') ===
+                relativeFileName) {
+          return this.bazelOpts.moduleName;
+        }
+        // Support the common case of commonjs convention that index is the
+        // default module in a directory.
+        // This makes our module naming scheme more conventional and lets users
+        // refer to modules with the natural name they're used to.
+        if (relativeFileName === 'index') {
+          return this.bazelOpts.moduleName;
+        }
         return path.posix.join(this.bazelOpts.moduleName, relativeFileName);
       }
     }
@@ -333,7 +386,10 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
           `/// <amd-module name="${sourceFiles[0].moduleName}" />\n${content}`;
     }
     fileName = this.flattenOutDir(fileName);
-    if (!this.bazelOpts.es5Mode) {
+
+    if (this.bazelOpts.isJsTranspilation) {
+      fileName = this.bazelOpts.transpiledJsOutputFileName!;
+    } else if (!this.bazelOpts.es5Mode) {
       // Write ES6 transpiled files to *.closure.js.
       if (this.bazelOpts.locale) {
         // i18n paths are required to end with __locale.js so we put
@@ -370,10 +426,10 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     // section of tsconfig.json, and that is what populates the knownFiles set.
     // In addition, the node module resolver may need to read package.json files
     // and these are not permitted in the files[] section.
-    // So we permit reading any files from the action inputs, even though this
+    // So we permit reading node_modules/* from action inputs, even though this
     // can include data[] dependencies and is broader than we would like.
     // This should only be enabled under Bazel, not Blaze.
-    if (this.allowActionInputReads) {
+    if (this.allowActionInputReads && filePath.indexOf('/node_modules/') >= 0) {
       const result = this.fileLoader.fileExists(filePath);
       if (DEBUG && !result && this.delegate.fileExists(filePath)) {
         debug("Path exists, but is not registered in the cache", filePath);

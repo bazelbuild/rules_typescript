@@ -43,7 +43,6 @@ COMMON_ATTRIBUTES = dict(BASE_ATTRIBUTES, **{
         default = [],
         providers = ["js"],
     ),
-    # Override _additional_d_ts to specify google3 stdlibs
     "_additional_d_ts": attr.label_list(
         allow_files = True,
     ),
@@ -351,6 +350,10 @@ def compile_ts(ctx,
 
   return {
       "files": files,
+      "output_groups": {
+          "es6_sources": es6_sources,
+          "es5_sources": es5_sources,
+      },
       "runfiles": ctx.runfiles(
           # Note: don't include files=... here, or they will *always* be built
           # by any dependent rule, regardless of whether it needs them.
@@ -373,6 +376,10 @@ def compile_ts(ctx,
       },
       # Expose the tags so that a Skylark aspect can access them.
       "tags": ctx.attr.tags,
+      # Expose the module_name so that packaging rules can access it.
+      # e.g. rollup_bundle under Bazel needs to convert this into a UMD global
+      # name in the Rollup configuration.
+      "module_name": ctx.attr.module_name,
       "instrumented_files": {
           "extensions": ["ts"],
           "source_attributes": ["srcs"],
@@ -385,6 +392,6 @@ def compile_ts(ctx,
 # converting it to an immutable struct.
 def ts_providers_dict_to_struct(d):
   for key, value in d.items():
-    if type(value) == type({}):
+    if key != "output_groups" and type(value) == type({}):
       d[key] = struct(**value)
   return struct(**d)

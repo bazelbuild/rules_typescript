@@ -4,9 +4,14 @@ Circle CI | Bazel CI
 :---: | :---:
 [![CircleCI](https://circleci.com/gh/bazelbuild/rules_typescript.svg?style=svg)](https://circleci.com/gh/bazelbuild/rules_typescript) | [![Build status](https://badge.buildkite.com/7f98e137cd86baa5a4040a7e750bef87ef5fd293092fdaf878.svg)](https://buildkite.com/bazel/typescript-rules-typescript-postsubmit)
 
-**WARNING: this is an early release with limited features. Breaking changes are likely. Not recommended for general use.**
+**WARNING: this is beta-quality software. Breaking changes are likely. Not recommended for production use without expert support.**
 
 The TypeScript rules integrate the TypeScript compiler with Bazel.
+
+## API Docs
+
+Generated documentation for using each rule is at:
+http://tsetse.info/api/
 
 ## Installation
 
@@ -30,30 +35,23 @@ Next create a `WORKSPACE` file in your project root (or edit the existing one)
 containing:
 
 ```python
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-
-git_repository(
+# TypeScript rules depend on running Node.js.
+http_archive(
     name = "build_bazel_rules_nodejs",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.0.2", # check for the latest tag when you install
+    url = "https://github.com/bazelbuild/rules_nodejs/archive/0.8.0.zip",
+    strip_prefix = "rules_nodejs-0.8.0",
+    sha256 = "4e40dd49ae7668d245c3107645f2a138660fcfd975b9310b91eda13f0c973953",
 )
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
-
-node_repositories(package_json = ["//:package.json"])
-
-
-# Include @bazel/typescript in package.json#devDependencies
-local_repository(
-    name = "build_bazel_rules_typescript",
-    path = "node_modules/@bazel/typescript",
+# ts_web_test depends on the web testing rules to provision browsers.
+http_archive(
+    name = "io_bazel_rules_webtesting",
+    url = "https://github.com/bazelbuild/rules_webtesting/archive/v0.2.0.zip",
+    strip_prefix = "rules_webtesting-0.2.0",
+    sha256 = "cecc12f07e95740750a40d38e8b14b76fefa1551bef9332cb432d564d693723c",
 )
 
-load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
-
-ts_setup_workspace()
-
-# ts_devserver needs the Go rules.
+# ts_devserver depends on the Go rules.
 # See https://github.com/bazelbuild/rules_go#setup for the latest version.
 http_archive(
     name = "io_bazel_rules_go",
@@ -61,10 +59,32 @@ http_archive(
     sha256 = "90bb270d0a92ed5c83558b2797346917c46547f6f7103e648941ecdb6b9d0e72",
 )
 
+# Include @bazel/typescript in package.json#devDependencies
+local_repository(
+    name = "build_bazel_rules_typescript",
+    path = "node_modules/@bazel/typescript",
+)
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+
+# Point to the package.json file so Bazel can run the package manager for you.
+node_repositories(package_json = ["//:package.json"])
+
 load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
 go_register_toolchains()
+
+load("@io_bazel_rules_webtesting//web:repositories.bzl", "browser_repositories", "web_test_repositories")
+
+web_test_repositories()
+browser_repositories(
+    chromium = True,
+)
+
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_setup_workspace")
+
+ts_setup_workspace()
 ```
 
 We recommend using the Yarn package manager, because it has a built-in command
@@ -72,7 +92,7 @@ to verify the integrity of your `node_modules` directory.
 You can run the version Bazel has already installed:
 
 ```sh
-$ bazel run @yarn//:yarn
+$ bazel run @nodejs//:yarn
 ```
 
 ## Usage
@@ -179,6 +199,19 @@ import {thing} from 'myworkspace/place';
 
 will import from `/place.ts`.
 
+
+Since this is an extension to the vanillia TypeScript compiler, editors which use the TypeScript language services to provide code completion and inline type checking will not be able to resolve the modules. In the above example, adding
+```json
+"paths": {
+    "myworkspace/*": ["*"]
+}
+```
+to `tsconfig.json` will fix the imports for the common case of using absolute paths.
+See https://www.typescriptlang.org/docs/handbook/module-resolution.html#path-mapping for more details on the paths syntax.
+
+Similarly, you can use path mapping to teach the editor how to resolve imports
+from `ts_library` rules which set the `module_name` attribute.
+
 ## Notes
 
 If you'd like a "watch mode", try https://github.com/bazelbuild/bazel-watcher
@@ -191,3 +224,20 @@ In the meantime, we suggest associating the `.bazel` extension with Python in
 your editor, so that you get useful syntax highlighting.
 
 [gazelle]: https://github.com/bazelbuild/rules_go/tree/master/go/tools/gazelle
+
+### Releasing
+
+Start from a clean checkout at master/HEAD. Check if there are any breaking
+changes since the last tag - if so, this will be a minor, if not, it's a patch.
+(This may not sound like semver - but since our major version is a zero, the
+rule is that minors are breaking changes and patches are new features).
+
+```sh
+yarn skydoc
+git commit -a -m 'Update docs for release'
+npm config set tag-version-prefix ''
+npm version minor -m 'rel: %s' # Replace minor with patch if no breaking changes
+git push
+git push --tags
+npm publish
+```

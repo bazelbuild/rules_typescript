@@ -110,6 +110,13 @@ export interface BazelOptions {
   addDtsClutzAliases: true;
 
   /**
+   * Whether to type check inputs that aren't srcs.  Differs from
+   * --skipLibCheck, which skips all .d.ts files, even those which are
+   * srcs.
+   */
+  typeCheckDependencies: boolean;
+
+  /**
    * The maximum cache size for bazel outputs, in megabytes.
    */
   maxCacheSizeMb?: number;
@@ -124,6 +131,25 @@ export interface BazelOptions {
    * ts_library.
    */
   moduleName?: string;
+
+  /**
+   * An explicit entry point for this module, given by the module_root attribute
+   * on a ts_library.
+   */
+  moduleRoot?: string;
+
+  /**
+   * If true, indicates that this job is transpiling JS sources. If true, only
+   * one file can appear in compilationTargetSrc, and transpiledJsOutputFileName
+   * must be set.
+   */
+  isJsTranspilation?: boolean;
+
+  /**
+   * The path where the file containing the JS transpiled output should
+   * be written. Ignored if isJsTranspilation is false.
+   */
+  transpiledJsOutputFileName?: string;
 }
 
 export interface ParsedTsConfig {
@@ -236,7 +262,9 @@ export function parseTsconfig(
     return [null, [error], {target: ''}];
   }
 
-  const bazelOpts: BazelOptions = config.bazelOptions;
+  // Handle bazel specific options, but make sure not to crash when reading a
+  // vanilla tsconfig.json.
+  const bazelOpts: BazelOptions = config.bazelOptions || {};
   const target = bazelOpts.target;
   bazelOpts.allowedStrictDeps = bazelOpts.allowedStrictDeps || [];
   bazelOpts.typeBlackListPaths = bazelOpts.typeBlackListPaths || [];
@@ -282,7 +310,7 @@ export function parseTsconfig(
   // We normalize them to remove the intermediate parent directories.
   // This improves error messages and also matches logic in tsc_wrapped where we
   // expect normalized paths.
-  const files = fileNames.map(f => path.normalize(f));
+  const files = fileNames.map(f => path.posix.normalize(f));
 
   // The bazelOpts paths in the tsconfig are relative to
   // options.rootDir (the workspace root) and aren't transformed by
