@@ -67,7 +67,7 @@ if (!browsers.length) {
 // On Windows, runfiles will not be in the runfiles folder but inteaad
 // there is a MANIFEST file which maps the runfiles for the test
 // to their location on disk. Bazel provides a process.env.RUNFILE_MANIFEST_FILE environment
-// variable which is set location of the MANIFEST file during test execution.
+// variable which is set the location of the MANIFEST file during test execution.
 // If a MANIFEST file is found, we remap the test files to their
 // location on disk using the MANIFEST file.
 let manifest = null;
