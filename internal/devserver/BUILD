@@ -42,7 +42,7 @@ go_test(
     name = "devserver_test",
     size = "small",
     srcs = ["devserver_test.go"],
-    library = ":devserver",
+    embed = [":devserver"],
     # See https://github.com/bazelbuild/rules_go/issues/721
     importpath = "do_not_import",
 )
