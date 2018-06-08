@@ -161,7 +161,7 @@ def create_tsconfig(ctx, files, srcs,
   # Keep these options in sync with those in playground/playground.ts.
   compiler_options = {
       # De-sugar to this language level
-      "target": "es5" if devmode_manifest or ctx.attr.runtime == "nodejs" else "es6",
+      "target": "es2015" if devmode_manifest or ctx.attr.runtime == "nodejs" else "es6",
       # Has no effect in closure/ES2015 mode. Always true just for simplicity.
       "downlevelIteration": True,
 
