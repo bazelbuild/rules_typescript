@@ -18,7 +18,6 @@
         "@types/node": "7.0.18",
         "@types/source-map": "^0.5.1",
         "@types/tmp": "^0.0.33",
-        "clang-format": "1.0.49",
         "concurrently": "^3.5.1",
         "http-server": "^0.11.1",
         "protobufjs": "5.0.0",
@@ -38,9 +37,6 @@
         "buildifier": "find . -type f \\( -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs $(bazel info bazel-bin)/external/com_github_bazelbuild_buildtools/buildifier/*/buildifier",
         "preskylint": "bazel build --noshow_progress @io_bazel//src/tools/skylark/java/com/google/devtools/skylark/skylint:Skylint",
         "skylint": "find . -type f -name \"*.bzl\" ! -path \"*/node_modules/*\" | xargs $(bazel info bazel-bin)/external/io_bazel/src/tools/skylark/java/com/google/devtools/skylark/skylint/Skylint",
-        "skydoc": "bazel build //:docs && unzip -o -d docs/api bazel-bin/docs-skydoc.zip",
-        "format": "git-clang-format",
-        "format-all": "clang-format --glob='{internal/**/,examples/**/}*.{js,ts}' -i",
-        "precommit": "check-clang-format \"yarn format\""
+        "skydoc": "bazel build //:docs && unzip -o -d docs/api bazel-bin/docs-skydoc.zip"
     }
 }
