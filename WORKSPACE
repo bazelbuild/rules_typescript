@@ -21,9 +21,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.9.1.zip"],
-    strip_prefix = "rules_nodejs-0.9.1",
-    sha256 = "6139762b62b37c1fd171d7f22aa39566cb7dc2916f0f801d505a9aaf118c117f",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.10.0.zip"],
+    strip_prefix = "rules_nodejs-0.10.0",
+    sha256 = "2f77623311da8b5009b1c7eade12de8e15fa3cd2adf9dfcc9f87cb2082b2211f",
 )
 
 http_archive(
@@ -77,6 +77,7 @@ http_archive(
     name = "io_bazel_skydoc",
     urls = ["https://github.com/bazelbuild/skydoc/archive/0ef7695c9d70084946a3e99b89ad5a99ede79580.zip"],
     strip_prefix = "skydoc-0ef7695c9d70084946a3e99b89ad5a99ede79580",
+    sha256 = "491f9e142b870b18a0ec8eb3d66636eeceabe5f0c73025706c86f91a1a2acb4d",
 )
 
 #
