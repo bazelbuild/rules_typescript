@@ -13,6 +13,7 @@
 # limitations under the License.
 
 workspace(name = "build_bazel_rules_typescript")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "build_bazel_rules_nodejs",
