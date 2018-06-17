@@ -11,15 +11,15 @@ filegroup(
 
 go_library(
     name = "concatjs",
-    importpath = "github.com/bazelbuild/rules_typescript/internal/concatjs/concatjs",
     srcs = ["concatjs.go"],
+    importpath = "github.com/bazelbuild/rules_typescript/internal/concatjs/concatjs",
 )
 
 go_test(
     name = "concatjs_test",
-    # See https://github.com/bazelbuild/rules_go/issues/721
-    importpath = "do_not_import",
     size = "small",
     srcs = ["concatjs_test.go"],
+    # See https://github.com/bazelbuild/rules_go/issues/721
+    importpath = "do_not_import",
     library = ":concatjs",
 )

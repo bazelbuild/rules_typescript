@@ -34,15 +34,15 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "devserver",
-    importpath = "github.com/bazelbuild/rules_typescript/internal/devserver/devserver",
     srcs = ["devserver.go"],
+    importpath = "github.com/bazelbuild/rules_typescript/internal/devserver/devserver",
 )
 
 go_test(
     name = "devserver_test",
     size = "small",
     srcs = ["devserver_test.go"],
-    library = ":devserver",
     # See https://github.com/bazelbuild/rules_go/issues/721
     importpath = "do_not_import",
+    library = ":devserver",
 )
