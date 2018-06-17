@@ -5,9 +5,9 @@
     "@types/node": "7.0.18",
     "@types/tmp": "0.0.33",
     "protobufjs": "5.0.0",
+    "tmp": "0.0.33",
     "tsickle": "0.28.0",
-    "typescript": "2.7.2",
-    "tsutils": "2.20.0",
-    "tmp": "0.0.33"
+    "tsutils": "2.27.1",
+    "typescript": "2.8.4"
   }
 }
