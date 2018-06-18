@@ -24,8 +24,8 @@
         "protobufjs": "5.0.0",
         "protractor": "^5.2.0",
         "tsickle": "0.25.x",
-        "tsutils": "2.20.0",
-        "typescript": "2.7.x"
+        "tsutils": "2.27.1",
+        "typescript": "2.8.4"
     },
     "scripts": {
         "pree2e": "webdriver-manager update $CHROMEDRIVER_VERSION_ARG && bazel build examples/app:e2e && bazel build examples/protocol_buffers:e2e",
