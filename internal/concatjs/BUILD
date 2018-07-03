@@ -21,5 +21,5 @@ go_test(
     importpath = "do_not_import",
     size = "small",
     srcs = ["concatjs_test.go"],
-    library = ":concatjs",
+    embed = [":concatjs"],
 )
