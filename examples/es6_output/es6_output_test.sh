@@ -1,20 +1,35 @@
 #!/bin/bash
 set -e
 
-MANIFEST="$TEST_SRCDIR/MANIFEST"
-if [ -e "$MANIFEST" ]; then
-  while read line; do
-    declare -a PARTS=($line)
-    if [ "${PARTS[0]}" == "build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/foo.js" ]; then
-      readonly FOO_JS=$(cat ${PARTS[1]})
-    elif [ "${PARTS[0]}" == "build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/some_library/library.js" ]; then
-      readonly LIBRARY_JS=$(cat ${PARTS[1]})
+# --- begin runfiles.bash initialization ---
+# Source the runfiles library:
+# https://github.com/bazelbuild/bazel/blob/master/tools/bash/runfiles/runfiles.bash
+# The runfiles library defines rlocation, which is a platform independent function
+# used to lookup the runfiles locations. This code snippet is needed at the top
+# of scripts that use rlocation to lookup the location of runfiles.bash and source it
+if [[ ! -d "${RUNFILES_DIR:-/dev/null}" && ! -f "${RUNFILES_MANIFEST_FILE:-/dev/null}" ]]; then
+    if [[ -f "$0.runfiles_manifest" ]]; then
+      export RUNFILES_MANIFEST_FILE="$0.runfiles_manifest"
+    elif [[ -f "$0.runfiles/MANIFEST" ]]; then
+      export RUNFILES_MANIFEST_FILE="$0.runfiles/MANIFEST"
+    elif [[ -f "$0.runfiles/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
+      export RUNFILES_DIR="$0.runfiles"
     fi
-  done < $MANIFEST
-else
-  readonly FOO_JS=$(cat $TEST_SRCDIR/build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/foo.js)
-  readonly LIBRARY_JS=$(cat $TEST_SRCDIR/build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/some_library/library.js)
 fi
+if [[ -f "${RUNFILES_DIR:-/dev/null}/bazel_tools/tools/bash/runfiles/runfiles.bash" ]]; then
+  source "${RUNFILES_DIR}/bazel_tools/tools/bash/runfiles/runfiles.bash"
+elif [[ -f "${RUNFILES_MANIFEST_FILE:-/dev/null}" ]]; then
+  source "$(grep -m1 "^bazel_tools/tools/bash/runfiles/runfiles.bash " \
+            "$RUNFILES_MANIFEST_FILE" | cut -d ' ' -f 2-)"
+else
+  echo >&2 "ERROR: cannot find @bazel_tools//tools/bash/runfiles:runfiles.bash"
+  exit 1
+fi
+# --- end runfiles.bash initialization ---
+
+readonly FOO_JS=$(cat $(rlocation "build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/foo.js"))
+readonly BAR_JS=$(cat $(rlocation "build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/bar.js"))
+readonly LIBRARY_JS=$(cat $(rlocation "build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/some_library/library.js"))
 
 # should not down-level ES2015 syntax, eg. `class`
 if [[ "$FOO_JS" != *"class Greeter"* ]]; then
@@ -24,7 +39,6 @@ if [[ "$FOO_JS" != *"class Greeter"* ]]; then
 fi
 
 # should not down-level ES2015 syntax, eg. `class`
-readonly LIBRARY_JS=$(cat $TEST_SRCDIR/build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/some_library/library.js)
 if [[ "$LIBRARY_JS" != *"export const cool = 1;"* ]]; then
   echo "Expected library.js to contain 'export const cool = 1;' but was"
   echo "$LIBRARY_JS"
@@ -32,7 +46,6 @@ if [[ "$LIBRARY_JS" != *"export const cool = 1;"* ]]; then
 fi
 
 # should not down-level dynamic import
-readonly BAR_JS=$(cat $TEST_SRCDIR/build_bazel_rules_typescript/examples/es6_output/es6_output.es6/examples/bar.js)
 if [[ "$BAR_JS" != *"import('./foo')"* ]]; then
   echo "Expected bar.js to contain 'import('./foo')' but was"
   echo "$BAR_JS"
