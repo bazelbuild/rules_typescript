@@ -15,7 +15,6 @@
 """Used for compilation by the different implementations of build_defs.bzl.
 """
 
-load(":common/closure.bzl", "closure_aspect")
 load(":common/module_mappings.bzl", "module_mappings_aspect")
 load(":common/json_marshal.bzl", "json_marshal")
 
@@ -23,7 +22,6 @@ BASE_ATTRIBUTES = dict()
 
 DEPS_ASPECTS = [
     module_mappings_aspect,
-    closure_aspect,
 ]
 
 # Attributes shared by any typescript-compatible rule (ts_library, ng_module)
@@ -348,6 +346,10 @@ def compile_ts(ctx,
   transitive_es5_sources = depset(transitive = [transitive_es5_sources, es5_sources])
   transitive_es6_sources = depset(transitive = [transitive_es6_sources, es6_sources])
 
+  transitive_runtime_deps = depset(
+    ctx.attr.runtime_deps,
+    transitive=[dep.typescript.runtime_deps for dep in ctx.attr.deps] )
+
   return {
       "files": files,
       "output_groups": {
@@ -373,6 +375,7 @@ def compile_ts(ctx,
           "type_blacklisted_declarations": type_blacklisted_declarations,
           "tsickle_externs": tsickle_externs,
           "replay_params": replay_params,
+          "runtime_deps": transitive_runtime_deps,
       },
       # Expose the tags so that a Skylark aspect can access them.
       "tags": ctx.attr.tags,
