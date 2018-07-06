@@ -100,6 +100,7 @@ def _ts_proto_library(ctx):
       es6_sources = depset([js_es6]),
       transitive_es5_sources = depset(),
       transitive_es6_sources = depset([js_es6]),
+      runtime_deps = depset(),
     ),
   )
 

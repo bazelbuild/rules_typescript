@@ -44,13 +44,13 @@ node_repositories(
   preserve_symlinks = True)
 
 # Closure compiler.
-# This is is needed for the closure interop example, users should not need to add it unless they want to use it.
-# Using a fork to get support for clutz.
+# This is is needed for the closure templates example, users should not need to add it unless they want to use it.
+# Using a fork to get support for typescript and clutz.
 http_archive(
     name = "io_bazel_rules_closure",
-    sha256 = "f8392913b8aa2ce1e477181fa6b5761ca5c1872775a4e6895ef874b0265d7912",
-    strip_prefix = "rules_closure-2447dc5fc4a94adbbe772c7e943fd31d91ffe21f",
-    url = "http://github.com/ribrdb/rules_closure/archive/2447dc5fc4a94adbbe772c7e943fd31d91ffe21f.tar.gz",
+    sha256 = "cbdeac3e610982e60c1af5695191d46e4f432cdbb30ac8535820aaf1e285abcc",
+    strip_prefix = "rules_closure-2a78960a3c64df0bf1311e07269ea28be476e848",
+    url = "http://github.com/ribrdb/rules_closure/archive/2a78960a3c64df0bf1311e07269ea28be476e848.tar.gz",
 )
 
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")

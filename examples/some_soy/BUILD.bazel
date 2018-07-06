@@ -21,26 +21,54 @@ load(
     "closure_js_library",
 )
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
-load("//:defs.bzl", "ts_library")
+load("//:defs.bzl", "ts_library", "ts_declaration")
 
 closure_js_template_library(
     name = "template",
     srcs = ["some.soy"],
 )
 
+genrule(
+    name="template_clutz",
+    outs=["template.d.ts"],
+    srcs=["some.soy.js",
+    "@io_angular_clutz//:src/resources/partial_goog_base.js",
+    "@io_bazel_rules_closure//third_party/clutz:externs.js"
+    ],
+    tools=["@io_angular_clutz//:clutz"],
+    cmd="""
+BASE=$(location @io_angular_clutz//:src/resources/partial_goog_base.js);
+CLUTZ=$(location @io_angular_clutz//:clutz);
+$$CLUTZ --partialInput -o $@ --skipEmitRegExp $$BASE $(SRCS)
+    """
+)
+
+ts_declaration(
+    name="template_ts",
+    srcs=["template.d.ts"],
+    generate_externs=False,
+    runtime_deps=[":template"],
+)
+
 ts_library(
     name = "main",
     srcs = ["main.ts"],
     deps = [
-        "@io_bazel_rules_closure//closure/library",
-        ":template",
+        ":mini_closure",
+        ":template_ts",
     ],
+)
+
+closure_js_library(
+    name = "main_js",
+    ts_lib = ":main",
+    suppress=["unusedLocalVariables"],
 )
 
 closure_js_binary(
     name = "render_soy_bin",
     entry_points = ["goog:build_bazel_rules_typescript.examples.some_soy.main"],
-    deps = [":main"],
+    deps = [":main_js"],
 )
 
 nodejs_binary(
@@ -58,38 +86,10 @@ sh_test(
 )
 
 ts_library(
-    name="custom_closure",
+    name="mini_closure",
     srcs=[":closure.d.ts"],
     runtime_deps = [
         "@io_bazel_rules_closure//closure/library",
     ],
     generate_externs = False,
-)
-
-ts_library(
-    name = "runtime_deps_main",
-    srcs = ["runtime_deps_main.ts"],
-    deps = [
-        ":custom_closure",
-    ],
-)
-
-closure_js_binary(
-    name = "runtime_deps_jsbin",
-    entry_points = ["goog:build_bazel_rules_typescript.examples.some_soy.runtime_deps_main"],
-    deps = [":runtime_deps_main"],
-)
-
-nodejs_binary(
-    name = "runtime_deps",
-    data = [
-        ":runtime_deps_jsbin",
-    ],
-    entry_point = "build_bazel_rules_typescript/examples/some_soy/runtime_deps_jsbin.js",
-)
-
-sh_test(
-    name = "runtime_deps_test",
-    srcs = ["runtime_deps_test.sh"],
-    data = [":runtime_deps"],
 )
