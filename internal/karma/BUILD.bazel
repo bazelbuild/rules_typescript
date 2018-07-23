@@ -14,6 +14,7 @@ ts_library(
     name = "karma_concat_js",
     srcs = glob(["*.ts"]),
     module_name = "karma-concat-js",
+    tsconfig = "//internal:tsconfig.json",
     node_modules = "@build_bazel_rules_typescript_tsc_wrapped_deps//:node_modules",
 )
 
