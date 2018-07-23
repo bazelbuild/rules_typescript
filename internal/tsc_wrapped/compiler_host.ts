@@ -310,6 +310,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     // named by code in that repository.
     // As a workaround, check for the /external/ path segment, and fix up the
     // workspace name to be the name of the external repository.
+    const originalFileName = fileName;
     if (fileName.startsWith('external/')) {
       const parts = fileName.split('/');
       workspace = parts[1];
@@ -332,6 +333,45 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
           return this.bazelOpts.moduleName;
         }
         return path.posix.join(this.bazelOpts.moduleName, relativeFileName);
+      }
+    }
+
+    // The following handles the case when the filename is outside of
+    // bazelOpts.package but still needs to be mapped to the correct
+    // AMD module name.
+    //
+    // For example, when building Angular from source in downstream projects
+    // the fileName may be 'packages/common/src/pipes/date_pipe.ngfactory'
+    // while the bazelOpts.moduleName is '@angular/platform-browser' and the
+    // bazelOpts.package is 'packages/platform-browser'. We still want to map
+    // 'packages/common/src/pipes/date_pipe.ngfactory' to
+    // '@angular/common/src/pipes/date_pipe.ngfactory' which we can do
+    // from the list of paths in the tsconfig options. In the case just
+    // mentioned, the paths will have an entry
+    //
+    //  "@angular/common/*":[  
+    //     "external/angular/packages/common/*",
+    //     "bazel-out/darwin-fastbuild/genfiles/external/angular/packages/common/*",
+    //     "bazel-out/darwin-fastbuild/bin/external/angular/packages/common/*",
+    //  ]
+    //
+    // which can be used to map 'external/angular/packages/common/*' to '@angular/common/*'
+    // using the originalFileName which retains the 'external/angular/' portion.
+    if (this.options.paths) {
+      let result = null;
+      for (const key of Object.keys(this.options.paths)) {
+        this.options.paths[key].forEach(value => {
+          if (value.endsWith('*')) {
+            const path = value.replace('*', '');
+            if (originalFileName.startsWith(path)) {
+              result = key.replace('*', '') + originalFileName.replace(path, '');
+              return;
+            }
+          }
+        });
+      }
+      if (result) {
+        return result;
       }
     }
 
