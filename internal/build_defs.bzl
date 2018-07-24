@@ -69,6 +69,7 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
         mnemonic = mnemonic,
         inputs = action_inputs,
         outputs = action_outputs,
+        use_default_shell_env = True,
         arguments = arguments,
         executable = ctx.executable.compiler,
         execution_requirements = {
