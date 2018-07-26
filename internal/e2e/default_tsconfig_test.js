@@ -24,8 +24,18 @@ const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), 'wksp'));
 const WORKSPACE_BOILERPLATE = `
 http_archive(
     name = "build_bazel_rules_nodejs",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.10.0.zip"],
-    strip_prefix = "rules_nodejs-0.10.0",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.11.0.zip"],
+    strip_prefix = "rules_nodejs-0.11.0",
+)
+http_archive(
+    name = "bazel_skylib",
+    url = "https://github.com/bazelbuild/bazel-skylib/archive/0.3.1.zip",
+    strip_prefix = "bazel-skylib-0.3.1",
+)
+http_archive(
+    name = "io_bazel_skydoc",
+    url = "https://github.com/bazelbuild/skydoc/archive/0ef7695c9d70084946a3e99b89ad5a99ede79580.zip",
+    strip_prefix = "skydoc-0ef7695c9d70084946a3e99b89ad5a99ede79580",
 )
 http_archive(
     name = "io_bazel_rules_webtesting",
@@ -84,6 +94,7 @@ describe('default tsconfig', () => {
 workspace(name = "a")
 ${WORKSPACE_BOILERPLATE}`);
        write('a/BUILD', `
+alias(name = "node_modules", actual = "@build_bazel_rules_typescript//:node_modules", visibility=["//visibility:public"])
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 ts_library(
     name = "a_lib",
@@ -103,6 +114,7 @@ workspace(name="b")
 local_repository(name="a", path="../a")
 ${WORKSPACE_BOILERPLATE}`);
        write('b/BUILD', `
+alias(name = "node_modules", actual = "@build_bazel_rules_typescript//:node_modules", visibility=["//visibility:public"])
 load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 exports_files(["tsconfig.json"])
 ts_library(
