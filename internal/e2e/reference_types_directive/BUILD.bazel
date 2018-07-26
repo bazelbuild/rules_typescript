@@ -1,4 +1,4 @@
-load("//:defs.bzl", "ts_library")
+load("//internal:defaults.bzl", "ts_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
 
 ts_library(
@@ -21,6 +21,8 @@ ts_library(
 
 jasmine_node_test(
     name = "test",
-    deps = [":test_lib"],
-    node_modules = "//:node_modules",
+    deps = [
+      "@npm//:jasmine",
+      ":test_lib"
+    ],
 )
