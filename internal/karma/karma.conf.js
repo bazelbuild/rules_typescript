@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const tmp = require('tmp');
 
+const insideDocker = fs.existsSync('/.dockerenv');
 const browsers = [];
 let customLaunchers = null;
 
@@ -44,7 +45,10 @@ if (process.env['WEB_TEST_METADATA']) {
       // When karma is configured to use Chrome it will look for a CHROME_BIN
       // environment variable.
       process.env.CHROME_BIN = path.join('external', webTestNamedFiles['CHROMIUM']);
-      browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
+      browsers.push(
+          process.env['DISPLAY'] ?
+              'Chrome' :
+              (insideDocker ? 'ChromeHeadlessNoSandbox' : 'ChromeHeadless'));
     }
     if (webTestNamedFiles['FIREFOX']) {
       // When karma is configured to use Firefox it will look for a FIREFOX_BIN
@@ -61,7 +65,10 @@ if (process.env['WEB_TEST_METADATA']) {
 // configured above
 if (!browsers.length) {
   console.warn('No browsers configured. Configuring Karma to use system Chrome.');
-  browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
+  browsers.push(
+      process.env['DISPLAY'] ?
+          'Chrome' :
+          (insideDocker ? 'ChromeHeadlessNoSandbox' : 'ChromeHeadless'));
 }
 
 // On Windows, runfiles will not be in the runfiles folder but inteaad
@@ -171,6 +178,13 @@ module.exports = function(config) {
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
     browsers: browsers,
+
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
