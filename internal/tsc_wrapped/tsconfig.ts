@@ -17,6 +17,7 @@
 
 import * as path from 'path';
 import * as ts from 'typescript';
+import {resolveNormalizedPath} from './posix-paths';
 
 /**
  * The configuration block provided by the tsconfig "bazelOptions".
@@ -230,16 +231,6 @@ function warnOnOverriddenOptions(userConfig: any) {
     for (const w of overrideWarnings) console.error(` - ${w}`);
     console.error('\n');
   }
-}
-
-/**
- * The same as Node's path.resolve, however it returns a path with forward
- * slashes rather than joining the resolved path with the platform's path
- * separator.
- * Note that even path.posix.resolve('.') returns C:\Users\... with backslashes.
- */
-export function resolveNormalizedPath(...segments: string[]): string {
-  return path.resolve(...segments).replace(/\\/g, '/');
 }
 
 /**
