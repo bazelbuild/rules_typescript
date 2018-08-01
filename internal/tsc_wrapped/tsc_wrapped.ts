@@ -7,8 +7,9 @@ import {CompilerHost} from './compiler_host';
 import * as diagnostics from './diagnostics';
 import {CachedFileLoader, FileCache, FileLoader, UncachedFileLoader} from './file_cache';
 import {wrap} from './perf_trace';
+import {resolveNormalizedPath} from './posix-paths';
 import {PLUGIN as strictDepsPlugin} from './strict_deps';
-import {BazelOptions, parseTsconfig, resolveNormalizedPath} from './tsconfig';
+import {BazelOptions, parseTsconfig} from './tsconfig';
 import {fixUmdModuleDeclarations} from './umd_module_declaration_transform';
 import {debug, log, runAsWorker, runWorkerLoop} from './worker';
 

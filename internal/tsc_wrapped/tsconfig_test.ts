@@ -16,8 +16,8 @@
  */
 
 import * as ts from 'typescript';
-
-import {parseTsconfig, resolveNormalizedPath} from './tsconfig';
+import {resolveNormalizedPath} from './posix-paths';
+import {parseTsconfig} from './tsconfig';
 
 describe('tsconfig', () => {
   it('honors bazelOptions in the users tsconfig', () => {

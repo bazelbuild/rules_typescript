@@ -7,6 +7,7 @@ import {FileLoader} from './file_cache';
 import * as perfTrace from './perf_trace';
 import {BazelOptions} from './tsconfig';
 import {DEBUG, debug} from './worker';
+import {convertToPosixPath} from './posix-paths';
 
 export type ModuleResolver =
     (moduleName: string, containingFile: string,
@@ -205,8 +206,9 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
     for (const root of this.options.rootDirs) {
       if (fileName.startsWith(root)) {
         // rootDirs are sorted longest-first, so short-circuit the iteration
-        // see tsconfig.ts.
-        return path.posix.relative(root, fileName);
+        // see tsconfig.ts. Since the fileName can already include multiple path segments with
+        // backslash delimiters, we need to manually convert the path to posix format.
+        return convertToPosixPath(path.relative(root, fileName));
       }
     }
     return fileName;
