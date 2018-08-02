@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as tsickle from 'tsickle';
 import * as ts from 'typescript';
 
 import {PLUGIN as tsetsePlugin} from '../tsetse/runner';
@@ -139,15 +140,31 @@ function runOneBuild(
     return false;
   }
 
-  for (const sf of program.getSourceFiles().filter(isCompilationTarget)) {
-    const emitResult = program.emit(
+  if (bazelOpts.tsickle) {
+    const emitResults: tsickle.EmitResult[] = [];
+    for (const sf of program.getSourceFiles().filter(isCompilationTarget)) {
+      emitResults.push(tsickle.emitWithTsickle(program, compilerHost, compilerHost, options,
         sf, /*writeFile*/ undefined,
         /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ undefined, {
-          after: [fixUmdModuleDeclarations(
+          afterTs: [fixUmdModuleDeclarations(
               (sf: ts.SourceFile) => compilerHost.amdModuleName(sf))]
-        });
-    diags.push(...emitResult.diagnostics);
+        }));
+    }
+    diags.push(...tsickle.mergeEmitResults(emitResults as tsickle.EmitResult[]).diagnostics);
+  } else {
+    const emitResults: ts.EmitResult[] = [];
+    for (const sf of program.getSourceFiles().filter(isCompilationTarget)) {
+      emitResults.push(program.emit(sf, /*writeFile*/ undefined,
+      /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ undefined, {
+        after: [fixUmdModuleDeclarations(
+            (sf: ts.SourceFile) => compilerHost.amdModuleName(sf))]
+      }));
+    }
+    for (const d of emitResults) {
+      diags.push(...d.diagnostics);
+    }
   }
+
   if (diags.length > 0) {
     console.error(diagnostics.format(bazelOpts.target, diags));
     return false;
