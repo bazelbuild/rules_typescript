@@ -43,3 +43,6 @@ platforms:
     - "//examples:all"
     # TODO(alexeagle): include test_targets when karma fixes land
     # and we have Bazel 0.12
+  rbe_ubuntu1604:
+    build_targets:
+    - "..."
