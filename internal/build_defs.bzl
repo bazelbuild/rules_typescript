@@ -191,8 +191,7 @@ ts_library = rule(
               `alias(name="tsconfig.json", actual="//path/to:tsconfig-something.json")`
             - Give an explicit `tsconfig` attribute to all `ts_library` targets
             """,
-            allow_files = True,
-            single_file = True,
+            allow_single_file = True,
         ),
         "compiler": attr.label(
             doc = """Intended for internal use only.
