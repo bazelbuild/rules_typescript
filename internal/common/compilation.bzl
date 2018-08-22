@@ -132,10 +132,10 @@ def _outputs(ctx, label):
             if basename.endswith(ext):
                 basename = basename[:-len(ext)]
                 break
-        closure_js_files += [ctx.new_file(basename + ".closure.js")]
+        closure_js_files += [ctx.actions.declare_file(basename + ".closure.js")]
         if not is_dts:
-            devmode_js_files += [ctx.new_file(basename + ".js")]
-            declaration_files += [ctx.new_file(basename + ".d.ts")]
+            devmode_js_files += [ctx.actions.declare_file(basename + ".js")]
+            declaration_files += [ctx.actions.declare_file(basename + ".d.ts")]
     return struct(
         closure_js = closure_js_files,
         devmode_js = devmode_js_files,
@@ -198,7 +198,7 @@ def compile_ts(
 
     if has_sources and ctx.attr.runtime != "nodejs":
         # Note: setting this variable controls whether tsickle is run at all.
-        tsickle_externs = [ctx.new_file(ctx.label.name + ".externs.js")]
+        tsickle_externs = [ctx.actions.declare_file(ctx.label.name + ".externs.js")]
 
     dep_declarations = _collect_dep_declarations(ctx)
     input_declarations = dep_declarations.transitive + src_declarations
@@ -251,11 +251,11 @@ def compile_ts(
 
     node_profile_args = []
     if perf_trace and has_sources:
-        perf_trace_file = ctx.new_file(ctx.label.name + ".es6.trace")
+        perf_trace_file = ctx.actions.declare_file(ctx.label.name + ".es6.trace")
         tsconfig_es6["bazelOptions"]["perfTracePath"] = perf_trace_file.path
         outputs.append(perf_trace_file)
 
-        profile_file = ctx.new_file(ctx.label.name + ".es6.v8.log")
+        profile_file = ctx.actions.declare_file(ctx.label.name + ".es6.v8.log")
         node_profile_args = [
             "--prof",
             # Without nologfile_per_isolate, v8 embeds an
@@ -268,7 +268,7 @@ def compile_ts(
 
         files += [perf_trace_file, profile_file]
 
-    ctx.file_action(
+    ctx.actions.write(
         output = ctx.outputs.tsconfig,
         content = json_marshal(tsconfig_es6),
     )
@@ -287,8 +287,8 @@ def compile_ts(
             node_profile_args,
         )
 
-        devmode_manifest = ctx.new_file(ctx.label.name + ".es5.MF")
-        tsconfig_json_es5 = ctx.new_file(ctx.label.name + "_es5_tsconfig.json")
+        devmode_manifest = ctx.actions.declare_file(ctx.label.name + ".es5.MF")
+        tsconfig_json_es5 = ctx.actions.declare_file(ctx.label.name + "_es5_tsconfig.json")
         outputs = (
             transpiled_devmode_js + gen_declarations + [devmode_manifest]
         )
@@ -302,11 +302,11 @@ def compile_ts(
         )
         node_profile_args = []
         if perf_trace:
-            perf_trace_file = ctx.new_file(ctx.label.name + ".es5.trace")
+            perf_trace_file = ctx.actions.declare_file(ctx.label.name + ".es5.trace")
             tsconfig_es5["bazelOptions"]["perfTracePath"] = perf_trace_file.path
             outputs.append(perf_trace_file)
 
-            profile_file = ctx.new_file(ctx.label.name + ".es5.v8.log")
+            profile_file = ctx.actions.declare_file(ctx.label.name + ".es5.v8.log")
             node_profile_args = [
                 "--prof",
                 # Without nologfile_per_isolate, v8 embeds an
@@ -319,7 +319,7 @@ def compile_ts(
 
             files += [perf_trace_file, profile_file]
 
-        ctx.file_action(output = tsconfig_json_es5, content = json_marshal(
+        ctx.actions.write(output = tsconfig_json_es5, content = json_marshal(
             tsconfig_es5,
         ))
         inputs = compilation_inputs + [tsconfig_json_es5]

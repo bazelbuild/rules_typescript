@@ -184,7 +184,7 @@ ts_web_test = rule(
             default = Label("//internal/karma:karma_bin"),
             executable = True,
             cfg = "target",
-            allow_single_file = False,
+            allow_files = True,
         ),
         "_conf_tmpl": attr.label(
             default = Label(_CONF_TMPL),
