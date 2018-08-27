@@ -12,6 +12,7 @@
         "typescript": ">=2.4.2"
     },
     "dependencies": {
+        "cypress": "^3.1.0",
         "protobufjs": "5.0.0",
         "tsickle": "0.25.x",
         "tsutils": "2.20.0"

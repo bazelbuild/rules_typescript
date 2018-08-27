@@ -1,0 +1,12 @@
+load("//:defs.bzl", "ts_library", "cypress_test")
+
+ts_library(
+    name = "test_lib",
+    srcs = [":index.spec.ts", "another.spec.ts"],
+)
+
+cypress_test(
+    name = "test",
+    deps = [":test_lib"],
+    srcs = []
+)
