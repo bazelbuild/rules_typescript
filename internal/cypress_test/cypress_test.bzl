@@ -25,6 +25,7 @@ def cypress_test(
   srcs = [],
   data = [],
   deps = [],
+  tags = [],
   expected_exit_code = 0,
   **kwargs):
   """Runs tests in NodeJS using the Jasmine test runner.
@@ -50,9 +51,12 @@ def cypress_test(
   all_data += [":%s_devmode_srcs.MF" % name]
   # all_data += [Label("@bazel_tools//tools/bash/runfiles")]
   entry_point = "build_bazel_rules_typescript/internal/cypress_test/cypress_runner.js"
+  # disabled due to https://github.com/cypress-io/cypress/issues/1925
+  # tags = tags + ["ibazel_notify_changes"]
 
   nodejs_test(
       name = name,
+      tags = tags,
       data = all_data,
       entry_point = entry_point,
       templated_args = ["$(location :%s_devmode_srcs.MF)" % name],
