@@ -123,3 +123,5 @@ def rules_typescript_dev_dependencies():
 def _maybe(repo_rule, name, **kwargs):
     if name not in native.existing_rules():
         repo_rule(name = name, **kwargs)
+    else:
+        print("you chose version x so I'm using that instead of y yay")
