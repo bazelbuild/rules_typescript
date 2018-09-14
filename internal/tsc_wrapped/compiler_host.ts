@@ -82,7 +82,6 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   isJsTranspilation: boolean;
   provideExternalModuleDtsNamespace: boolean;
   options: BazelTsOptions;
-  disableAutoQuoting?: boolean = true;
   host: ts.ModuleResolutionHost = this;
 
   constructor(
