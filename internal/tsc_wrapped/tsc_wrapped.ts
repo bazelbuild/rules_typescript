@@ -159,6 +159,13 @@ function runOneBuild(
           'When setting bazelOpts { tsickle: true }, ' +
           'you must also add a devDependency on the tsickle npm package');
     }
+
+    // Turn off tsickle's auto-quoting feature for Bazel users.
+    // It causes problems (https://github.com/angular/tsickle/issues/683)
+    // We don't know of any Bazel TS users who want this feature, so rather than
+    // make it user-configurable, we disable it globally under tsc_wrapped.
+    (compilerHost as tsickle.TsickleHost).disableAutoQuoting = true;
+
     for (const sf of toEmit) {
       emitResults.push(optTsickle.emitWithTsickle(
           program, compilerHost, compilerHost, options, sf,
