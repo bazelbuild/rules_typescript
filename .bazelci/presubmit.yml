@@ -46,9 +46,3 @@ platforms:
     - "..."
     - "--"
     - "-//docs/..." 
-    # TODO(filipesilva): reenable after https://github.com/bazelbuild/rules_typescript/issues/270 is fixed.
-    - "-//ts_auto_deps/analyze:go_default_test"    
-    - "-//ts_auto_deps/updater:go_default_test"    
-    - "-//devserver/..."
-    # TODO(filipesilva): fix this test
-    - "-//examples/protocol_buffers:test_chromium-local"

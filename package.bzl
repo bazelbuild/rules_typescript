@@ -57,9 +57,9 @@ def rules_typescript_dependencies():
     _maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        urls = ["https://github.com/bazelbuild/rules_go/archive/1bad20854a59785f4896d8b8847bdb57bfccf2ba.zip"],
-        strip_prefix = "rules_go-1bad20854a59785f4896d8b8847bdb57bfccf2ba",
-        sha256 = "0f197614ef5e8c9183e8fbdcc4c9357a526d23d6b7fcdfd49b92c6e8a79b277c",
+        urls = ["https://github.com/bazelbuild/rules_go/archive/cf571fd7fde8eae4ec621184fe88fdad9b277e31.zip"],
+        strip_prefix = "rules_go-cf571fd7fde8eae4ec621184fe88fdad9b277e31",
+        sha256 = "12c3f330f5739961a5e57c8b8ac6f0ff9db0794d8081b3781f38d43b187e1098",
     )
 
     # go_repository is defined in bazel_gazelle
