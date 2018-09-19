@@ -43,13 +43,13 @@ if (process.env['WEB_TEST_METADATA']) {
     if (webTestNamedFiles['CHROMIUM']) {
       // When karma is configured to use Chrome it will look for a CHROME_BIN
       // environment variable.
-      process.env.CHROME_BIN = path.join('external', webTestNamedFiles['CHROMIUM']);
+      process.env.CHROME_BIN = require.resolve(webTestNamedFiles['CHROMIUM']);
       browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
     }
     if (webTestNamedFiles['FIREFOX']) {
       // When karma is configured to use Firefox it will look for a FIREFOX_BIN
       // environment variable.
-      process.env.FIREFOX_BIN = path.join('external', webTestNamedFiles['FIREFOX']);
+      process.env.FIREFOX_BIN = require.resolve(webTestNamedFiles['FIREFOX']);
       browsers.push(process.env['DISPLAY'] ? 'Firefox': 'FirefoxHeadless');
     }
   } else {
@@ -64,6 +64,7 @@ if (!browsers.length) {
   browsers.push(process.env['DISPLAY'] ? 'Chrome': 'ChromeHeadless');
 }
 
+const proxies = {};
 const files = [
   TMPL_bootstrap_files
   TMPL_user_files
@@ -74,8 +75,15 @@ const files = [
 // not included them in the bundle
 [
   TMPL_static_files
-].forEach(f => {
-  files.push({ pattern: require.resolve(f), included: false });
+].forEach((f) => {
+  // In Windows, the runfile will probably not be symlinked. Se we need to serve the real file 
+  // through karma, and proxy calls to the expected file location in the runfiles to the real file.
+  const resolvedFile = require.resolve(f);
+  files.push({ pattern: resolvedFile, included: false });
+  // Prefixing the proxy path with '/absolute' allows karma to load local files.
+  // This doesn't see to be an official API.
+  // https://github.com/karma-runner/karma/issues/2703
+  proxies['/base/' + f] = '/absolute' + resolvedFile;
 });
 
 var requireConfigContent = `
@@ -155,6 +163,7 @@ module.exports = function(config) {
     // list of files passed to karma; these are concatenated into a single
     // file by karma-concat-js
     files,
+    proxies,
   }
 
   if (process.env['IBAZEL_NOTIFY_CHANGES'] === 'y') {
