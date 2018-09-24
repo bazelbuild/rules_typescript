@@ -51,7 +51,7 @@ def _ts_devserver(ctx):
 
     amd_names_shim = ctx.actions.declare_file(
         "_%s.amd_names_shim.js" % ctx.label.name,
-        sibling = ctx.outputs.executable,
+        sibling = ctx.outputs.script,
     )
     write_amd_names_shim(ctx.actions, amd_names_shim, ctx.attr.bootstrap)
 
@@ -82,32 +82,34 @@ def _ts_devserver(ctx):
 
     packages = depset(["/".join([workspace_name, ctx.label.package])] + ctx.attr.additional_root_paths)
 
-    # FIXME: more bash dependencies makes Windows support harder
-    ctx.actions.write(
-        output = ctx.outputs.executable,
-        is_executable = True,
-        content = """#!/bin/sh
-RUNFILES="$PWD/.."
-{main} {serving_arg} \
-  -base="$RUNFILES" \
-  -packages={packages} \
-  -manifest={workspace}/{manifest} \
-  -scripts_manifest={workspace}/{scripts_manifest} \
-  -entry_module={entry_module} \
-  -port={port} \
-  "$@"
-""".format(
-            main = ctx.executable._devserver.short_path,
-            serving_arg = serving_arg,
-            workspace = workspace_name,
-            packages = ",".join(packages.to_list()),
-            manifest = ctx.outputs.manifest.short_path,
-            scripts_manifest = ctx.outputs.scripts_manifest.short_path,
-            entry_module = ctx.attr.entry_module,
-            port = str(ctx.attr.port),
-        ),
+    # Avoid writing non-normalized paths (workspace/../other_workspace/path)
+    if ctx.executable._devserver.short_path.startswith("../"):
+      script_path = ctx.executable._devserver.short_path[len("../"):]
+    else:
+      script_path = "/".join([
+          ctx.workspace_name,
+          ctx.executable._devserver.short_path,
+      ])
+
+    substitutions = {
+        "TEMPLATED_main": script_path,
+        "TEMPLATED_serving_arg": serving_arg,
+        "TEMPLATED_workspace": workspace_name,
+        "TEMPLATED_packages": ",".join(packages.to_list()),
+        "TEMPLATED_manifest": ctx.outputs.manifest.short_path,
+        "TEMPLATED_scripts_manifest": ctx.outputs.scripts_manifest.short_path,
+        "TEMPLATED_entry_module": ctx.attr.entry_module,
+        "TEMPLATED_port": str(ctx.attr.port),
+    }
+    ctx.actions.expand_template(
+        template=ctx.file._launcher_template,
+        output=ctx.outputs.script,
+        substitutions=substitutions,
+        is_executable=True,
     )
+
     return [DefaultInfo(
+        executable = ctx.outputs.script,
         runfiles = ctx.runfiles(
             files = devserver_runfiles,
             # We don't expect executable targets to depend on the devserver, but if they do,
@@ -168,10 +170,16 @@ ts_devserver = rule(
             executable = True,
             cfg = "host",
         ),
+        "_launcher_template": attr.label(
+            default = Label("//internal/devserver:devserver_launcher.sh"),
+            allow_files = True,
+            single_file = True
+        ),        
     },
     outputs = {
         "manifest": "%{name}.MF",
         "scripts_manifest": "scripts_%{name}.MF",
+        "script": "%{name}.sh",
     },
     executable = True,
 )
@@ -180,7 +188,7 @@ ts_devserver = rule(
 Additional documentation at https://github.com/alexeagle/angular-bazel-example/wiki/Running-a-devserver-under-Bazel
 """
 
-def ts_devserver_macro(tags = [], **kwargs):
+def ts_devserver_macro(name, data=[], args=[], visibility=None, tags=[], testonly=0, **kwargs):
     """ibazel wrapper for `ts_devserver`
 
     This macro re-exposes the `ts_devserver` rule with some extra tags so that
@@ -194,6 +202,10 @@ def ts_devserver_macro(tags = [], **kwargs):
       **kwargs: passed through to `ts_devserver`
     """
     ts_devserver(
+        name = "%s_bin" % name,
+        data = data + ["@bazel_tools//tools/bash/runfiles"],
+        testonly = testonly,
+        visibility = ["//visibility:private"],
         # Users don't need to know that these tags are required to run under ibazel
         tags = tags + [
             # Tell ibazel not to restart the devserver when its deps change.
@@ -201,6 +213,16 @@ def ts_devserver_macro(tags = [], **kwargs):
             # Tell ibazel to serve the live reload script, since we expect a browser will connect to
             # this program.
             "ibazel_live_reload",
-        ],
-        **kwargs
+        ],      
+      **kwargs
+    )
+
+    native.sh_binary(
+        name = name,
+        args = args,
+        tags = tags,
+        srcs = [":%s_bin.sh" % name],
+        data = [":%s_bin" % name],
+        testonly = testonly,
+        visibility = visibility,
     )

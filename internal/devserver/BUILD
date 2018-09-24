@@ -19,8 +19,8 @@ package(default_visibility = [
 ])
 
 exports_files([
-    # Exported to be consumed for generating skydoc.
-    "ts_devserver.bzl",
+    "ts_devserver.bzl", # Exported to be consumed for generating skydoc.
+    "devserver_launcher.sh",
 ])
 
 filegroup(

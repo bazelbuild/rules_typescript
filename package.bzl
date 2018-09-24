@@ -56,8 +56,9 @@ def rules_typescript_dependencies():
     _maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        url = "https://github.com/bazelbuild/rules_go/releases/download/0.16.0/rules_go-0.16.0.tar.gz",
-        sha256 = "ee5fe78fe417c685ecb77a0a725dc9f6040ae5beb44a0ba4ddb55453aad23a8a",
+        urls = ["https://github.com/bazelbuild/rules_go/archive/176c51a40576f040bff6fa24308f91b5b07adde9.zip"],
+        strip_prefix = "rules_go-176c51a40576f040bff6fa24308f91b5b07adde9",
+        # sha256 = "d02b1d8d11fb67fb1e451645256e58a1542170eedd6e2ba160c8540c96f659da",
     )
 
     # go_repository is defined in bazel_gazelle
@@ -67,15 +68,6 @@ def rules_typescript_dependencies():
         urls = ["https://github.com/bazelbuild/bazel-gazelle/archive/109bcfd6880aac2517a1a2d48987226da6337e11.zip"],
         strip_prefix = "bazel-gazelle-109bcfd6880aac2517a1a2d48987226da6337e11",
         sha256 = "8f80ce0f7a6f8a3fee1fb863c9a23e1de99d678c1cf3c6f0a128f3b883168208",
-    )
-
-    # ts_auto_deps depends on com_github_bazelbuild_buildtools
-    _maybe(
-        http_archive,
-        name = "com_github_bazelbuild_buildtools",
-        url = "https://github.com/bazelbuild/buildtools/archive/0.12.0.zip",
-        strip_prefix = "buildtools-0.12.0",
-        sha256 = "ec495cbd19238c9dc488fd65ca1fee56dcb1a8d6d56ee69a49f2ebe69826c261",
     )
 
     ###############################################
