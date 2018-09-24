@@ -105,7 +105,7 @@ def _ts_devserver(ctx):
         template=ctx.file._launcher_template,
         output=ctx.outputs.script,
         substitutions=substitutions,
-        is_executable=True,
+        is_executable=False,
     )
 
     return [DefaultInfo(

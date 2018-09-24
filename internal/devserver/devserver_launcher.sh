@@ -49,7 +49,7 @@ readonly entry_module=$(rlocation "TEMPLATED_entry_module")
 
 RUNFILES="$PWD/.."
 "${main}" TEMPLATED_serving_arg \
-  -packages=packages \
+  -packages=TEMPLATED_packages \
   -manifest="${manifest}" \
   -scripts_manifest="${scripts_manifest}" \
   -entry_module="${entry_module}" \
