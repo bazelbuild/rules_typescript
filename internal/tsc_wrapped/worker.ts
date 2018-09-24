@@ -25,10 +25,17 @@ export function runAsWorker(args: string[]) {
 }
 
 const workerpb = (function loadWorkerPb() {
-  const protoPath = 'build_bazel_rules_typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto';
-
   // Use node module resolution so we can find the .proto file in any of the root dirs
-  const protofile = require.resolve(protoPath);
+  let protofile;
+  try {
+    // Look for the .proto file relative in its @bazel/typescript npm package location
+    protofile = require.resolve('../worker_protocol.proto');
+  } catch(e) {
+  }
+  if (!protofile) {
+    // If not found above, look for the .proto file in its rules_typescript workspace location
+    protofile = require.resolve('../../third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto');
+  }
 
   // Under Bazel, we use the version of TypeScript installed in the user's
   // workspace This means we also use their version of protobuf.js. Handle both.
@@ -37,14 +44,14 @@ const workerpb = (function loadWorkerPb() {
     // Protobuf.js v5
     const protoNamespace = protobufjs.loadProtoFile(protofile);
     if (!protoNamespace) {
-      throw new Error('Cannot find ' + path.resolve(protoPath));
+      throw new Error('Failed to load worker_protocol.proto');
     }
     return protoNamespace.build('blaze.worker');
   } else {
     // Protobuf.js v6
     const protoNamespace = protobufjs.loadSync(protofile);
     if (!protoNamespace) {
-      throw new Error('Cannot find ' + path.resolve(protoPath));
+      throw new Error('Failed to load worker_protocol.proto');
     }
     return protoNamespace.lookup('blaze.worker');
   }

@@ -17,11 +17,13 @@
 
 load(":common/module_mappings.bzl", "module_mappings_aspect")
 load(":common/json_marshal.bzl", "json_marshal")
+load("@build_bazel_rules_nodejs//internal/common:node_module_info.bzl", "collect_node_modules_aspect", "NodeModuleInfo")
 
 BASE_ATTRIBUTES = dict()
 
 DEPS_ASPECTS = [
     module_mappings_aspect,
+    collect_node_modules_aspect,
 ]
 
 # Attributes shared by any typescript-compatible rule (ts_library, ng_module)
@@ -64,10 +66,12 @@ def assert_js_or_typescript_deps(ctx, deps = None):
     # Fallback to `ctx.attr.deps`.
     deps = deps or ctx.attr.deps
     for dep in deps:
-        if not hasattr(dep, "typescript") and not hasattr(dep, "js"):
+        # npm fine grained deps such as `@npm//:foo` are permitted and are identified
+        # by the NodeModuleInfo provider
+        if not hasattr(dep, "typescript") and not hasattr(dep, "js") and not NodeModuleInfo in dep:
             fail(
                 ("%s is neither a TypeScript nor a JS producing rule." % dep.label) +
-                "\nDependencies must be ts_library, ts_declaration, or " +
+                "\nDependencies must be ts_library, ts_declaration, npm fine grained dep or " +
                 # TODO(plf): Leaving this here for now, but this message does not
                 # make sense in opensource.
                 "JavaScript library rules (js_library, pinto_library, etc, but " +
