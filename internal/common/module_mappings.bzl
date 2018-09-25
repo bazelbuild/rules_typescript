@@ -92,9 +92,12 @@ def get_module_mappings(label, attrs, srcs = [], workspace_name = None, mappings
 
             else:
                 for s in srcs:
-                    if not s.short_path.startswith(mr):
+                    path = s.short_path
+                    if (path.startswith("../")):
+                        path = "external/" + path[len("../"):]
+                    if not path.startswith(mr):
                         fail(("all sources must be under module root: %s, but found: %s" %
-                              (mr, s.short_path)))
+                              (mr, path)))
         if mn in mappings and mappings[mn] != mr:
             fail(("duplicate module mapping at %s: %s maps to both %s and %s" %
                   (label, mn, mappings[mn], mr)), "deps")
