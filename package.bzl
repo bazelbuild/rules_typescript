@@ -38,9 +38,9 @@ def rules_typescript_dependencies():
     _maybe(
         http_archive,
         name = "build_bazel_rules_nodejs",
-        urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.14.0.zip"],
-        strip_prefix = "rules_nodejs-0.14.0",
-        sha256 = "0e39999df9bf8c6fce46629457edb8c0073ad68244483339af578d83bf4fb794",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/archive/33cb6edfb4fc5cf9b7643b379b6d50292c163c81.zip"],
+        strip_prefix = "rules_nodejs-33cb6edfb4fc5cf9b7643b379b6d50292c163c81",
+        sha256 = "369b000e8aab2aeea99440cdaa351d3d4bb04b6fa5bfff63d83295b063dc2cab",
     )
 
     # ts_web_test depends on the web testing rules to provision browsers.

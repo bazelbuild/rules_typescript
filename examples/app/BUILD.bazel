@@ -1,10 +1,11 @@
 load("@build_bazel_rules_nodejs//:defs.bzl", "http_server")
-load("//:defs.bzl", "ts_devserver")
-load("//internal:defaults.bzl", "ts_library")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_devserver", "ts_library")
 
 ts_library(
     name = "app",
     srcs = ["app.ts"],
+    module_name = "app",
+    module_root = "app.d.ts",
 )
 
 ts_devserver(
@@ -23,7 +24,7 @@ load("@build_bazel_rules_nodejs//:defs.bzl", "rollup_bundle", "nodejs_binary")
 
 rollup_bundle(
     name = "bundle",
-    entry_point = "examples/app/app",
+    entry_point = "app",
     deps = [":app"],
 )
 
@@ -39,7 +40,7 @@ ts_library(
     name = "e2e",
     testonly = 1,
     srcs = ["app_e2e_test.ts"],
-    tsconfig = "//examples:tsconfig-test",
+    tsconfig = "//:tsconfig-test",
     deps = [
         "@npm//:@types/jasmine",
         "@npm//:@types/node",

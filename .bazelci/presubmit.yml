@@ -6,42 +6,50 @@ platforms:
     - "@nodejs//:yarn"
     build_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
     test_flags:
     # TODO(gregmagolan): shared libs needed by chrome & firefox not available on ubuntu1404
     - "--test_tag_filters=-browser:chromium-local,-browser:firefox-local"
     test_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
   ubuntu1604:
     run_targets:
     - "//:gazelle"
     - "@nodejs//:yarn"
     build_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
     test_flags:
     # TODO(gregmagolan): shared libs needed by chrome & firefox not available on ubuntu1604
     - "--test_tag_filters=-browser:chromium-local,-browser:firefox-local"
     test_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
   macos:
     run_targets:
     - "//:gazelle"
     - "@nodejs//:yarn"
     build_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
     test_flags:
     # TODO(gregmagolan): chrome & firefox unknown breakage on macos target here; does work locally on mac
     - "--test_tag_filters=-browser:chromium-local,-browser:firefox-local"
     test_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
   windows:
     run_targets:
     - "//:gazelle"
     - "@nodejs//:yarn"
     build_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
     - "--"
     - "-//docs/..."
     test_targets:
     - "..."
+    - "@build_bazel_rules_typescript_examples//..."
     - "--"
     - "-//docs/..."

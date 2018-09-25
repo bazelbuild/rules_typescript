@@ -15,7 +15,7 @@
 package(default_visibility = ["//visibility:public"])
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
-load("//internal:defaults.bzl", "ts_library")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 
 # We compile this library with the module name "sm" to make it possible to
 # use `import {} from 'sm';` both at type-check time (we include the mapping in

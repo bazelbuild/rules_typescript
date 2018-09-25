@@ -18,7 +18,7 @@ load(":es6_consumer.bzl", "es6_consumer")
 
 es6_consumer(
     name = "es6_output",
-    deps = ["//examples:bar_ts_library"],
+    deps = ["//:bar_ts_library"],
 )
 
 sh_test(

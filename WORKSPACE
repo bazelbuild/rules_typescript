@@ -25,18 +25,24 @@ rules_typescript_dev_dependencies()
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories", "yarn_install")
 
-# Use a bazel-managed npm dependency, allowing us to test resolution to these paths
-yarn_install(
-    name = "build_bazel_rules_typescript_internal_bazel_managed_deps",
-    package_json = "//examples/bazel_managed_deps:package.json",
-    yarn_lock = "//examples/bazel_managed_deps:yarn.lock",
-)
-
 # Deps for the //internal/e2e/reference_types_directive test
 yarn_install(
     name = "build_bazel_rules_typescript_internal_reference_types_directive_deps",
     package_json = "//internal/e2e/reference_types_directive:package.json",
     yarn_lock = "//internal/e2e/reference_types_directive:yarn.lock",
+)
+
+# Install dependencies for the examples nested workspace.
+local_repository(
+    name = "build_bazel_rules_typescript_examples",
+    path = "examples",
+)
+
+# Use a bazel-managed npm dependency, allowing us to test resolution to these paths
+yarn_install(
+    name = "build_bazel_rules_typescript_examples_bazel_managed_deps",
+    package_json = "@build_bazel_rules_typescript_examples//bazel_managed_deps:package.json",
+    yarn_lock = "@build_bazel_rules_typescript_examples//bazel_managed_deps:yarn.lock",
 )
 
 # Install a hermetic version of node.

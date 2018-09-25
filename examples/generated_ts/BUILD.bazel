@@ -1,4 +1,4 @@
-load("//internal:defaults.bzl", "ts_library")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -11,4 +11,6 @@ genrule(
 ts_library(
     name = "generated_ts",
     srcs = [":foo.ts"],
+    module_name = "build_bazel_rules_typescript_examples/generated_ts",
+    module_root = "foo.d.ts",
 )

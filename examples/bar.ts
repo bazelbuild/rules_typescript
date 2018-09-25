@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import {Greeter} from 'build_bazel_rules_typescript/examples/foo';
-import {a} from 'build_bazel_rules_typescript/examples/generated_ts/foo';
+import {Greeter} from 'build_bazel_rules_typescript_examples/foo';
+import {a} from 'build_bazel_rules_typescript_examples/generated_ts';
 // Repro for #31, should automatically discover @types/node
 import * as fs from 'fs';
 import {cool} from 'some-lib';

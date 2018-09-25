@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "examples/protocol_buffers/tire.proto";
+import "protocol_buffers/tire.proto";
 
 message Car {
   string make = 1;

@@ -14,8 +14,7 @@
 
 package(default_visibility = ["//visibility:public"])
 
-load("//:defs.bzl", "ts_config")
-load("//internal:defaults.bzl", "ts_library")
+load("@build_bazel_rules_typescript//:defs.bzl", "ts_config", "ts_library")
 
 ts_library(
     name = "types",
@@ -26,9 +25,10 @@ ts_library(
     name = "foo_ts_library",
     srcs = ["foo.ts"],
     tsconfig = ":tsconfig.json",
+    module_name = "build_bazel_rules_typescript_examples/foo",
+    module_root = "foo.d.ts",
     deps = [
         ":types",
-        "//examples/generated_ts",
     ],
 )
 
@@ -38,8 +38,8 @@ ts_library(
     tsconfig = ":tsconfig-bar.json",
     deps = [
         ":foo_ts_library",
-        "//examples/generated_ts",
-        "//examples/some_library:lib",
+        "//generated_ts",
+        "//some_library:lib",
         "@npm//:typescript",
         # Example of using the `@npm//:@types` target to depend on all
         # @types packages and with the types attribute of tsconfig not
@@ -55,4 +55,23 @@ ts_config(
     name = "tsconfig-test",
     src = "tsconfig-test.json",
     deps = [":tsconfig.json"],
+)
+
+# Runtime libraries needed by the protobufjs library.
+# Any JS code produced by the ts_proto_library rule has a runtime dependency on these scripts.
+load("@build_bazel_rules_nodejs//internal/js_library:js_library.bzl", "js_library")
+
+js_library(
+    name = "protobufjs_bootstrap_scripts",
+    srcs = [
+        "@build_bazel_rules_typescript_protobufs_compiletime_deps//:node_modules/long/dist/long.js",
+        "@build_bazel_rules_typescript_protobufs_compiletime_deps//:node_modules/protobufjs/dist/minimal/protobuf.min.js",
+    ],
+    # Make devmode loading work when it does require("protobufjs/minimal")
+    # so this is shimmed to define it to equal global.protobuf
+    amd_names = {
+        "long": "Long",
+        "protobufjs/minimal": "protobuf",
+    },
+    visibility = ["//visibility:public"],
 )

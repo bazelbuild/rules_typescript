@@ -2,6 +2,7 @@
   "name": "bazel_managed_deps",
   "devDependencies": {
     "@types/three": "^0.91.10",
+    "jasmine":"^2.5.3",
     "three": "^0.92.0",
     "typescript": "^2.8.3"
   }
