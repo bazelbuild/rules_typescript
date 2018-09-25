@@ -81,13 +81,21 @@ def _ts_proto_library(ctx):
 
     output_name = ctx.attr.output_name or ctx.label.name
 
+    # We want the name of the workspace of the target (label), but then the target is in the same
+    # workspace where the build take place, ctx.label.workspace_root will not be set. 
+    # In that case we fallback to ctx.workspace_name.
+    if ctx.label.workspace_root:
+        workspace_name = ctx.label.workspace_root.split("/")[1]
+    else:
+        workspace_name = ctx.workspace_name
+
     js_es5 = _run_pbjs(
         ctx.actions,
         ctx.executable,
         output_name,
         sources,
         amd_name = "/".join([p for p in [
-            ctx.workspace_name,
+            workspace_name,
             ctx.label.package,
         ] if p]),
     )
