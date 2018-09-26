@@ -1,6 +1,8 @@
 {
   "name": "bazel_managed_deps",
   "devDependencies": {
+    "@bazel/karma": "file:../build_bazel_rules_typescript/bazel-bin/internal/karma/npm_package",
+    "@bazel/typescript": "file:../build_bazel_rules_typescript/bazel-bin/internal/npm_package",    
     "@types/three": "^0.91.10",
     "jasmine":"^2.5.3",
     "three": "^0.92.0",
