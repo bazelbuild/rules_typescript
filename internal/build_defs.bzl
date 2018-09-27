@@ -94,9 +94,9 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
     action_inputs = depset(node_module_inputs, transitive = [inputs])
 
     if ctx.file.tsconfig:
-        action_inputs += [ctx.file.tsconfig]
+        action_inputs = depset([ctx.file.tsconfig], transitive = [action_inputs])
         if TsConfigInfo in ctx.attr.tsconfig:
-            action_inputs += ctx.attr.tsconfig[TsConfigInfo].deps
+            action_inputs = depset(ctx.attr.tsconfig[TsConfigInfo].deps, transitive = [action_inputs])
 
     # Pass actual options for the node binary in the special "--node_options" argument.
     arguments = ["--node_options=%s" % opt for opt in node_opts]
