@@ -91,9 +91,9 @@ def _collect_dep_declarations(ctx, deps):
 
     for dep in deps + getattr(ctx.attr, "_helpers", []):
         if hasattr(dep, "typescript"):
-            direct_deps_declarations += dep.typescript.declarations
-            transitive_deps_declarations += dep.typescript.transitive_declarations
-            type_blacklisted_declarations += dep.typescript.type_blacklisted_declarations
+            direct_deps_declarations = depset(dep.typescript.declarations, transitive=[direct_deps_declarations])
+            transitive_deps_declarations = depset(dep.typescript.transitive_declarations, transitive=[transitive_deps_declarations])
+            type_blacklisted_declarations = depset(dep.typescript.type_blacklisted_declarations, transitive=[type_blacklisted_declarations])
 
     # If a tool like github.com/angular/clutz can create .d.ts from type annotated .js
     # its output will be collected here.
@@ -232,13 +232,12 @@ def compile_ts(
     tsickle_externs_path = tsickle_externs[0] if tsickle_externs else None
 
     # Calculate allowed dependencies for strict deps enforcement.
-    allowed_deps = depset()
-
-    # A target's sources may depend on each other,
-    allowed_deps += srcs_files[:]
-
-    # or on a .d.ts from a direct dependency
-    allowed_deps += dep_declarations.direct
+    allowed_deps = depset(
+        # A target's sources may depend on each other,
+        srcs_files,
+        # or on a .d.ts from a direct dependency
+        transitive = [dep_declarations.direct],
+    )
 
     tsconfig_es6 = tsc_wrapped_tsconfig(
         ctx,
@@ -273,7 +272,7 @@ def compile_ts(
         ]
         outputs.append(profile_file)
 
-        files += [perf_trace_file, profile_file]
+        files = depset(transitive = [files, [perf_trace_file, profile_file]])
 
     ctx.actions.write(
         output = ctx.outputs.tsconfig,
@@ -324,7 +323,7 @@ def compile_ts(
             ]
             outputs.append(profile_file)
 
-            files += [perf_trace_file, profile_file]
+            files = depset(transitive=[files, [perf_trace_file, profile_file]])
 
         ctx.actions.write(output = tsconfig_json_es5, content = json_marshal(
             tsconfig_es5,
@@ -358,22 +357,20 @@ def compile_ts(
         devmode_manifest = None
 
     # Downstream rules see the .d.ts files produced or declared by this rule.
-    declarations = depset()
-    declarations += gen_declarations
-    declarations += src_declarations
+    declarations = depset(gen_declarations + src_declarations)
     if not srcs_files:
         # Re-export sources from deps.
         # TODO(b/30018387): introduce an "exports" attribute.
         for dep in deps:
             if hasattr(dep, "typescript"):
-                declarations += dep.typescript.declarations
-    files += declarations
+                declarations = depset(transitive=[declarations, dep.typescript.declarations])
+    files = depset(transitive=[files, declarations])
 
     # If this is a ts_declaration, add tsickle_externs to the outputs list to
     # force compilation of d.ts files.  (tsickle externs are produced by running a
     # compilation over the d.ts file and extracting type information.)
     if not is_library:
-        files += depset(tsickle_externs)
+        files = depset(transitive=[files, tsickle_externs])
 
     transitive_es5_sources = depset()
     transitive_es6_sources = depset()
