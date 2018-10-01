@@ -33,6 +33,9 @@ export interface BazelOptions {
   /** The bazel package, eg my/pkg */
   package: string;
 
+  /** True if the target being built is from an external workspace. */
+  externalTarget: boolean;
+
   /** If true, convert require()s into goog.module(). */
   googmodule: boolean;
 
