@@ -19,6 +19,7 @@
     },
     "devDependencies": {
         "@bazel/ibazel": "^0.2.0",
+        "@bazel/typescript": "0.19.1",
         "@types/jasmine": "^2.8.2",
         "@types/long": "^4.0.0",
         "@types/node": "7.0.18",
