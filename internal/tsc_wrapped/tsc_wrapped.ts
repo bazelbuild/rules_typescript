@@ -109,7 +109,11 @@ function runOneBuild(
       ignoredFilesPrefixes,
     });
   }
-  program = tsetsePlugin.wrap(program, disabledTsetseRules);
+
+  // Only apply tsetse checks to the internal repository
+  if (!bazelOpts.externalTarget) {
+    program = tsetsePlugin.wrap(program, disabledTsetseRules);
+  }
 
   // These checks mirror ts.getPreEmitDiagnostics, with the important
   // exception that if you call program.getDeclarationDiagnostics() it somehow
