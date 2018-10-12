@@ -27,6 +27,7 @@ nodejs_binary(
     name = "karma_bin",
     data = [
         ":karma_concat_js",
+        "@npm//adm-zip",
         "@npm//jasmine-core",
         "@npm//karma",
         "@npm//karma-chrome-launcher",
