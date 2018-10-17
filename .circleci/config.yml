@@ -41,6 +41,15 @@ anchor_2: &post_checkout
 
 version: 2
 jobs:
+  filipe-test:
+    <<: *job_defaults
+    steps:
+      - checkout:
+          <<: *post_checkout
+      - restore_cache:
+          key: *cache_key
+      - *hide_node_and_yarn_local_binaries          
+      - run: bazel test //examples/testing/...
   build:
     <<: *job_defaults
     steps:
@@ -121,7 +130,8 @@ workflows:
   # Run the two builds in parallel, reporting separate status to github PRs.
   default_workflow:
     jobs:
-      - build
-      - build_no_bazelrc
-      - test
-      - lint
+      - filipe-test
+      # - build
+      # - build_no_bazelrc
+      # - test
+      # - lint
