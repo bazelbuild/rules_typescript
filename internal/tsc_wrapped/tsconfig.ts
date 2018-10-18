@@ -156,6 +156,11 @@ export interface BazelOptions {
    * compilation unit.
    */
   hasImplementation?: boolean;
+
+  /**
+   * Additional TscPlugin's declared in the build rule
+   */
+  plugins?: string[];
 }
 
 export interface ParsedTsConfig {

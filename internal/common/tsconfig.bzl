@@ -16,6 +16,7 @@
 """
 
 load(":common/module_mappings.bzl", "get_module_mappings")
+load(":tsc_plugin.bzl", "TscPlugin")
 
 _DEBUG = False
 
@@ -153,6 +154,9 @@ def create_tsconfig(
         "typeCheckDependencies": getattr(ctx.attr, "internal_testing_type_check_dependencies", False),
         "expectedDiagnostics": getattr(ctx.attr, "expected_diagnostics", []),
     }
+
+    if hasattr(ctx.attr, "plugins"):
+        bazel_options["plugins"] = [p[TscPlugin].entry_point for p in ctx.attr.plugins]
 
     if disable_strict_deps:
         bazel_options["disableStrictDeps"] = disable_strict_deps

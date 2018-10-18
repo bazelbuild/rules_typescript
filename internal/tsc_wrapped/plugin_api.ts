@@ -31,7 +31,12 @@ import * as ts from 'typescript';
  * Execution of plugins is not additive; only the result from the top-most
  * wrapped Program is used.
  */
-export interface TscPlugin { wrap(p: ts.Program, config?: {}): ts.Program; }
+export interface TscPlugin {
+    wrap(p: ts.Program, config?: {}): ts.Program;
+    // Temporary, needed until after Angular Ivy lands
+    additionalRootFiles?(): string[];
+    createTransformers?(tc: ts.TypeChecker): ts.CustomTransformers;
+}
 
 // TODO(alexeagle): this should be unioned with tsserverlibrary.PluginModule
 export type Plugin = TscPlugin;

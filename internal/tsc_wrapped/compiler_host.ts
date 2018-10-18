@@ -377,8 +377,8 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   // Resolves /// <reference types="x" /> directives under bazel.
   // The default typescript secondary search behavior needs to be overridden
   // to support looking under `bazelOpts.nodeModulesPrefix`
-  resolveTypeReferenceDirectives(names: string[], containingFile: string): (ts.ResolvedTypeReferenceDirective | undefined)[] {
-    let result: (ts.ResolvedTypeReferenceDirective | undefined)[] = []
+  resolveTypeReferenceDirectives(names: string[], containingFile: string): ts.ResolvedTypeReferenceDirective[] {
+    let result: ts.ResolvedTypeReferenceDirective[] = [];
     names.forEach(name => {
       let resolved: ts.ResolvedTypeReferenceDirective | undefined;
 
@@ -401,7 +401,9 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
         debug(`Failed to resolve type reference directive '${name}'`);
       }
 
-      result.push(resolved);
+      if (resolved) {
+        result.push(resolved);
+      }
     });
     return result;
   }
@@ -435,7 +437,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   writeFile(
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError: ((message: string) => void) | undefined,
-      sourceFiles: ReadonlyArray<ts.SourceFile>): void {
+      sourceFiles?: ReadonlyArray<ts.SourceFile>): void {
     perfTrace.wrap(
         `writeFile ${fileName}`,
         () => this.writeFileImpl(

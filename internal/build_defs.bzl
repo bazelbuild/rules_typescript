@@ -19,6 +19,7 @@
 load(":common/compilation.bzl", "COMMON_ATTRIBUTES", "DEPS_ASPECTS", "compile_ts", "ts_providers_dict_to_struct")
 load(":common/tsconfig.bzl", "create_tsconfig")
 load(":ts_config.bzl", "TsConfigInfo")
+load(":tsc_plugin.bzl", "TscPlugin")
 load("@build_bazel_rules_nodejs//internal/common:node_module_info.bzl", "NodeModuleInfo", "collect_node_modules_aspect")
 
 _DEFAULT_COMPILER = "@build_bazel_rules_typescript//:@bazel/typescript/tsc_wrapped"
@@ -126,7 +127,9 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
     ctx.actions.run(
         progress_message = "Compiling TypeScript (%s) %s" % (description, ctx.label),
         mnemonic = mnemonic,
-        inputs = depset(action_inputs, transitive = [inputs]),
+        inputs = depset(action_inputs, transitive = [inputs] + [
+            p[TscPlugin].node_sources for p in ctx.attr.plugins
+        ]),
         outputs = action_outputs,
         # Use the built-in shell environment
         # Allow for users who set a custom shell that can locate standard binaries like tr and uname
@@ -260,6 +263,10 @@ ts_library = rule(
             mandatory = True,
         ),
         "deps": attr.label_list(aspects = local_deps_aspects),
+        "plugins": attr.label_list(
+            doc = """Libraries which implement the tsc_wrapped PluginApi""",
+            providers = [TscPlugin],
+        ),
 
         # TODO(alexeagle): reconcile with google3: ts_library rules should
         # be portable across internal/external, so we need this attribute

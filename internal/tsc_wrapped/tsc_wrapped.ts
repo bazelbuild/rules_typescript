@@ -10,6 +10,7 @@ import {CachedFileLoader, FileCache, FileLoader, UncachedFileLoader} from './fil
 import {wrap} from './perf_trace';
 import {PLUGIN as strictDepsPlugin} from './strict_deps';
 import {parseTsconfig, resolveNormalizedPath} from './tsconfig';
+import {TscPlugin} from './plugin_api';
 import {debug, log, runAsWorker, runWorkerLoop} from './worker';
 
 export function main(args: string[]) {
@@ -26,6 +27,13 @@ export function main(args: string[]) {
     }
   }
   return 0;
+}
+
+// Narrowed type where the transforms are always defined
+interface CustomTransformers {
+  before: ts.TransformerFactory<ts.SourceFile>[];
+  after: ts.TransformerFactory<ts.SourceFile>[];
+  afterDeclarations: ts.TransformerFactory<ts.Bundle | ts.SourceFile>[];
 }
 
 // The one FileCache instance used in this process.
@@ -109,6 +117,44 @@ function runOneBuild(
     });
   }
   program = tsetsePlugin.wrap(program, disabledTsetseRules);
+  const transforms: CustomTransformers = {
+    before: [],
+    after: [],
+    afterDeclarations: [],
+  };
+
+  for (const p of bazelOpts.plugins || []) {
+    // Plugins can be loaded from the execroot by prefixing with slash.
+    // Bazel ensures that our working directory is the execroot.
+    // Otherwise we'll expect to load them from the tsc_wrapped binary runfiles
+    // or from node_modules.
+    const pluginPath = p.startsWith('/') ? path.join(process.cwd(), p) : p;
+    // Since tsc_wrapped runs as a persistent worker, we'll hit the nodejs cache
+    // when we require() the plugin, if the plugin is modified since the last
+    // execution.
+    // So we always throw away node's cached object and require() a fresh copy
+    // of the plugin.
+    // TODO(alexeagle): maybe this has bad perf implications and we shouldn't
+    // do this?
+    delete require.cache[require.resolve(pluginPath)];
+    // Dynamically load the plugin from disk
+    const plugin: TscPlugin = require(pluginPath).default;
+    // Apply the diagnostics capability of the plugin
+    program = plugin.wrap(program, {});
+    // Apply the transformers capability of the plugin
+    if (plugin.createTransformers) {
+      const x = plugin.createTransformers(program.getTypeChecker());
+      if (x.before) {
+        transforms.before = transforms.before.concat(x.before);
+      }
+      if (x.after) {
+        transforms.after = transforms.after.concat(x.after);
+      }
+      if (x.afterDeclarations) {
+        transforms.afterDeclarations = transforms.afterDeclarations.concat(x.afterDeclarations);
+      }
+    }
+  }
 
   // These checks mirror ts.getPreEmitDiagnostics, with the important
   // exception that if you call program.getDeclarationDiagnostics() it somehow
@@ -148,8 +194,7 @@ function runOneBuild(
     // here for use at runtime.
     let optTsickle: typeof tsickle;
     try {
-      // tslint:disable-next-line:no-require-imports dependency on tsickle only
-      // if requested
+      // tslint:disable-next-line:no-require-imports optDep on tsickle
       optTsickle = require('tsickle');
     } catch {
       throw new Error(
@@ -158,14 +203,24 @@ function runOneBuild(
     }
     for (const sf of toEmit) {
       emitResults.push(optTsickle.emitWithTsickle(
-          program, compilerHost, compilerHost, options, sf));
+          program, compilerHost, compilerHost, options, sf,
+          /*writeFile*/ undefined,
+          /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ undefined,
+          {
+            beforeTs: transforms.before,
+            afterTs: transforms.after
+            // FIXME: what about transforms.afterDeclarations
+          }));
     }
     diags.push(
         ...optTsickle.mergeEmitResults(emitResults as tsickle.EmitResult[])
             .diagnostics);
   } else {
     for (const sf of toEmit) {
-      emitResults.push(program.emit(sf));
+      emitResults.push(program.emit(
+          sf, /*writeFile*/ undefined,
+          /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ undefined,
+          transforms));
     }
 
     for (const d of emitResults) {

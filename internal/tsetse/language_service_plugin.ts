@@ -13,7 +13,7 @@ function init() {
   return {
     create(info: ts.server.PluginCreateInfo) {
       const oldService = info.languageService;
-      const checker = new Checker(oldService.getProgram());
+      const checker = new Checker(oldService.getProgram()!);
 
       // Add disabledRules to tsconfig to disable specific rules
       // "plugins": [
@@ -25,8 +25,8 @@ function init() {
       proxy.getSemanticDiagnostics = (fileName: string) => {
         const result = [...oldService.getSemanticDiagnostics(fileName)];
         result.push(
-            ...checker.execute(oldService.getProgram().getSourceFile(fileName)!)
-                .map(failure => failure.toDiagnostic()));
+            ...checker.execute(oldService.getProgram()!.getSourceFile(fileName)!)
+                .map((failure: any) => failure.toDiagnostic()));
         return result;
       };
       return proxy;
