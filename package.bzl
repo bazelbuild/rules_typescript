@@ -56,7 +56,6 @@ def rules_typescript_dependencies():
     _maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        strip_prefix = "rules_go-cbc1e32fba771845305f15e341fa26595d4a136d",
         url = "https://github.com/bazelbuild/rules_go/releases/download/0.16.0/rules_go-0.16.0.tar.gz",
         sha256 = "ee5fe78fe417c685ecb77a0a725dc9f6040ae5beb44a0ba4ddb55453aad23a8a",
     )
