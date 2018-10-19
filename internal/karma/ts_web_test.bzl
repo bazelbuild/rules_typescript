@@ -98,10 +98,6 @@ def _ts_web_test_impl(ctx):
         },
     )
 
-    karma_executable_path = ctx.executable.karma.short_path
-    if karma_executable_path.startswith(".."):
-        karma_executable_path = "external" + karma_executable_path[2:]
-
     karma_runfiles = [
         conf,
         amd_names_shim,
@@ -143,7 +139,7 @@ fi
 $KARMA ${{ARGV[@]}}
 """.format(
             TMPL_workspace = ctx.workspace_name,
-            TMPL_karma = karma_executable_path,
+            TMPL_karma = ctx.executable.karma.short_path,
             TMPL_conf = conf.short_path,
         ),
     )
