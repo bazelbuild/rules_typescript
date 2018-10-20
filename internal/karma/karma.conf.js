@@ -6,7 +6,6 @@ try
   const path = require('path');
   const tmp = require('tmp');
   const child_process = require('child_process');
-  const isWindows = /^win/i.test(process.platform);
 
   // Helper function to find a particular namedFile
   // within the webTestMetadata webTestFiles
@@ -29,29 +28,12 @@ try
       extractExe = extractExe ? path.join('external', extractExe) : extractExe;
       archiveFile = path.join('external', archiveFile)
       const extractedExecutablePath = path.join(process.cwd(), executablePath);
-      if (isWindows) {
-        // We can't run the EXTRACT_EXE shell script on Windows
-        if (archiveFile.endsWith('.zip')) {
-          const AdmZip = require('adm-zip');
-          const zip = new AdmZip(archiveFile);
-          // Extract to cwd
-          zip.extractAllTo('.', true);
-          // We need to chmod the executable to executable since adm-zip doesn't handle that
-          fs.chmodSync(extractedExecutablePath, 755);
-        } else {
-          throw new Error('Only .zip browser archives currently support on Windows');
-        }
-      } else {
-        // If we're on OSX or Linux then we can use the provided rules_webtesting
-        // EXTRACT_EXE shell script
-        if (!extractExe) {
-          throw new Error('No EXTRACT_EXE found');
-        }
-        // Extract to cwd
-        child_process.execFileSync(
-            extractExe, [archiveFile, '.'],
-            {stdio: [process.stdin, process.stdout, process.stderr]});
+      if (!extractExe) {
+        throw new Error('No EXTRACT_EXE found');
       }
+      child_process.execFileSync(
+          extractExe, [archiveFile, '.'],
+          {stdio: [process.stdin, process.stdout, process.stderr]});
       return extractedExecutablePath;
     } catch (e) {
       console.error(`Failed to extract ${archiveFile}`);
