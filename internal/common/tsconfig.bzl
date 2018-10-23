@@ -16,7 +16,6 @@
 """
 
 load(":common/module_mappings.bzl", "get_module_mappings")
-load(":tsc_plugin.bzl", "TscPlugin")
 
 _DEBUG = False
 
