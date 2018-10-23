@@ -156,7 +156,7 @@ def create_tsconfig(
     }
 
     if hasattr(ctx.attr, "plugins"):
-        bazel_options["plugins"] = [p[TscPlugin].entry_point for p in ctx.attr.plugins]
+        bazel_options["plugins"] = ctx.attr.plugins
 
     if disable_strict_deps:
         bazel_options["disableStrictDeps"] = disable_strict_deps

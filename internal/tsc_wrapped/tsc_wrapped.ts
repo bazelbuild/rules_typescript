@@ -123,22 +123,23 @@ function runOneBuild(
     afterDeclarations: [],
   };
 
+  const plugins: TscPlugin[] = [];
   for (const p of bazelOpts.plugins || []) {
-    // Plugins can be loaded from the execroot by prefixing with slash.
-    // Bazel ensures that our working directory is the execroot.
-    // Otherwise we'll expect to load them from the tsc_wrapped binary runfiles
-    // or from node_modules.
-    const pluginPath = p.startsWith('/') ? path.join(process.cwd(), p) : p;
-    // Since tsc_wrapped runs as a persistent worker, we'll hit the nodejs cache
-    // when we require() the plugin, if the plugin is modified since the last
-    // execution.
-    // So we always throw away node's cached object and require() a fresh copy
-    // of the plugin.
-    // TODO(alexeagle): maybe this has bad perf implications and we shouldn't
-    // do this?
-    delete require.cache[require.resolve(pluginPath)];
-    // Dynamically load the plugin from disk
-    const plugin: TscPlugin = require(pluginPath).default;
+    switch (p) {
+      case 'Angular':
+        try {
+          const compiler_cli = require('@angular/compiler-cli');
+          plugins.push(compiler_cli.NgTscPlugin);
+        } catch (e) {
+          throw new Error('when using `ts_library(plugins=["Angular"])`, ' +
+              'you must install @angular/compiler-cli');
+        }
+        break;
+      default:
+        throw new Error(`Unknown ts_library plugin ${p}`);
+    }
+  }
+  for (const plugin of plugins) {
     // Apply the diagnostics capability of the plugin
     program = plugin.wrap(program, {});
     // Apply the transformers capability of the plugin

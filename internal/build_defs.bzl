@@ -127,9 +127,7 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
     ctx.actions.run(
         progress_message = "Compiling TypeScript (%s) %s" % (description, ctx.label),
         mnemonic = mnemonic,
-        inputs = depset(action_inputs, transitive = [inputs] + [
-            p[TscPlugin].node_sources for p in ctx.attr.plugins
-        ]),
+        inputs = depset(action_inputs, transitive = [inputs]),
         outputs = action_outputs,
         # Use the built-in shell environment
         # Allow for users who set a custom shell that can locate standard binaries like tr and uname
@@ -263,9 +261,8 @@ ts_library = rule(
             mandatory = True,
         ),
         "deps": attr.label_list(aspects = local_deps_aspects),
-        "plugins": attr.label_list(
-            doc = """Libraries which implement the tsc_wrapped PluginApi""",
-            providers = [TscPlugin],
+        "plugins": attr.string_list(
+            doc = """Special plugins for the tsc_wrapped compiler like Angular""",
         ),
 
         # TODO(alexeagle): reconcile with google3: ts_library rules should
