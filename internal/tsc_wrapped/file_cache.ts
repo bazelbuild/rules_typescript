@@ -257,17 +257,17 @@ export interface FileLoader {
       ts.SourceFile;
   fileExists(filePath: string): boolean;
   // Allow files that are only known to the compiler
-  declareSyntheticFile(filePath: string, content: string): void;
+  declareSyntheticFile(filePath: string, sf: ts.SourceFile): void;
 }
 
 /**
  * Load a source file from disk, or possibly return a cached version.
  */
 export class CachedFileLoader implements FileLoader {
-  syntheticFiles = new Map<string, string>();
+  syntheticFiles = new Map<string, ts.SourceFile>();
 
-  declareSyntheticFile(filePath: string, content: string) {
-    this.syntheticFiles.set(filePath, content);
+  declareSyntheticFile(filePath: string, sf: ts.SourceFile) {
+    this.syntheticFiles.set(filePath, sf);
   }
 
   /** Total amount of time spent loading files, for the perf trace. */
@@ -285,14 +285,14 @@ export class CachedFileLoader implements FileLoader {
       ts.SourceFile {
     let sourceFile = this.cache.getCache(filePath);
     if (!sourceFile) {
-      const readStart = Date.now();
-      let sourceText: string;
       if (this.syntheticFiles.has(filePath)) {
-        sourceText = this.syntheticFiles.get(filePath)!;
-      } else {
-        sourceText = fs.readFileSync(filePath, 'utf8');
+        return this.syntheticFiles.get(filePath)!;
       }
+      const readStart = Date.now();
+
+      const sourceText = fs.readFileSync(filePath, 'utf8');
       sourceFile = ts.createSourceFile(fileName, sourceText, langVer, true);
+
       const entry = {
         digest: this.cache.getLastDigest(filePath),
         value: sourceFile
@@ -313,10 +313,10 @@ export class CachedFileLoader implements FileLoader {
 
 /** Load a source file from disk. */
 export class UncachedFileLoader implements FileLoader {
-  syntheticFiles = new Map<string, string>();
+  syntheticFiles = new Map<string, ts.SourceFile>();
 
-  declareSyntheticFile(filePath: string, content: string) {
-    this.syntheticFiles.set(filePath, content);
+  declareSyntheticFile(filePath: string, sf: ts.SourceFile) {
+    this.syntheticFiles.set(filePath, sf);
   }
 
   fileExists(filePath: string): boolean {
@@ -325,12 +325,10 @@ export class UncachedFileLoader implements FileLoader {
 
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile {
-    let sourceText: string;
     if (this.syntheticFiles.has(filePath)) {
-      sourceText = this.syntheticFiles.get(filePath)!;
-    } else {
-      sourceText = fs.readFileSync(filePath, 'utf8');
+      return this.syntheticFiles.get(filePath)!;
     }
+    const sourceText = fs.readFileSync(filePath, 'utf8');
     return ts.createSourceFile(fileName, sourceText, langVer, true);
   }
 }

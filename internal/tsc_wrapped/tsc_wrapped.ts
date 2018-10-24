@@ -164,8 +164,8 @@ function runOneBuild(
       const generator = angularGeneratedFiles[f];
       const generated = generator(compilerHost);
       if (generated) {
-        files.push(generated.fileName);
-        fileLoader.declareSyntheticFile(generated.fileName, generated.content);
+        files.push(f);
+        fileLoader.declareSyntheticFile(f, generated);
       }
     }
   }
