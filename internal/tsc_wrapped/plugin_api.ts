@@ -27,15 +27,34 @@ import * as ts from 'typescript';
  * This API is simpler than LanguageService plugins.
  * It's used for plugins that only target the command-line and never run in an
  * editor context.
- * IMPORTANT: plugins must propagate the diagnostics from the original program.
- * Execution of plugins is not additive; only the result from the top-most
- * wrapped Program is used.
  */
 export interface TscPlugin {
-    wrap(p: ts.Program, config?: {}): ts.Program;
-    // Temporary, needed until after Angular Ivy lands
-    additionalRootFiles?(): string[];
-    createTransformers?(tc: ts.TypeChecker): ts.CustomTransformers;
+  /**
+   * Allow plugins to add additional files to the program.
+   * For example, tsickle adds a lib_name.externs.js output
+   * and Angular creates ngsummary and ngfactory files.
+   * @param rootFiles the files that were part of the original program
+   */
+  generatedFiles?(rootFiles: string[]): {
+    [fileName: string]: (host: ts.CompilerHost) => ts.SourceFile|undefined
+  };
+
+  /**
+   * Same API as ts.LanguageService: allow the plugin to contribute additional
+   * diagnostics
+   * IMPORTANT: plugins must propagate the diagnostics from the original program.
+   * Execution of plugins is not additive; only the result from the top-most
+   * wrapped Program is used.
+   */
+  wrap(p: ts.Program, host: ts.CompilerHost, config?: {}): ts.Program;
+
+  /**
+   * Allow plugins to contribute additional TypeScript CustomTransformers.
+   * These can modify the TS AST, JS AST, or .d.ts output AST.
+   *
+   * @param fileNameToModuleName a helper the transformer can use when generating new import statements
+   */
+  createTransformers?(fileNameToModuleName: (s: string) => string): ts.CustomTransformers;
 }
 
 // TODO(alexeagle): this should be unioned with tsserverlibrary.PluginModule

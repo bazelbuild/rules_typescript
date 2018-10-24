@@ -110,13 +110,13 @@ function runOneBuild(
     if (options.rootDir) {
       ignoredFilesPrefixes.push(path.resolve(options.rootDir, 'node_modules'));
     }
-    program = strictDepsPlugin.wrap(program, {
+    program = strictDepsPlugin.wrap(program, compilerHost, {
       ...bazelOpts,
       rootDir: options.rootDir,
       ignoredFilesPrefixes,
     });
   }
-  program = tsetsePlugin.wrap(program, disabledTsetseRules);
+  program = tsetsePlugin.wrap(program, compilerHost, disabledTsetseRules);
   const transforms: CustomTransformers = {
     before: [],
     after: [],
@@ -141,7 +141,7 @@ function runOneBuild(
   }
   for (const plugin of plugins) {
     // Apply the diagnostics capability of the plugin
-    program = plugin.wrap(program, {});
+    program = plugin.wrap(program, compilerHost, parsed.angularCompilerOptions);
     // Apply the transformers capability of the plugin
     if (plugin.createTransformers) {
       const x = plugin.createTransformers(program.getTypeChecker());

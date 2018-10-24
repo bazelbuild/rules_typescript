@@ -166,6 +166,7 @@ export interface BazelOptions {
 export interface ParsedTsConfig {
   options: ts.CompilerOptions;
   bazelOpts: BazelOptions;
+  angularCompilerOptions: {[k: string]: {}};
   files: string[];
   disabledTsetseRules: string[];
   config: {};
