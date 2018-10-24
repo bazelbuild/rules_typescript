@@ -5,11 +5,11 @@ import * as ts from 'typescript';
 import {PLUGIN as tsetsePlugin} from '../tsetse/runner';
 
 import {CompilerHost} from './compiler_host';
-import * as diagnostics from './diagnostics';
+import * as bazelDiagnostics from './diagnostics';
 import {CachedFileLoader, FileCache, FileLoader, UncachedFileLoader} from './file_cache';
 import {wrap} from './perf_trace';
 import {PLUGIN as strictDepsPlugin} from './strict_deps';
-import {parseTsconfig, resolveNormalizedPath} from './tsconfig';
+import {BazelOptions, parseTsconfig, resolveNormalizedPath} from './tsconfig';
 import {TscPlugin} from './plugin_api';
 import {debug, log, runAsWorker, runWorkerLoop} from './worker';
 
@@ -39,6 +39,51 @@ interface CustomTransformers {
 // The one FileCache instance used in this process.
 const fileCache = new FileCache(debug);
 
+function isCompilationTarget(bazelOpts: BazelOptions, sf: ts.SourceFile): boolean {
+  return (bazelOpts.compilationTargetSrc.indexOf(sf.fileName) !== -1);
+}
+
+export function gatherDiagnostics(
+    options: ts.CompilerOptions, bazelOpts: BazelOptions, program: ts.Program,
+    disabledTsetseRules: string[]): ts.Diagnostic[] {
+  // Install extra diagnostic plugins
+  if (!bazelOpts.disableStrictDeps) {
+    const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
+    if (options.rootDir) {
+      ignoredFilesPrefixes.push(path.resolve(options.rootDir, 'node_modules'));
+    }
+    program = strictDepsPlugin.wrap(program, {
+      ...bazelOpts,
+      rootDir: options.rootDir,
+      ignoredFilesPrefixes,
+    });
+  }
+  program = tsetsePlugin.wrap(program, disabledTsetseRules);
+
+  const diagnostics: ts.Diagnostic[] = [];
+  // These checks mirror ts.getPreEmitDiagnostics, with the important
+  // exception that if you call program.getDeclarationDiagnostics() it somehow
+  // corrupts the emit.
+  wrap(`global diagnostics`, () => {
+    diagnostics.push(...program.getOptionsDiagnostics());
+    diagnostics.push(...program.getGlobalDiagnostics());
+  });
+  let sourceFilesToCheck: ReadonlyArray<ts.SourceFile>;
+  if (bazelOpts.typeCheckDependencies) {
+    sourceFilesToCheck = program.getSourceFiles();
+  } else {
+    sourceFilesToCheck = program.getSourceFiles().filter(
+      f => isCompilationTarget(bazelOpts, f));
+  }
+  for (const sf of sourceFilesToCheck) {
+    wrap(`check ${sf.fileName}`, () => {
+      diagnostics.push(...program.getSyntacticDiagnostics(sf));
+      diagnostics.push(...program.getSemanticDiagnostics(sf));
+    });
+  }
+  return diagnostics;
+}
+
 /**
  * Runs a single build, returning false on failure.  This is potentially called
  * multiple times (once per bazel request) when running as a bazel worker.
@@ -55,7 +100,7 @@ function runOneBuild(
 
   const [parsed, errors, {target}] = parseTsconfig(tsconfigFile);
   if (errors) {
-    console.error(diagnostics.format(target, errors));
+    console.error(bazelDiagnostics.format(target, errors));
     return false;
   }
   if (!parsed) {
@@ -100,92 +145,54 @@ function runOneBuild(
 
   fileCache.traceStats();
 
-  function isCompilationTarget(sf: ts.SourceFile): boolean {
-    return (bazelOpts.compilationTargetSrc.indexOf(sf.fileName) !== -1);
-  }
   let diags: ts.Diagnostic[] = [];
-  // Install extra diagnostic plugins
-  if (!bazelOpts.disableStrictDeps) {
-    const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
-    if (options.rootDir) {
-      ignoredFilesPrefixes.push(path.resolve(options.rootDir, 'node_modules'));
-    }
-    program = strictDepsPlugin.wrap(program, compilerHost, {
-      ...bazelOpts,
-      rootDir: options.rootDir,
-      ignoredFilesPrefixes,
-    });
-  }
-  program = tsetsePlugin.wrap(program, compilerHost, disabledTsetseRules);
   const transforms: CustomTransformers = {
     before: [],
     after: [],
     afterDeclarations: [],
   };
 
-  const plugins: TscPlugin[] = [];
   for (const p of bazelOpts.plugins || []) {
     switch (p) {
       case 'Angular':
+        let plugin: TscPlugin;
         try {
-          const compiler_cli = require('@angular/compiler-cli');
-          plugins.push(compiler_cli.NgTscPlugin);
+          plugin = require('@angular/compiler-cli').NgTscPlugin;
         } catch (e) {
           throw new Error('when using `ts_library(plugins=["Angular"])`, ' +
               'you must install @angular/compiler-cli');
         }
+        // Apply the diagnostics capability of the plugin
+        program = plugin.wrap(program, parsed.angularCompilerOptions);
+        // Apply the transformers capability of the plugin
+        if (plugin.createTransformers) {
+          const x = plugin.createTransformers(/**FIXME*/(s: string) => s);
+          if (x.before) {
+            transforms.before = transforms.before.concat(x.before);
+          }
+          if (x.after) {
+            transforms.after = transforms.after.concat(x.after);
+          }
+          if (x.afterDeclarations) {
+            transforms.afterDeclarations = transforms.afterDeclarations.concat(x.afterDeclarations);
+          }
+        }
+
         break;
       default:
         throw new Error(`Unknown ts_library plugin ${p}`);
     }
   }
-  for (const plugin of plugins) {
-    // Apply the diagnostics capability of the plugin
-    program = plugin.wrap(program, compilerHost, parsed.angularCompilerOptions);
-    // Apply the transformers capability of the plugin
-    if (plugin.createTransformers) {
-      const x = plugin.createTransformers(program.getTypeChecker());
-      if (x.before) {
-        transforms.before = transforms.before.concat(x.before);
-      }
-      if (x.after) {
-        transforms.after = transforms.after.concat(x.after);
-      }
-      if (x.afterDeclarations) {
-        transforms.afterDeclarations = transforms.afterDeclarations.concat(x.afterDeclarations);
-      }
-    }
-  }
-
-  // These checks mirror ts.getPreEmitDiagnostics, with the important
-  // exception that if you call program.getDeclarationDiagnostics() it somehow
-  // corrupts the emit.
-  wrap(`global diagnostics`, () => {
-    diags.push(...program.getOptionsDiagnostics());
-    diags.push(...program.getGlobalDiagnostics());
-  });
-  let sourceFilesToCheck: ReadonlyArray<ts.SourceFile>;
-  if (bazelOpts.typeCheckDependencies) {
-    sourceFilesToCheck = program.getSourceFiles();
-  } else {
-    sourceFilesToCheck = program.getSourceFiles().filter(isCompilationTarget);
-  }
-  for (const sf of sourceFilesToCheck) {
-    wrap(`check ${sf.fileName}`, () => {
-      diags.push(...program.getSyntacticDiagnostics(sf));
-      diags.push(...program.getSemanticDiagnostics(sf));
-    });
-  }
 
   // If there are any TypeScript type errors abort now, so the error
   // messages refer to the original source.  After any subsequent passes
   // (decorator downleveling or tsickle) we do not type check.
-  diags = diagnostics.filterExpected(bazelOpts, diags);
+  diags = bazelDiagnostics.filterExpected(bazelOpts, diags);
   if (diags.length > 0) {
-    console.error(diagnostics.format(bazelOpts.target, diags));
+    console.error(bazelDiagnostics.format(bazelOpts.target, diags));
     return false;
   }
-  const toEmit = program.getSourceFiles().filter(isCompilationTarget);
+  const toEmit = program.getSourceFiles().filter(f => isCompilationTarget(bazelOpts, f));
   const emitResults: ts.EmitResult[] = [];
 
   if (bazelOpts.tsickle) {
@@ -229,7 +236,7 @@ function runOneBuild(
     }
   }
   if (diags.length > 0) {
-    console.error(diagnostics.format(bazelOpts.target, diags));
+    console.error(bazelDiagnostics.format(bazelOpts.target, diags));
     return false;
   }
   return true;

@@ -46,7 +46,7 @@ export interface TscPlugin {
    * Execution of plugins is not additive; only the result from the top-most
    * wrapped Program is used.
    */
-  wrap(p: ts.Program, host: ts.CompilerHost, config?: {}): ts.Program;
+  wrap(p: ts.Program, config?: {}, host?: ts.CompilerHost): ts.Program;
 
   /**
    * Allow plugins to contribute additional TypeScript CustomTransformers.
