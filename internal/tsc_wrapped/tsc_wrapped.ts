@@ -29,13 +29,6 @@ export function main(args: string[]) {
   return 0;
 }
 
-// Narrowed type where the transforms are always defined
-interface CustomTransformers {
-  before: ts.TransformerFactory<ts.SourceFile>[];
-  after: ts.TransformerFactory<ts.SourceFile>[];
-  afterDeclarations: ts.TransformerFactory<ts.Bundle | ts.SourceFile>[];
-}
-
 // The one FileCache instance used in this process.
 const fileCache = new FileCache(debug);
 
@@ -45,7 +38,7 @@ function isCompilationTarget(bazelOpts: BazelOptions, sf: ts.SourceFile): boolea
 
 export function gatherDiagnostics(
     options: ts.CompilerOptions, bazelOpts: BazelOptions, program: ts.Program,
-    disabledTsetseRules: string[]): ts.Diagnostic[] {
+    disabledTsetseRules: string[], angularPlugin?: TscPlugin): ts.Diagnostic[] {
   // Install extra diagnostic plugins
   if (!bazelOpts.disableStrictDeps) {
     const ignoredFilesPrefixes = [bazelOpts.nodeModulesPrefix];
@@ -59,6 +52,10 @@ export function gatherDiagnostics(
     });
   }
   program = tsetsePlugin.wrap(program, disabledTsetseRules);
+
+  if (angularPlugin) {
+    program = angularPlugin.wrap(program);
+  }
 
   const diagnostics: ts.Diagnostic[] = [];
   // These checks mirror ts.getPreEmitDiagnostics, with the important
@@ -141,59 +138,62 @@ function runOneBuild(
       files, options, bazelOpts, compilerHostDelegate, fileLoader,
       allowActionInputReads);
 
-  let program = ts.createProgram(files, options, compilerHost);
-
-  fileCache.traceStats();
-
-  let diags: ts.Diagnostic[] = [];
-  const transforms: CustomTransformers = {
-    before: [],
-    after: [],
-    afterDeclarations: [],
-  };
+  let angularPlugin: TscPlugin|undefined;
 
   for (const p of bazelOpts.plugins || []) {
     switch (p) {
       case 'Angular':
-        let plugin: TscPlugin;
-        try {
-          plugin = require('@angular/compiler-cli').NgTscPlugin;
-        } catch (e) {
-          throw new Error('when using `ts_library(plugins=["Angular"])`, ' +
-              'you must install @angular/compiler-cli');
-        }
-        // Apply the diagnostics capability of the plugin
-        program = plugin.wrap(program, parsed.angularCompilerOptions);
-        // Apply the transformers capability of the plugin
-        if (plugin.createTransformers) {
-          const x = plugin.createTransformers(/**FIXME*/(s: string) => s);
-          if (x.before) {
-            transforms.before = transforms.before.concat(x.before);
-          }
-          if (x.after) {
-            transforms.after = transforms.after.concat(x.after);
-          }
-          if (x.afterDeclarations) {
-            transforms.afterDeclarations = transforms.afterDeclarations.concat(x.afterDeclarations);
-          }
-        }
-
-        break;
+      try {
+        const angularCompiler = require('@angular/compiler-cli');
+        angularPlugin = new angularCompiler.NgTscPlugin(parsed.angularCompilerOptions);
+      } catch (e) {
+        console.error(e);
+        throw new Error('when using `ts_library(plugins=["Angular"])`, ' +
+        'you must install @angular/compiler-cli');
+      }
+      break;
       default:
-        throw new Error(`Unknown ts_library plugin ${p}`);
+      throw new Error(`Unknown ts_library plugin ${p}`);
     }
   }
 
+  // Plugins can contribute files to the program
+  if (angularPlugin) {
+    const angularGeneratedFiles = angularPlugin.generatedFiles!(files);
+    for (const f of Object.keys(angularGeneratedFiles)) {
+      const generator = angularGeneratedFiles[f];
+      const generated = generator(compilerHost);
+      if (generated) {
+        files.push(generated.fileName);
+        fileLoader.declareSyntheticFile(generated.fileName, generated.content);
+      }
+    }
+  }
+
+  const program = ts.createProgram(files, options, compilerHost);
+
+  fileCache.traceStats();
+
+  let diagnostics = gatherDiagnostics(options, bazelOpts, program, disabledTsetseRules, angularPlugin);
   // If there are any TypeScript type errors abort now, so the error
   // messages refer to the original source.  After any subsequent passes
   // (decorator downleveling or tsickle) we do not type check.
-  diags = bazelDiagnostics.filterExpected(bazelOpts, diags);
-  if (diags.length > 0) {
-    console.error(bazelDiagnostics.format(bazelOpts.target, diags));
+  diagnostics = bazelDiagnostics.filterExpected(bazelOpts, diagnostics);
+  if (diagnostics.length > 0) {
+    console.error(bazelDiagnostics.format(bazelOpts.target, diagnostics));
     return false;
   }
   const toEmit = program.getSourceFiles().filter(f => isCompilationTarget(bazelOpts, f));
   const emitResults: ts.EmitResult[] = [];
+
+  let transforms: ts.CustomTransformers = {
+    before: [],
+    after: [],
+    afterDeclarations: [],
+  };
+  if (angularPlugin && angularPlugin.createTransformers) {
+    transforms = angularPlugin.createTransformers((s: string) => /*FIXME*/s);
+  }
 
   if (bazelOpts.tsickle) {
     // The 'tsickle' import above is only used in type positions, so it won't
@@ -220,7 +220,7 @@ function runOneBuild(
             // FIXME: what about transforms.afterDeclarations
           }));
     }
-    diags.push(
+    diagnostics.push(
         ...optTsickle.mergeEmitResults(emitResults as tsickle.EmitResult[])
             .diagnostics);
   } else {
@@ -232,11 +232,11 @@ function runOneBuild(
     }
 
     for (const d of emitResults) {
-      diags.push(...d.diagnostics);
+      diagnostics.push(...d.diagnostics);
     }
   }
-  if (diags.length > 0) {
-    console.error(bazelDiagnostics.format(bazelOpts.target, diags));
+  if (diagnostics.length > 0) {
+    console.error(bazelDiagnostics.format(bazelOpts.target, diagnostics));
     return false;
   }
   return true;

@@ -36,7 +36,7 @@ export interface TscPlugin {
    * @param rootFiles the files that were part of the original program
    */
   generatedFiles?(rootFiles: string[]): {
-    [fileName: string]: (host: ts.CompilerHost) => ts.SourceFile|undefined
+    [fileName: string]: (host: ts.CompilerHost) => {fileName: string, content: string}|undefined
   };
 
   /**

@@ -256,12 +256,20 @@ export interface FileLoader {
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile;
   fileExists(filePath: string): boolean;
+  // Allow files that are only known to the compiler
+  declareSyntheticFile(filePath: string, content: string): void;
 }
 
 /**
  * Load a source file from disk, or possibly return a cached version.
  */
 export class CachedFileLoader implements FileLoader {
+  syntheticFiles = new Map<string, string>();
+
+  declareSyntheticFile(filePath: string, content: string) {
+    this.syntheticFiles.set(filePath, content);
+  }
+
   /** Total amount of time spent loading files, for the perf trace. */
   private totalReadTimeMs = 0;
 
@@ -270,7 +278,7 @@ export class CachedFileLoader implements FileLoader {
   constructor(private readonly cache: FileCache, unused?: boolean) {}
 
   fileExists(filePath: string) {
-    return this.cache.isKnownInput(filePath);
+    return this.syntheticFiles.has(filePath) || this.cache.isKnownInput(filePath);
   }
 
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
@@ -278,7 +286,12 @@ export class CachedFileLoader implements FileLoader {
     let sourceFile = this.cache.getCache(filePath);
     if (!sourceFile) {
       const readStart = Date.now();
-      const sourceText = fs.readFileSync(filePath, 'utf8');
+      let sourceText: string;
+      if (this.syntheticFiles.has(filePath)) {
+        sourceText = this.syntheticFiles.get(filePath)!;
+      } else {
+        sourceText = fs.readFileSync(filePath, 'utf8');
+      }
       sourceFile = ts.createSourceFile(fileName, sourceText, langVer, true);
       const entry = {
         digest: this.cache.getLastDigest(filePath),
@@ -300,13 +313,24 @@ export class CachedFileLoader implements FileLoader {
 
 /** Load a source file from disk. */
 export class UncachedFileLoader implements FileLoader {
+  syntheticFiles = new Map<string, string>();
+
+  declareSyntheticFile(filePath: string, content: string) {
+    this.syntheticFiles.set(filePath, content);
+  }
+
   fileExists(filePath: string): boolean {
-    return ts.sys.fileExists(filePath);
+    return this.syntheticFiles.has(filePath) || ts.sys.fileExists(filePath);
   }
 
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile {
-    const sourceText = fs.readFileSync(filePath, 'utf8');
+    let sourceText: string;
+    if (this.syntheticFiles.has(filePath)) {
+      sourceText = this.syntheticFiles.get(filePath)!;
+    } else {
+      sourceText = fs.readFileSync(filePath, 'utf8');
+    }
     return ts.createSourceFile(fileName, sourceText, langVer, true);
   }
 }
