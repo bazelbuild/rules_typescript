@@ -26,7 +26,7 @@ try
     try {
       // Paths are relative to the 'external' folder within runfiles
       extractExe = extractExe ? path.join('external', extractExe) : extractExe;
-      archiveFile = path.join('external', archiveFile)
+      archiveFile = path.join('external', archiveFile);
       const extractedExecutablePath = path.join(process.cwd(), executablePath);
       if (!extractExe) {
         throw new Error('No EXTRACT_EXE found');
