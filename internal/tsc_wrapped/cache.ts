@@ -391,7 +391,26 @@ export class UncachedFileLoader implements FileLoader {
 
   loadFile(fileName: string, filePath: string, langVer: ts.ScriptTarget):
       ts.SourceFile {
-    const sourceText = fs.readFileSync(filePath, 'utf8');
+    let sourceText;
+    try {
+      sourceText = fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+      // If the file path is from an external repository then trim off the
+      // `repo/external` segments from the path so it matches the runfiles
+      // layout for when --nolegacy_external_runfiles flag is on and try again.
+      // This will modify a path such as
+      // `.../ngc_test.sh.runfiles/angular/external/ngdeps/node_modules/typescript/lib/lib.d.ts'`
+      // to `.../ngc_test.sh.runfiles/ngdeps/node_modules/typescript/lib/lib.d.ts'`.
+      // This fixes a test failure in @angular//packages/bazel/test/ngc-wrapped:ngc_test
+      // when --nolegacy_external_runfiles is turned on
+      const regex = /\.runfiles[\\\/][^\\\/]*[\\\/]external[\\\/]/;
+      if (filePath.match(regex)) {
+        filePath = filePath.replace(regex, '.runfiles/');
+        sourceText = fs.readFileSync(filePath, 'utf8');
+      } else {
+        throw e;
+      }
+    }
     return ts.createSourceFile(fileName, sourceText, langVer, true);
   }
 }
