@@ -6,9 +6,6 @@
     // can be used for type-checking in the editor, for example the car.proto
     // produces a car.d.ts.
     "rootDirs": [".", "../bazel-bin/examples"],
-    "types": [
-      "cypress"
-    ]
   }
 }
 

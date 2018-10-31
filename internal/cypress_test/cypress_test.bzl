@@ -20,47 +20,64 @@ than launching a test in Karma, for example.
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_test")
 load("@build_bazel_rules_nodejs//internal/common:devmode_js_sources.bzl", "devmode_js_sources")
 
-def cypress_test(
-  name,
-  srcs = [],
-  data = [],
-  deps = [],
-  tags = [],
-  expected_exit_code = 0,
-  **kwargs):
-  """Runs tests in NodeJS using the Jasmine test runner.
+def _impl(ctx):
+  cypressjson_content = "{ \"integrationFolder\": \".\", \"video\": false, \"screenshots\": false, \"supportFile\": false }"
+  ctx.actions.write(output = ctx.outputs.cypressjson, content = cypressjson_content)
 
-  To debug the test, see debugging notes in `nodejs_test`.
+  files = depset(ctx.files.srcs)
+  for d in ctx.attr.deps:
+    if hasattr(d, "node_sources"):
+      files += d.node_sources
+    elif hasattr(d, "files"):
+      files += d.files
 
-  Args:
-    name: name of the resulting label
-    srcs: JavaScript source files containing Jasmine specs
-    data: Runtime dependencies which will be loaded while the test executes
-    deps: Other targets which produce JavaScript, such as ts_library
-    expected_exit_code: The expected exit code for the test. Defaults to 0.
-    **kwargs: remaining arguments are passed to the test rule
-  """
-  devmode_js_sources(
-      name = "%s_devmode_srcs" % name,
-      deps = srcs + deps,
-      # testonly = 1,
-  )
+  cypress_executable_path = ctx.executable.cypress.short_path
+  # if cypress_executable_path.startswith('..'):
+  #   cypress_executable_path = "external" + cypress_executable_path[2:]
 
-  all_data = data + srcs + deps
-  all_data += [Label("//internal/cypress_test:cypress_runner.js")]
-  all_data += [":%s_devmode_srcs.MF" % name]
-  # all_data += [Label("@bazel_tools//tools/bash/runfiles")]
-  entry_point = "build_bazel_rules_typescript/internal/cypress_test/cypress_runner.js"
-  # disabled due to https://github.com/cypress-io/cypress/issues/1925
-  # tags = tags + ["ibazel_notify_changes"]
+  # print(cypress_executable_path)
 
-  nodejs_test(
-      name = name,
-      tags = tags,
-      data = all_data,
-      entry_point = entry_point,
-      templated_args = ["$(location :%s_devmode_srcs.MF)" % name],
-      # testonly = 1,
-      expected_exit_code = expected_exit_code,
-      **kwargs
-  )
+  ctx.actions.write(
+      output = ctx.outputs.executable,
+      is_executable = True,
+      content = """#!/usr/bin/env bash
+readonly CYPRESS={TMPL_cypress}
+
+$CYPRESS open
+
+  """.format(TMPL_cypress = cypress_executable_path))
+
+  print(ctx.files)
+
+  return [DefaultInfo(
+      runfiles = ctx.runfiles(
+          files = ctx.files.srcs + ctx.files.deps + ctx.files.cypress,
+          transitive_files = files,
+          # Propagate karma_bin and its runfiles
+          collect_data = True,
+          collect_default = True,
+      ),
+  )]
+
+cypress_test = rule (
+  implementation = _impl,
+  test = True,
+  # executable = True,
+  outputs = {"cypressjson": "cypress.json"},
+  attrs = {
+    "deps": attr.label_list(),
+    "srcs": attr.label_list(
+            doc = "JavaScript source files",
+            allow_files = [".js"]),
+    "data": attr.label_list(
+      doc = "Runtime dependencies",
+      cfg = "data"),
+    "cypress": attr.label(
+      default = Label("//tools/cypress-rule:cypress_bin"),
+        executable = True,
+        cfg = "data",
+        single_file = False,
+        allow_files = True
+    ),
+  }
+)
