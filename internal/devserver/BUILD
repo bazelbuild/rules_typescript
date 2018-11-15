@@ -21,6 +21,8 @@ package(default_visibility = [
 exports_files([
     # Exported to be consumed for generating skydoc.
     "ts_devserver.bzl",
+    # Needed for creating the devserver launcher executable.
+    "devserver_launcher.tpl"
 ])
 
 filegroup(

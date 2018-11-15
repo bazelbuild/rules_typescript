@@ -23,6 +23,19 @@ load(
     "write_amd_names_shim",
 )
 
+def _label_to_workspace_name(ctx, label):
+    if label.workspace_root:
+        # We need the workspace_name for the target being visited.
+        # Skylark doesn't have this - instead they have a workspace_root
+        # which looks like "external/repo_name" - so grab the second path segment.
+        # TODO(alexeagle): investigate a better way to get the workspace name
+        return label.workspace_root.split("/")[1]
+    else:
+        # If the label does not have any "workspace_root" defined, then we can assume
+        # that the label belongs to the current workspace that is provided in the context.
+        return ctx.workspace_name
+
+
 def _ts_devserver(ctx):
     files = depset()
     for d in ctx.attr.deps:
@@ -31,14 +44,16 @@ def _ts_devserver(ctx):
         elif hasattr(d, "files"):
             files = depset(transitive = [files, d.files])
 
-    if ctx.label.workspace_root:
-        # We need the workspace_name for the target being visited.
-        # Skylark doesn't have this - instead they have a workspace_root
-        # which looks like "external/repo_name" - so grab the second path segment.
-        # TODO(alexeagle): investigate a better way to get the workspace name
-        workspace_name = ctx.label.workspace_root.split("/")[1]
-    else:
-        workspace_name = ctx.workspace_name
+    # Name of the workspace for the current label that uses this rule.
+    workspace_name = _label_to_workspace_name(ctx, ctx.label)
+
+    # Name of the workspace that refers to the _devserver executable label.
+    devserver_workspace_name = _label_to_workspace_name(ctx, ctx.executable._devserver.owner)
+
+    # Runfile path that can be used to resolve the devserver runfile using the @bazel_tools
+    # bash runfile utilities.
+    devserver_runfile_path = "%s/%s" % (
+        devserver_workspace_name, ctx.executable._devserver.short_path)
 
     # Create a manifest file with the sources in arbitrary order, and without
     # bazel-bin prefixes ("root-relative paths").
@@ -72,6 +87,10 @@ def _ts_devserver(ctx):
         ctx.executable._devserver,
         ctx.outputs.manifest,
         ctx.outputs.scripts_manifest,
+        # Since we want to use the Bash runfile utilities from `@bazel_tools`, we need to make
+        # sure that the utility library can be resolved through our runfile manifest. See:
+        # https://github.com/bazelbuild/bazel/blob/master/tools/bash/runfiles/runfiles.bash#L38-L59
+        ctx.file._bash_tools,
     ]
     devserver_runfiles += ctx.files.static_files
     devserver_runfiles += script_files
@@ -82,31 +101,24 @@ def _ts_devserver(ctx):
 
     packages = depset(["/".join([workspace_name, ctx.label.package])] + ctx.attr.additional_root_paths)
 
-    # FIXME: more bash dependencies makes Windows support harder
-    ctx.actions.write(
+    # Create the actual executable file by expanding the launcher template with the
+    # necessary variables.
+    ctx.actions.expand_template(
+        template = ctx.file._devserver_launcher_template,
         output = ctx.outputs.executable,
         is_executable = True,
-        content = """#!/bin/sh
-RUNFILES="$PWD/.."
-{main} {serving_arg} \
-  -base="$RUNFILES" \
-  -packages={packages} \
-  -manifest={workspace}/{manifest} \
-  -scripts_manifest={workspace}/{scripts_manifest} \
-  -entry_module={entry_module} \
-  -port={port} \
-  "$@"
-""".format(
-            main = ctx.executable._devserver.short_path,
-            serving_arg = serving_arg,
-            workspace = workspace_name,
-            packages = ",".join(packages.to_list()),
-            manifest = ctx.outputs.manifest.short_path,
-            scripts_manifest = ctx.outputs.scripts_manifest.short_path,
-            entry_module = ctx.attr.entry_module,
-            port = str(ctx.attr.port),
-        ),
+        substitutions = {
+            "{devserver_runfile_path}": devserver_runfile_path,
+            "{serving_arg}": serving_arg,
+            "{workspace}": workspace_name,
+            "{packages}": ",".join(packages.to_list()),
+            "{manifest}": ctx.outputs.manifest.short_path,
+            "{scripts_manifest}": ctx.outputs.scripts_manifest.short_path,
+            "{entry_module}": ctx.attr.entry_module,
+            "{port}": str(ctx.attr.port),
+        },
     )
+
     return [DefaultInfo(
         runfiles = ctx.runfiles(
             files = devserver_runfiles,
@@ -163,10 +175,18 @@ ts_devserver = rule(
             default = 5432,
         ),
         "_requirejs_script": attr.label(allow_single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//node_modules/requirejs:require.js")),
+        "_bash_tools": attr.label(
+            allow_single_file = True,
+            default = Label("@bazel_tools//tools/bash/runfiles")
+        ),
         "_devserver": attr.label(
             default = Label("//devserver"),
             executable = True,
             cfg = "host",
+        ),
+        "_devserver_launcher_template": attr.label(
+            allow_single_file = True,
+            default = Label("//internal/devserver:devserver_launcher.tpl")
         ),
     },
     outputs = {
