@@ -32,13 +32,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	runfiles, err := bazel.RunfilesPath()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not determine runfiles directory.", err)
-		os.Exit(1)
-	}	
+	// In case the serving path does not start with a forward-slash, we just prepend a forward slash.
+	// This allows Windows users to define a serving path because MSys usually automatically resolves
+	// command arguments starting with slash (e.g. serving_path=/my-bundle.js turns into C:/my-bundle.js)
+	// Read more here: https://stackoverflow.com/q/34647591
+	if servingPath != nil && !strings.HasPrefix(*servingPath, "/") {
+		*servingPath = "/" + *servingPath
+	}
 
-	scriptFiles, err := bazel.Runfile(*scriptsManifest)
+	manifestPath, err := bazel.Runfile(*scriptsManifest)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to find scripts_manifest in runfiles: %v\n", err)
+		os.Exit(1)
+	}
+
+
+	scriptFiles, err := manifestFiles(manifestPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to read scripts_manifest: %v\n", err)
 		os.Exit(1)
@@ -94,9 +103,13 @@ func main() {
 		postScripts = append(postScripts, fmt.Sprintf("require([\"%s\"]);", *entryModule))
 	}
 
-	http.Handle(*servingPath, concatjs.ServeConcatenatedJS(*manifest, runfiles, preScripts, postScripts, nil /* realFileSystem */))
+	// Construct the ConcatJS http handler that uses the Bazel runfile system.
+	concatjsHandler := concatjs.ServeConcatenatedJS(
+		*manifest, "", preScripts, postScripts, &RunfileFileSystem{})
+
+	http.Handle(*servingPath, concatjsHandler)
 	pkgList := strings.Split(*pkgs, ",")
-	http.HandleFunc("/", devserver.CreateFileHandler(*servingPath, *manifest, pkgList, runfiles))
+	http.HandleFunc("/", devserver.CreateFileHandler(*servingPath, *manifest, pkgList))
 
 	h, err := os.Hostname()
 	if err != nil {

@@ -47,9 +47,9 @@ readonly manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_manifest")
 readonly scripts_manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_scripts_manifest")
 readonly entry_module=$(rlocation "TEMPLATED_entry_module")
 
-RUNFILES="$PWD/.."
-"${main}" TEMPLATED_serving_arg \
-  -packages=packages \
+"${main}" \
+  -packages=TEMPLATED_packages \
+  -serving_path=TEMPLATED_serving_path \
   -manifest="${manifest}" \
   -scripts_manifest="${scripts_manifest}" \
   -entry_module="${entry_module}" \

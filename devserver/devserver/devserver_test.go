@@ -46,21 +46,19 @@ func req(handler http.HandlerFunc, url string) (int, string) {
 func TestDevserverFileHandling(t *testing.T) {
 	_, del := tmpfile(t, "TestIndexServing/manifest.MF", "file1.js\nfile2.js")
 	defer del()
-	_, delIdx := tmpfile(t, "TestIndexServing/pkg1/index.html", "contents of index.html")
-	defer delIdx()
-	_, del = tmpfile(t, "TestIndexServing/pkg1/foo.html", "contents of foo.html")
-	defer del()
-	_, del = tmpfile(t, "TestIndexServing/pkg2/bar.html", "contents of bar.html")
-	defer del()
-	_, del = tmpfile(t, "TestIndexServing/pkg2/foo.html", "contents of foo.html in pkg2")
-	defer del()
-	_, del = tmpfile(t, "TestIndexServing/pkg2/rpc/items/index.html", "contents of rpc/items/index.html")
-	defer del()
-	_, del = tmpfile(t, "TestIndexServing/pkg3/baz.html", "contents of baz.html in pkg3")
-	defer del()
 
-	handler := CreateFileHandler("/app.js", "manifest.MF", []string{"pkg1", "pkg2"},
-		filepath.Join(os.Getenv("TEST_TMPDIR"), "TestIndexServing"))
+	handler := CreateFileHandler("/app.js", "manifest.MF", []string{
+		// This verifies that we can resolve relatively to the current package. Usually the
+		// devserver Bazel rule adds the current package here.
+		"build_bazel_rules_typescript/devserver/devserver",
+		// Verifies that we can specify subfolders of workspaces
+		"build_bazel_rules_typescript/devserver/devserver/test",
+		// Verifies that we can specify external workspaces as root dirs.
+		"devserver_test_workspace",
+		// Verifies that we can specify subfolders from external workspaces.
+		"devserver_test_workspace/pkg2",
+	})
+
 	defaultPageContent := `<script src="/app.js">`
 
 	tests := []struct {
@@ -77,8 +75,8 @@ func TestDevserverFileHandling(t *testing.T) {
 		{http.StatusNotFound, "/no/such/dir/", "contents of index.html", false},
 		// index file as a response to a directory that is found.
 		{http.StatusNotFound, "/pkg2/", "contents of index.html", false},
-		// file from the base package.
-		{http.StatusOK, "/foo.html", "contents of foo.html", false},
+		// file from relative to base package.
+		{http.StatusOK, "/test/relative.html", "contents of relative.html", false},
 		// file from the base package with full path.
 		{http.StatusOK, "/pkg1/foo.html", "contents of foo.html", false},
 		// file from pkg2.
@@ -98,9 +96,6 @@ func TestDevserverFileHandling(t *testing.T) {
 	}
 
 	for _, tst := range tests {
-		if tst.delIdx {
-			delIdx() // from here on, use the generated index.
-		}
 		code, body := req(handler, fmt.Sprintf("http://test%s", tst.url))
 		if code != tst.code {
 			t.Errorf("got %d, expected %d", code, tst.code)

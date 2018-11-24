@@ -60,7 +60,9 @@ ts_devserver(
     bootstrap = ["@build_bazel_rules_typescript//:protobufjs_bootstrap_scripts"],
     entry_module = "build_bazel_rules_typescript/examples/protocol_buffers/app",
     port = 8080,
-    deps = [":app"],
+    deps = [":bundle"],
+    static_files = [":index.html"],
+    serving_path = "concatjs-bundle.js",
 )
 
 # Test for production mode

@@ -99,10 +99,6 @@ def _ts_devserver(ctx):
         )
         devserver_runfiles += [injected_index]
 
-    serving_arg = ""
-    if ctx.attr.serving_path:
-        serving_arg = "-serving_path=%s" % ctx.attr.serving_path
-
     packages = depset(["/".join([workspace_name, ctx.label.package])] + ctx.attr.additional_root_paths)
 
     # Avoid writing non-normalized paths (workspace/../other_workspace/path)
@@ -116,9 +112,9 @@ def _ts_devserver(ctx):
 
     substitutions = {
         "TEMPLATED_main": script_path,
-        "TEMPLATED_serving_arg": serving_arg,
         "TEMPLATED_workspace": workspace_name,
         "TEMPLATED_packages": ",".join(packages.to_list()),
+        "TEMPLATED_serving_path": ctx.attr.serving_path if ctx.attr.serving_path else "",
         "TEMPLATED_manifest": ctx.outputs.manifest.short_path,
         "TEMPLATED_scripts_manifest": ctx.outputs.scripts_manifest.short_path,
         "TEMPLATED_entry_module": ctx.attr.entry_module,
