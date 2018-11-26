@@ -3,6 +3,12 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 
 package(default_visibility = ["//visibility:public"])
 
+# Gazelle by default tries to map the import for the Bazel runfile go library to a repository with
+# an auto-generated name. This does not work for us because the rules_go repository name is different.
+# This gazelle directive ensures that Gazelle resolves the import to the proper Bazel label.
+# Read more here: https://github.com/bazelbuild/bazel-gazelle#directives
+# gazelle:resolve go github.com/bazelbuild/rules_go/go/tools/bazel @io_bazel_rules_go//go/tools/bazel:go_default_library
+
 go_library(
     name = "go_default_library",
     srcs = ["main.go", "runfile-filesystem.go"],
