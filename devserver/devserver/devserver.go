@@ -173,13 +173,31 @@ func (packageNames dirHttpFileSystem) Open(name string) (http.File, error) {
 		realFilePath, err := bazel.Runfile(filePackageName)
 
 		if err != nil {
-			// In case the runfile could not be found and is actually referring to a directory, we
-			// also check if there is runfile referring to "index.html". The goal is to serve the
-			// index file of a requested directory.
+			// In case the runfile could not be found, we also need to check that the requested
+			// path does not refer to a directory containing an "index.html" file. This can
+			// happen if Bazel runs without runfile symlinks, where only files can be resolved
+			// from the manifest. In that case we dirty check if there is a "index.html" file.
 			realFilePath, err = bazel.Runfile(filepath.Join(filePackageName, "index.html"))
 
-			// Continue searching if the file couldn't be found for the current
-			// package.
+			// Continue searching if the runfile couldn't be found for the request filed.
+			if err != nil {
+				continue
+			}
+		}
+
+		stat, err := os.Stat(realFilePath)
+		if err != nil {
+			return nil, fmt.Errorf("could not read runfile %s", filePackageName)
+		}
+
+		// In case the resolved file resolves to a directory. This can only happen if
+		// Bazel runs with symlinked runfiles (e.g. on MacOS, linux). In that case, we
+		// just look for a index.html in the directory.
+		if stat.IsDir() {
+			realFilePath, err = bazel.Runfile(filepath.Join(filePackageName, "index.html"))
+
+			// In case the index.html file of the requested directory couldn't be found,
+			// we just continue searching.
 			if err != nil {
 				continue
 			}
