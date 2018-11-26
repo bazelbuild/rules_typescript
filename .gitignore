@@ -7,3 +7,5 @@ node_modules
 
 internal/e2e/ts_auto_deps/simple/BUILD
 internal/e2e/ts_auto_deps/simple/BUILD.bazel
+
+rules_typescript_release/

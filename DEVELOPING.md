@@ -62,7 +62,8 @@ rule is that minors are breaking changes and patches are new features).
 1. `git commit -a -m 'Update docs for release'`
 1. `npm config set tag-version-prefix ''`
 1. `npm version minor -m 'rel: %s'` (replace `minor` with `patch` if no breaking changes)
-1. Build npm packages and publish them: `bazel run //internal:npm_package.publish && bazel run //internal/karma:npm_package.publish`
+1. Create a clean directory to use as output: `rm -rf ./rules_typescript_release && mkdir ./rules_typescript_release`
+1. Build npm packages and publish them: `bazel run //internal:npm_package.publish --config=release --output_base=rules_typescript_release && bazel run //internal/karma:npm_package.publish --config=release --output_base=rules_typescript_release`
 1. `bazel build :release`
 1. `git push && git push --tags`
 1. (Manual for now) go to the [releases] page, edit the new release, and attach the `bazel-bin/release.tgz` file
