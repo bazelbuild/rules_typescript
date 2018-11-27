@@ -112,6 +112,7 @@ filegroup(
     name = "node_modules",
     srcs = glob(
         include = [
+          "node_modules/**/*.proto",
           "node_modules/**/*.js",
           "node_modules/**/*.d.ts",
           "node_modules/**/*.json",
