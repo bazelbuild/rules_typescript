@@ -1,5 +1,6 @@
-#!/bin/sh
-# Copyright 2017 The Bazel Authors. All rights reserved.
+#!/bin/bash
+
+# Copyright 2018 The Bazel Authors. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,7 +48,9 @@ readonly manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_manifest")
 readonly scripts_manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_scripts_manifest")
 readonly entry_module=$(rlocation "TEMPLATED_entry_module")
 
-"${main}" \
+# Workaround for https://github.com/bazelbuild/bazel/issues/6764
+# If this issue is incorporated into Bazel, the workaround here should be removed.
+MSYS2_ARG_CONV_EXCL="*" "${main}" \
   -packages=TEMPLATED_packages \
   -serving_path=TEMPLATED_serving_path \
   -manifest="${manifest}" \

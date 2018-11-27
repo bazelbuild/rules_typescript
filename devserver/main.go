@@ -45,6 +45,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	if !strings.HasPrefix(*servingPath, "/") {
+		fmt.Fprintf(os.Stderr, "The specified serving_path does not start with a slash. " +
+			"This causes the serving path to not have any effect.\n")
+		os.Exit(1)
+	}
+
 	preScripts := make([]string, 0, 100)
 	postScripts := make([]string, 0, 1)
 

@@ -111,14 +111,14 @@ def _ts_devserver(ctx):
       ])
 
     substitutions = {
-        "TEMPLATED_main": script_path,
-        "TEMPLATED_workspace": workspace_name,
-        "TEMPLATED_packages": ",".join(packages.to_list()),
-        "TEMPLATED_serving_path": ctx.attr.serving_path if ctx.attr.serving_path else "",
-        "TEMPLATED_manifest": ctx.outputs.manifest.short_path,
-        "TEMPLATED_scripts_manifest": ctx.outputs.scripts_manifest.short_path,
         "TEMPLATED_entry_module": ctx.attr.entry_module,
+        "TEMPLATED_main": script_path,
+        "TEMPLATED_manifest": ctx.outputs.manifest.short_path,
+        "TEMPLATED_packages": ",".join(packages.to_list()),
         "TEMPLATED_port": str(ctx.attr.port),
+        "TEMPLATED_scripts_manifest": ctx.outputs.scripts_manifest.short_path,
+        "TEMPLATED_serving_path": ctx.attr.serving_path if ctx.attr.serving_path else "",
+        "TEMPLATED_workspace": workspace_name,
     }
     ctx.actions.expand_template(
         template=ctx.file._launcher_template,
@@ -207,17 +207,13 @@ ts_devserver = rule(
             executable = True,
             cfg = "host",
         ),
+        "_launcher_template": attr.label(allow_single_file = True, default = Label("//internal/devserver:launcher_template.sh")),
         "_requirejs_script": attr.label(allow_single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//node_modules/requirejs:require.js")),
-        "_launcher_template": attr.label(
-            default = Label("//internal/devserver:devserver_launcher.sh"),
-            allow_files = True,
-            single_file = True
-        ),
     },
     outputs = {
         "manifest": "%{name}.MF",
-        "scripts_manifest": "scripts_%{name}.MF",
         "script": "%{name}.sh",
+        "scripts_manifest": "scripts_%{name}.MF",
     },
     executable = True,
 )
