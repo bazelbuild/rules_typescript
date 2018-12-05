@@ -231,10 +231,14 @@ function runFromOptions(
 function emitWithTypescript(
     program: ts.Program, compilationTargets: ts.SourceFile[]): ts.Diagnostic[] {
   const diagnostics: ts.Diagnostic[] = [];
+  diagnostics.push(...program.getSyntacticDiagnostics())
+  diagnostics.push(...program.getOptionsDiagnostics())
+  diagnostics.push(...program.getGlobalDiagnostics())
   for (const sf of compilationTargets) {
     const result = program.emit(sf);
     diagnostics.push(...result.diagnostics);
   }
+  diagnostics.push(...program.getSemanticDiagnostics())
   return diagnostics;
 }
 
