@@ -22,18 +22,26 @@ export class Rule extends AbstractRule {
 }
 
 function checkForTruthy(checker: Checker, node: ts.PropertyAccessExpression) {
-  const tc = checker.typeChecker;
-
-  if (node.name.getText() !== 'toBeTruthy') {
+  if (node.name.text !== 'toBeTruthy') {
     return;
   }
 
-  const expectCallNode = getLeftmostNode(tc, node);
+  const expectCallNode = getLeftmostNode(node);
   if (!ts.isCallExpression(expectCallNode)) {
     return;
   }
 
-  const signature = checker.typeChecker.getResolvedSignature(expectCallNode);
+  if (!ts.isIdentifier(expectCallNode.expression) || expectCallNode.expression.text !== 'expect') {
+    return;
+  }
+
+  if (expectCallNode.arguments.length === 0 || ts.isAwaitExpression(expectCallNode.arguments[0])) {
+    return;
+  }
+
+  const tc = checker.typeChecker;
+
+  const signature = tc.getResolvedSignature(expectCallNode);
   if (signature === undefined) {
     return;
   }
@@ -44,13 +52,11 @@ function checkForTruthy(checker: Checker, node: ts.PropertyAccessExpression) {
   }
 
   // Only look for methods named expect that return a Matchers
-  if (!((symbol.name === 'Matchers') &&
-        expectCallNode.expression.getText() === 'expect')) {
+  if (symbol.name !== 'Matchers') {
     return;
   }
 
-  if (!tsutils.isThenableType(tc, expectCallNode.arguments[0]) ||
-      tsutils.isAwaitExpression(expectCallNode.arguments[0])) {
+  if (!tsutils.isThenableType(tc, expectCallNode.arguments[0])) {
     return;
   }
 
@@ -63,8 +69,7 @@ function checkForTruthy(checker: Checker, node: ts.PropertyAccessExpression) {
           `\n\tSee http://tsetse.info/ban-expect-truthy-promise`);
 }
 
-function getLeftmostNode(
-    tc: ts.TypeChecker, node: ts.PropertyAccessExpression) {
+function getLeftmostNode(node: ts.PropertyAccessExpression) {
   let current: ts.LeftHandSideExpression|undefined = node;
   while (ts.isPropertyAccessExpression(current)) {
     current = current.expression;
