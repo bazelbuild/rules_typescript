@@ -21,12 +21,8 @@ export class Rule extends AbstractRule {
   }
 }
 
-function checkForTruthy(checker: Checker, node: ts.Node) {
+function checkForTruthy(checker: Checker, node: ts.PropertyAccessExpression) {
   const tc = checker.typeChecker;
-
-  if (!tsutils.isPropertyAccessExpression(node)) {
-    return;
-  }
 
   if (node.name.getText() !== 'toBeTruthy') {
     return;
