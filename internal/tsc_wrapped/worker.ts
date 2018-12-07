@@ -7,6 +7,7 @@ const ByteBuffer = require('bytebuffer');
 protobufjs.convertFieldsToCamelCase = true;
 
 export const DEBUG = false;
+export const PROFILE = false;
 
 export function debug(...args: Array<{}>) {
   if (DEBUG) console.error.apply(console, args);
@@ -18,6 +19,31 @@ export function debug(...args: Array<{}>) {
  */
 export function log(...args: Array<{}>) {
   console.error.apply(console, args);
+}
+
+let setup = () => Promise.resolve();
+let teardown = () => Promise.resolve();
+if (PROFILE) {
+  const fs = require('fs');
+  const inspector = require('inspector');
+  const session = new inspector.Session();
+  session.connect();
+
+  setup = () => new Promise((resolve) =>
+    session.post('Profiler.enable', () => session.post('Profiler.start', () =>  resolve()))
+  );
+  teardown = () => new Promise((resolve) =>
+    session.post('Profiler.stop', (err: Error, { profile }: { profile: {} }) => {
+      if (err) {
+        throw err;
+      }
+      const profileFileName = 'PROFILE_NAME_HERE-' + Math.floor(Math.random() * 99999) + '.cpuprofile';
+      const profilePath = path.resolve(process.cwd(), profileFileName);
+      fs.writeFileSync(profileFileName, JSON.stringify(profile));
+      log('rules_typescript worker: saved profile to', profilePath);
+      resolve();
+    })
+  );
 }
 
 export function runAsWorker(args: string[]) {
@@ -109,18 +135,22 @@ export function runWorkerLoop(
           inputs[input.getPath()] = input.getDigest().toString('hex');
         }
         debug('Compiling with:\n\t' + args.join('\n\t'));
-        const exitCode = runOneBuild(args, inputs) ? 0 : 1;
-        process.stdout.write(new workerpb.WorkResponse()
-                                 .setExitCode(exitCode)
-                                 .setOutput(consoleOutput)
-                                 .encodeDelimited()
-                                 .toBuffer());
-        // Force a garbage collection pass.  This keeps our memory usage
-        // consistent across multiple compilations, and allows the file
-        // cache to use the current memory usage as a guideline for expiring
-        // data.  Note: this is intentionally not within runOneBuild(), as
-        // we want to gc only after all its locals have gone out of scope.
-        global.gc();
+        let exitCode = 1;
+        setup().then(() => {
+          exitCode = runOneBuild(args, inputs) ? 0 : 1;
+        }).then(teardown).then(() => {
+          process.stdout.write(new workerpb.WorkResponse()
+            .setExitCode(exitCode)
+            .setOutput(consoleOutput)
+            .encodeDelimited()
+            .toBuffer());
+          // Force a garbage collection pass.  This keeps our memory usage
+          // consistent across multiple compilations, and allows the file
+          // cache to use the current memory usage as a guideline for expiring
+          // data.  Note: this is intentionally not within runOneBuild(), as
+          // we want to gc only after all its locals have gone out of scope.
+          global.gc();
+        });
       }
       // Avoid growing the buffer indefinitely.
       buf.compact();
