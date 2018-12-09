@@ -14,9 +14,9 @@
 
 licenses(["notice"])  # Apache 2.0
 
-package(default_visibility = [
-    "//third_party/bazel_rules/rules_typescript/internal:__subpackages__",
-])
+package(default_visibility = ["//visibility:public"])
+
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 exports_files([
     # Exported to be consumed for generating skydoc.
@@ -26,4 +26,15 @@ exports_files([
 filegroup(
     name = "source_tree",
     srcs = glob(["**/*"]),
+)
+
+pkg_tar(
+  name = "package",
+  srcs = [
+    "ts_devserver.bzl",
+    "BUILD",
+    "yarn.lock",
+    "package.json",
+  ],
+  package_dir = "devserver",
 )

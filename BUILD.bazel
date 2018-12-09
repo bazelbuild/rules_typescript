@@ -20,6 +20,7 @@
 # gazelle:exclude node_modules
 load("@bazel_gazelle//:def.bzl", "gazelle")
 load("@build_bazel_rules_nodejs//internal/js_library:js_library.bzl", "js_library")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 # ts_library defaults to this label in the top-level package.
 # Point to where the file actually lives.
@@ -70,3 +71,29 @@ nodejs_binary(
     templated_args = ["--node_options=--expose-gc"],
     visibility = ["//visibility:public"],
 )
+
+pkg_tar(
+    name = "release",
+    srcs = [
+      "BUILD.bazel",
+      "AUTHORS",
+      "defs.bzl",
+      "LICENSE",
+      "package.bzl",
+      "WORKSPACE",
+      "package.json",
+    ],
+    deps = [
+      "//devserver:package",
+      "//internal:package",
+      "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:package",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+exports_files([
+    "build_defs.bzl",
+    "ts_config.bzl",
+    "ts_repositories.bzl",
+])
+

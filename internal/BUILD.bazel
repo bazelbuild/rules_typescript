@@ -26,6 +26,8 @@ exports_files([
 
 load("//internal:defaults.bzl", "ts_library")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "jasmine_node_test", "npm_package")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 
 # Vanilla typescript compiler: run the tsc.js binary distributed by TypeScript
 nodejs_binary(
@@ -148,4 +150,32 @@ npm_package(
         ":tsc_wrapped",
         ":worker_protocol_copy",
     ],
+)
+
+pkg_tar(
+  name = "tsc_wrapped_pkg",
+  srcs = glob([
+    "tsc_wrapped/**",
+  ]),
+  package_dir = "tsc_wrapped",
+)
+
+pkg_tar(
+  name = "package",
+  srcs = [
+    "build_defs.bzl",
+    "ts_config.bzl",
+    "ts_repositories.bzl",
+    "BUILD.bazel",
+    "yarn.lock",
+    "package.json",
+  ],
+  package_dir = "internal",
+  deps = [
+    ":tsc_wrapped_pkg",
+    "//internal/karma:package",
+    "//internal/protobufjs:package",
+    "//internal/devserver:package",
+    "//internal/common:package",
+  ] 
 )

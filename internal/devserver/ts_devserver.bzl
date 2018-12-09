@@ -164,7 +164,7 @@ ts_devserver = rule(
         ),
         "_requirejs_script": attr.label(allow_single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//node_modules/requirejs:require.js")),
         "_devserver": attr.label(
-            default = Label("//devserver"),
+            default = Label("//devserver:server"),
             executable = True,
             cfg = "host",
         ),
