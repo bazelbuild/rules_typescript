@@ -114,7 +114,7 @@ jobs:
       - run: .circleci/setup_cache.sh
       - run: sudo cp .circleci/bazel.rc /etc/bazel.bazelrc
       - *setup-bazel-remote-cache
-      - run: yarn skylint
+      - run: yarn bazel:lint
 
 workflows:
   version: 2

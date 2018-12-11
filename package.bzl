@@ -86,13 +86,6 @@ def rules_typescript_dev_dependencies():
     shorter.
     """
 
-    # For running skylint
-    _maybe(
-        http_archive,
-        name = "io_bazel",
-        urls = ["https://github.com/bazelbuild/bazel/releases/download/0.17.1/bazel-0.17.1-dist.zip"],
-    )
-
     #############################################
     # Dependencies for generating documentation #
     #############################################
