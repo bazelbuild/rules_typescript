@@ -161,6 +161,17 @@ pkg_tar(
 )
 
 pkg_tar(
+    name = "common",
+    srcs = [
+        "common/compilation.bzl",
+        "common/json_marshal.bzl",
+        "common/module_mappings.bzl",
+        "common/tsconfig.bzl",
+    ],
+    package_dir = "common",
+)
+
+pkg_tar(
   name = "package",
   srcs = [
     "build_defs.bzl",
@@ -173,9 +184,9 @@ pkg_tar(
   package_dir = "internal",
   deps = [
     ":tsc_wrapped_pkg",
+    ":common",
     "//internal/karma:package",
     "//internal/protobufjs:package",
     "//internal/devserver:package",
-    "//internal/common:package",
-  ] 
+  ]
 )
