@@ -72,6 +72,9 @@ nodejs_binary(
     visibility = ["//visibility:public"],
 )
 
+# Produces the release we publish to GitHub. Users download this starlark package
+# to get the @build_bazel_rules_typescript workspace.
+# It's the companion of the @bazel/typescript, @bazel/karma, etc npm packages.
 pkg_tar(
     name = "release",
     srcs = [
@@ -88,7 +91,6 @@ pkg_tar(
       "//internal:package",
       "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:package",
     ],
-    visibility = ["//visibility:public"],
 )
 
 exports_files([

@@ -28,13 +28,30 @@ filegroup(
     srcs = glob(["**/*"]),
 )
 
+# Do a simple replacement needed to make the local development differ from how
+# our release is used.
+# NB: doesn't work on Windows, so we have to release from Mac/Linux for now.
+genrule(
+    name = "patched_devserver_bzl",
+    srcs = ["ts_devserver.bzl"],
+    outs = ["patched/ts_devserver.bzl"],
+    cmd = """sed 's#"//devserver:devserver"#"//devserver:server"#' < $< > $@""",
+)
+
+# Remove the "patched/" directory prefix so that the ts_devserver.bzl ends up in
+# the same path in the final tar as it had in our local repo.
 pkg_tar(
-  name = "package",
-  srcs = [
-    "ts_devserver.bzl",
-    "BUILD",
-    "yarn.lock",
-    "package.json",
-  ],
-  package_dir = "devserver",
+    name = "strip_workaround",
+    srcs = [":patched_devserver_bzl"],
+)
+
+pkg_tar(
+    name = "package",
+    srcs = [
+        "BUILD",
+        "yarn.lock",
+        "package.json",
+    ],
+    deps = ["strip_workaround"],
+    package_dir = "devserver",
 )

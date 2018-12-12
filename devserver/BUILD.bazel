@@ -50,7 +50,9 @@ filegroup(
         ":darwin_amd64": ["devserver-darwin_amd64"],
         ":linux_amd64": ["devserver-linux_amd64"],
         ":windows_amd64": ["devserver-windows_amd64.exe"],
-    })
+    }),
+    # Don't build on CI
+    tags = ["manual"],
 )
 
 go_binary(
