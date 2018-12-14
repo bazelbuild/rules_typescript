@@ -1,0 +1,13 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "@bazel/typescript": "^0.22.0",
+    "@types/jasmine": "^3.3.2",
+    "@types/node": "^10.12.15",
+    "protractor": "^5.4.1",
+    "typescript": "^3.2.2"
+  }
+}

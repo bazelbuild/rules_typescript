@@ -1,24 +1,4 @@
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
-
 package(default_visibility = ["//visibility:public"])
-
-go_library(
-    name = "go_default_library",
-    srcs = ["main.go"],
-    importpath = "github.com/bazelbuild/rules_typescript/devserver",
-    visibility = ["//visibility:private"],
-    deps = [
-        "//devserver/concatjs:go_default_library",
-        "//devserver/devserver:go_default_library",
-    ],
-)
-
-go_binary(
-    name = "devserver",
-    embed = [":go_default_library"],
-    visibility = ["//visibility:public"],
-)
 
 config_setting(
     name = "darwin_amd64",
@@ -55,6 +35,28 @@ filegroup(
     tags = ["manual"],
 )
 
+### START DEV
+
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/bazelbuild/rules_typescript/devserver",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//devserver/concatjs:go_default_library",
+        "//devserver/devserver:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "devserver",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
+
 go_binary(
     name = "devserver-windows",
     out = "devserver-windows_amd64.exe",
@@ -85,13 +87,26 @@ go_binary(
     visibility = ["//visibility:public"],
 )
 
-pkg_tar(
+npm_package(
     name = "package",
     srcs = [
         "BUILD.bazel",
+<<<<<<< HEAD
         ":devserver-darwin",
         ":devserver-linux",
         ":devserver-windows",
+=======
+>>>>>>> Do not depend on the go rules
     ],
-    package_dir = "devserver",
+    replacements = {
+        "###\\s*START\\s*DEV\\s*[\s\S]*###\\s*END\\s*DEV": "",
+    },
+    deps = [
+        "//devserver:devserver-windows",
+        "//devserver:devserver-darwin",
+        "//devserver:devserver-linux",
+    ],
 )
+
+### END DEV
+

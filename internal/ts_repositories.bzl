@@ -14,7 +14,6 @@
 
 "Install toolchain dependencies"
 
-load("@bazel_gazelle//:deps.bzl", "go_repository")
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "check_rules_nodejs_version", "yarn_install")
 
 def ts_setup_workspace():
@@ -29,18 +28,6 @@ def ts_setup_workspace():
     # 0.17.1: allow @ in package names is required for fine grained deps
     # 0.18.0: support for .bazelignore
     check_bazel_version("0.18.0")
-
-    go_repository(
-        name = "com_github_kylelemons_godebug",
-        commit = "d65d576e9348f5982d7f6d83682b694e731a45c6",
-        importpath = "github.com/kylelemons/godebug",
-    )
-
-    go_repository(
-        name = "com_github_mattn_go_isatty",
-        commit = "3fb116b820352b7f0c281308a4d6250c22d94e27",
-        importpath = "github.com/mattn/go-isatty",
-    )
 
     # 0.11.3: node module resolution fixes & check_rules_nodejs_version
     # 0.14.0: fine grained npm dependencies support for ts_library

@@ -32,11 +32,17 @@ http_server(
     ],
 )
 
+ts_config(
+    name = "tsconfig-test",
+    src = "tsconfig.json",
+    deps = [":tsconfig.json"],
+)
+
 ts_library(
     name = "e2e",
     testonly = 1,
     srcs = ["app_e2e_test.ts"],
-    tsconfig = "//examples:tsconfig-test",
+    tsconfig = ":tsconfig-test",
     deps = [
         "@npm//@types/jasmine",
         "@npm//@types/node",

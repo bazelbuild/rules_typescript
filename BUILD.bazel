@@ -19,24 +19,11 @@
 # https://github.com/bazelbuild/rules_go/blob/master/go/tools/gazelle/README.rst#directives
 # gazelle:exclude node_modules
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
 load("@build_bazel_rules_nodejs//internal/js_library:js_library.bzl", "js_library")
-
-# ts_library defaults to this label in the top-level package.
-# Point to where the file actually lives.
-alias(
-    name = "tsconfig.json",
-    actual = "//examples:tsconfig.json",
-    visibility = ["//visibility:public"],
-)
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
 
 exports_files(["LICENSE"])
-
-gazelle(
-    name = "gazelle",
-    prefix = "github.com/bazelbuild/rules_typescript",
-)
 
 # Runtime libraries needed by the protobufjs library.
 # Any JS code produced by the ts_proto_library rule has a runtime dependency on these scripts.
@@ -71,23 +58,44 @@ nodejs_binary(
     visibility = ["//visibility:public"],
 )
 
+### START DEV
+
+load("@bazel_gazelle//:def.bzl", "gazelle")
+# ts_library defaults to this label in the top-level package.
+# Point to where the file actually lives.
+alias(
+    name = "tsconfig.json",
+    actual = "//examples:tsconfig.json",
+    visibility = ["//visibility:public"],
+)
+
+
+gazelle(
+    name = "gazelle",
+    prefix = "github.com/bazelbuild/rules_typescript",
+)
+
 # Produces the release we publish to GitHub. Users download this starlark package
 # to get the @build_bazel_rules_typescript workspace.
 # It's the companion of the @bazel/typescript, @bazel/karma, etc npm packages.
-pkg_tar(
+npm_package(
     name = "release",
     srcs = [
         "AUTHORS",
-        "BUILD.bazel",
-        "LICENSE",
-        "WORKSPACE",
         "defs.bzl",
+        "LICENSE",
+        "BUILD.bazel",
+        "WORKSPACE",
         "package.bzl",
     ],
-    extension = "tgz",
-    deps = [
+    replacements = {
+        "\s*###\\s*START\\s*DEV\\s*[\s\S]*###\\s*END\\s*DEV": "",
+    },
+    packages = [
         "//devserver:package",
         "//internal:package",
         "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:package",
     ],
 )
+
+### END DEV

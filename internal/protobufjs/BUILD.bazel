@@ -1,7 +1,7 @@
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
-
 package(default_visibility = ["//visibility:public"])
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
 
 exports_files([
     "node_modules/protobufjs/dist/minimal/protobuf.min.js",
@@ -55,13 +55,12 @@ nodejs_binary(
     install_source_map_support = False,
 )
 
-pkg_tar(
+npm_package(
     name = "package",
     srcs = [
-        "BUILD.bazel",
-        "package.json",
         "ts_proto_library.bzl",
+        "BUILD.bazel",
         "yarn.lock",
+        "package.json",
     ],
-    package_dir = "protobufjs",
 )

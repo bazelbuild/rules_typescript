@@ -51,6 +51,8 @@ def rules_typescript_dependencies():
         sha256 = "a13af63e928c34eff428d47d31bafeec4e38ee9b6940e70bf2c9cd47184c5c16",
     )
 
+    ### START DEV
+
     # ts_devserver depends on the Go rules.
     # See https://github.com/bazelbuild/rules_go#setup for the latest version.
     _maybe(
@@ -68,6 +70,8 @@ def rules_typescript_dependencies():
         strip_prefix = "bazel-gazelle-c0880f7f9d7048b45be5d36115ec2bf444e723c4",
         sha256 = "d9980ae0c91d90aaf9131170adfec4e87464d53e58ce2eb01b350a53e93a87c7",
     )
+
+    ### END DEV
 
     # ts_auto_deps depends on com_github_bazelbuild_buildtools
     _maybe(

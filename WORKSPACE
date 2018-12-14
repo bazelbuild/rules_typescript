@@ -58,16 +58,6 @@ yarn_install(
     yarn_lock = "//:yarn.lock",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains()
-
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-
-gazelle_dependencies()
-
 load(
     "@build_bazel_rules_typescript//:defs.bzl",
     "check_rules_typescript_version",
@@ -174,3 +164,30 @@ local_repository(
     name = "disable_tsetse_for_external_test",
     path = "internal/e2e/disable_tsetse_for_external",
 )
+
+### START DEV
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+
+go_rules_dependencies()
+go_register_toolchains()
+
+load("@bazel_gazelle//:deps.bzl", "go_repository")
+
+go_repository(
+    name = "com_github_kylelemons_godebug",
+    commit = "d65d576e9348f5982d7f6d83682b694e731a45c6",
+    importpath = "github.com/kylelemons/godebug",
+)
+
+go_repository(
+    name = "com_github_mattn_go_isatty",
+    commit = "3fb116b820352b7f0c281308a4d6250c22d94e27",
+    importpath = "github.com/mattn/go-isatty",
+)
+### END DEV
+

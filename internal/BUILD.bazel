@@ -152,15 +152,14 @@ npm_package(
     ],
 )
 
-pkg_tar(
-    name = "tsc_wrapped_pkg",
-    srcs = glob([
-        "tsc_wrapped/**",
-    ]),
-    package_dir = "tsc_wrapped",
+npm_package(
+  name = "tsc_wrapped_pkg",
+  srcs = glob([
+    "tsc_wrapped/**",
+  ]),
 )
 
-pkg_tar(
+npm_package(
     name = "common_pkg",
     srcs = [
         "common/compilation.bzl",
@@ -168,24 +167,23 @@ pkg_tar(
         "common/module_mappings.bzl",
         "common/tsconfig.bzl",
     ],
-    package_dir = "common",
 )
 
-pkg_tar(
+npm_package(
     name = "package",
     srcs = [
-        "BUILD.bazel",
         "build_defs.bzl",
-        "package.json",
         "ts_config.bzl",
         "ts_repositories.bzl",
+        "BUILD.bazel",
+        "yarn.lock",
+        "package.json",
     ],
-    package_dir = "internal",
-    deps = [
-        ":common_pkg",
+    packages = [
         ":tsc_wrapped_pkg",
-        "//internal/devserver:package",
+        ":common_pkg",
         "//internal/karma:package",
         "//internal/protobufjs:package",
-    ],
+        "//internal/devserver:package",
+    ]
 )

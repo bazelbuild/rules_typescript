@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
 
 licenses(["notice"])  # Apache 2.0
 
@@ -30,29 +30,17 @@ filegroup(
     srcs = glob(["**/*"]),
 )
 
-# Do a simple replacement needed to make the local development differ from how
-# our release is used.
-# NB: doesn't work on Windows, so we have to release from Mac/Linux for now.
-genrule(
-    name = "patched_devserver_bzl",
-    srcs = ["ts_devserver.bzl"],
-    outs = ["patched/ts_devserver.bzl"],
-    cmd = """sed 's#"//devserver:devserver"#"//devserver:server"#' < $< > $@""",
-)
-
-# Remove the "patched/" directory prefix so that the ts_devserver.bzl ends up in
-# the same path in the final tar as it had in our local repo.
-pkg_tar(
-    name = "strip_workaround",
-    srcs = [":patched_devserver_bzl"],
-)
-
-pkg_tar(
+npm_package(
     name = "package",
     srcs = [
         "BUILD",
+        "package.json",
+        "yarn.lock",
+        "ts_devserver.bzl",
     ],
-    package_dir = "devserver",
+    replacements = {
+        "//devserver:devserver": "//devserver/server",
+    },
     visibility = ["//internal:__pkg__"],
     deps = ["strip_workaround"],
 )

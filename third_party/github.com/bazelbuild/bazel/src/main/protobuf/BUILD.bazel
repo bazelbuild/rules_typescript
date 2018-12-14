@@ -1,8 +1,6 @@
-load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
-load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
-
 package(default_visibility = ["//:__pkg__"])
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
 
 licenses(["notice"])  # Apache 2.0
 
@@ -15,25 +13,10 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-go_proto_library(
-    name = "blaze_worker_go_proto",
-    importpath = "github.com/bazelbuild/rules_typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf",
-    proto = ":blaze_worker_proto",
-    visibility = ["//visibility:public"],
-)
-
-go_library(
-    name = "go_default_library",
-    embed = [":blaze_worker_go_proto"],
-    importpath = "github.com/bazelbuild/rules_typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf",
-    visibility = ["//visibility:public"],
-)
-
-pkg_tar(
+npm_package(
     name = "package",
     srcs = [
         "BUILD.bazel",
         "worker_protocol.proto",
     ],
-    package_dir = "third_party/github.com/bazelbuild/bazel/src/main/protobuf",
 )
