@@ -135,23 +135,23 @@ def create_tsconfig(
     # Unlike compiler_options, the paths here are relative to the rootDir,
     # not the location of the tsconfig.json file.
     bazel_options = {
-        "workspaceName": ctx.workspace_name,
-        "target": str(ctx.label),
-        "package": ctx.label.package,
-        "tsickleGenerateExterns": getattr(ctx.attr, "generate_externs", True),
-        "tsickleExternsPath": tsickle_externs.path if tsickle_externs else "",
-        "untyped": not getattr(ctx.attr, "tsickle_typed", False),
-        "typeBlackListPaths": [f.path for f in type_blacklisted_declarations],
-        # This is overridden by first-party javascript/typescript/tsconfig.bzl
-        "ignoreWarningPaths": [],
-        "es5Mode": devmode_manifest != None,
-        "manifest": devmode_manifest if devmode_manifest else "",
+        "addDtsClutzAliases": getattr(ctx.attr, "add_dts_clutz_aliases", False),
         # Explicitly tell the compiler which sources we're interested in (emitting
         # and type checking).
         "compilationTargetSrc": [s.path for s in srcs],
-        "addDtsClutzAliases": getattr(ctx.attr, "add_dts_clutz_aliases", False),
-        "typeCheckDependencies": getattr(ctx.attr, "internal_testing_type_check_dependencies", False),
+        "es5Mode": devmode_manifest != None,
         "expectedDiagnostics": getattr(ctx.attr, "expected_diagnostics", []),
+        # This is overridden by first-party javascript/typescript/tsconfig.bzl
+        "ignoreWarningPaths": [],
+        "manifest": devmode_manifest if devmode_manifest else "",
+        "package": ctx.label.package,
+        "target": str(ctx.label),
+        "tsickleExternsPath": tsickle_externs.path if tsickle_externs else "",
+        "tsickleGenerateExterns": getattr(ctx.attr, "generate_externs", True),
+        "typeBlackListPaths": [f.path for f in type_blacklisted_declarations],
+        "typeCheckDependencies": getattr(ctx.attr, "internal_testing_type_check_dependencies", False),
+        "untyped": not getattr(ctx.attr, "tsickle_typed", False),
+        "workspaceName": ctx.workspace_name,
     }
 
     if disable_strict_deps:
@@ -176,8 +176,29 @@ def create_tsconfig(
 
     # Keep these options in sync with those in playground/playground.ts.
     compiler_options = {
-        # De-sugar to this language level
-        "target": target_language_level,
+
+        # Root for non-relative module names
+        "baseUrl": workspace_path,
+        # Create .d.ts files as part of compilation.
+        "declaration": True,
+
+        # We don't support this compiler option (See github #32), so
+        # always emit declaration files in the same location as outDir.
+        "declarationDir": "/".join([workspace_path, outdir_path]),
+
+        # Has no effect in closure/ES2015 mode. Always true just for simplicity.
+        "downlevelIteration": True,
+        "emitDecoratorMetadata": True,
+
+        # permit `@Decorator` syntax and allow runtime reflection on their types.
+        "experimentalDecorators": True,
+
+        # Embed source maps and sources in .js outputs
+        "inlineSourceMap": True,
+        "inlineSources": True,
+
+        # Interpret JSX as React calls (until someone asks for something different)
+        "jsx": "react",
 
         # The "typescript.es5_sources" provider is expected to work
         # in both nodejs and in browsers, so we use umd in devmode.
@@ -187,17 +208,20 @@ def create_tsconfig(
         # Note, in google3 we override this option with "commonjs" since Tsickle
         # will convert that to goog.module syntax.
         "module": "umd" if devmode_manifest or has_node_runtime else "esnext",
-
-        # Has no effect in closure/ES2015 mode. Always true just for simplicity.
-        "downlevelIteration": True,
-
-        # Do not type-check the lib.*.d.ts.
-        # We think this shouldn't be necessary but haven't figured out why yet
-        # and builds are faster with the setting on.
-        # See http://b/30709121
-        "skipDefaultLibCheck": True,
         "moduleResolution": "node",
+        # Do not emit files if they had errors (avoid accidentally serving broken code).
+        "noEmitOnError": False,
+
+        # Print out full errors. By default TS truncates errors >100 chars. This can make it
+        # impossible to understand some errors.
+        "noErrorTruncation": True,
         "outDir": "/".join([workspace_path, outdir_path]),
+
+        # "short name" mappings for npm packages, such as "@angular/core"
+        "paths": mapped_module_roots,
+
+        # Inline const enums.
+        "preserveConstEnums": False,
 
         # We must set a rootDir to avoid TypeScript emit paths varying
         # due computeCommonSourceDirectory behavior.
@@ -219,40 +243,16 @@ def create_tsconfig(
             "/".join([workspace_path, ctx.configuration.bin_dir.path]),
         ],
 
-        # Root for non-relative module names
-        "baseUrl": workspace_path,
-
-        # "short name" mappings for npm packages, such as "@angular/core"
-        "paths": mapped_module_roots,
-
-        # Inline const enums.
-        "preserveConstEnums": False,
-
-        # permit `@Decorator` syntax and allow runtime reflection on their types.
-        "experimentalDecorators": True,
-        "emitDecoratorMetadata": True,
-
-        # Interpret JSX as React calls (until someone asks for something different)
-        "jsx": "react",
-
-        # Print out full errors. By default TS truncates errors >100 chars. This can make it
-        # impossible to understand some errors.
-        "noErrorTruncation": True,
-        # Do not emit files if they had errors (avoid accidentally serving broken code).
-        "noEmitOnError": False,
-        # Create .d.ts files as part of compilation.
-        "declaration": True,
-
-        # We don't support this compiler option (See github #32), so
-        # always emit declaration files in the same location as outDir.
-        "declarationDir": "/".join([workspace_path, outdir_path]),
-        "stripInternal": True,
-
-        # Embed source maps and sources in .js outputs
-        "inlineSourceMap": True,
-        "inlineSources": True,
+        # Do not type-check the lib.*.d.ts.
+        # We think this shouldn't be necessary but haven't figured out why yet
+        # and builds are faster with the setting on.
+        # See http://b/30709121
+        "skipDefaultLibCheck": True,
         # Implied by inlineSourceMap: True
         "sourceMap": False,
+        "stripInternal": True,
+        # De-sugar to this language level
+        "target": target_language_level,
     }
 
     if hasattr(ctx.attr, "node_modules"):
@@ -267,8 +267,8 @@ def create_tsconfig(
         compiler_options["diagnostics"] = True
 
     return {
-        "compilerOptions": compiler_options,
         "bazelOptions": bazel_options,
-        "files": [workspace_path + "/" + f.path for f in files],
         "compileOnSave": False,
+        "compilerOptions": compiler_options,
+        "files": [workspace_path + "/" + f.path for f in files],
     }
