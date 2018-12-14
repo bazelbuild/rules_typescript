@@ -1,7 +1,9 @@
+# Test for production mode
+load("@build_bazel_rules_nodejs//:defs.bzl", "http_server", "rollup_bundle")
 load(
     "//:defs.bzl",
-    "ts_proto_library",
     "ts_devserver",
+    "ts_proto_library",
 )
 load("//internal:defaults.bzl", "ts_library", "ts_web_test_suite")
 
@@ -61,9 +63,6 @@ ts_devserver(
     port = 8080,
     deps = [":app"],
 )
-
-# Test for production mode
-load("@build_bazel_rules_nodejs//:defs.bzl", "http_server", "rollup_bundle", "nodejs_binary")
 
 rollup_bundle(
     name = "bundle",

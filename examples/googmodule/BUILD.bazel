@@ -1,3 +1,5 @@
+load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
+load("//examples/devmode_consumer:devmode_consumer.bzl", "devmode_consumer")
 load("//internal:defaults.bzl", "ts_library")
 
 ts_library(
@@ -6,14 +8,10 @@ ts_library(
     tsconfig = "tsconfig.json",
 )
 
-load("//examples/devmode_consumer:devmode_consumer.bzl", "devmode_consumer")
-
 devmode_consumer(
     name = "devmode_output",
     deps = [":googmodule"],
 )
-
-load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test")
 
 jasmine_node_test(
     name = "googmodule_output_test",
