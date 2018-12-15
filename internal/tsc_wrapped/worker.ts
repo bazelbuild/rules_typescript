@@ -8,16 +8,16 @@ protobufjs.convertFieldsToCamelCase = true;
 
 export const DEBUG = false;
 
-export function debug(...args: Array<{}>) {
-  if (DEBUG) console.error.apply(console, args);
+export function debug(...args: any[]) {
+  if (DEBUG) console.error(args);
 }
 
 /**
  * Write a message to stderr, which appears in the bazel log and is visible to
  * the end user.
  */
-export function log(...args: Array<{}>) {
-  console.error.apply(console, args);
+export function log(...args: any[]) {
+  console.error(args);
 }
 
 export function runAsWorker(args: string[]) {
