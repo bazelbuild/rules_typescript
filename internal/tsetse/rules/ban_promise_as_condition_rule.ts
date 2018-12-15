@@ -94,7 +94,7 @@ function addFailureIfThenableCallExpression(
   }
 
   const typeChecker = checker.typeChecker;
-  const signature = typeChecker.getResolvedSignature(callExpression);
+  const signature = typeChecker.getResolvedSignature(callExpression)!;
   const returnType = typeChecker.getReturnTypeOfSignature(signature);
 
   if (isNonFalsyThenableType(typeChecker, callExpression, returnType)) {

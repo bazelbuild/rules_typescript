@@ -440,7 +440,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   writeFile(
       fileName: string, content: string, writeByteOrderMark: boolean,
       onError: ((message: string) => void) | undefined,
-      sourceFiles: ReadonlyArray<ts.SourceFile>): void {
+      sourceFiles?: ReadonlyArray<ts.SourceFile>): void {
     perfTrace.wrap(
         `writeFile ${fileName}`,
         () => this.writeFileImpl(
