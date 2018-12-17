@@ -24,6 +24,10 @@ export class Rule extends AbstractRule {
 }
 
 function checkCallExpression(checker: Checker, node: ts.CallExpression) {
+  if (tsutils.isExpressionValueUsed(node) || !inAsyncFunction(node)) {
+    return;
+  }
+  
   const signature = checker.typeChecker.getResolvedSignature(node);
   if (signature === undefined) {
     return;
@@ -34,12 +38,7 @@ function checkCallExpression(checker: Checker, node: ts.CallExpression) {
     return;
   }
 
-  if (tsutils.isExpressionValueUsed(node)) {
-    return;
-  }
-
-  if (inAsyncFunction(node) &&
-      tsutils.isThenableType(checker.typeChecker, node)) {
+  if (tsutils.isThenableType(checker.typeChecker, node)) {
     checker.addFailureAtNode(node, FAILURE_STRING);
   }
 }
