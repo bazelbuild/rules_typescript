@@ -176,7 +176,6 @@ npm_package(
         "ts_config.bzl",
         "ts_repositories.bzl",
         "BUILD.bazel",
-        "yarn.lock",
         "package.json",
     ],
     packages = [
