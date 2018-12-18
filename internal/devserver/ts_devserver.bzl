@@ -19,12 +19,12 @@ load(
     "write_amd_names_shim",
 )
 load(
-    "@build_bazel_rules_nodejs//internal:node.bzl",
-    "sources_aspect",
-)
-load(
     "@build_bazel_rules_nodejs//internal/web_package:web_package.bzl",
     "html_asset_inject",
+)
+load(
+    "@build_bazel_rules_nodejs//internal:node.bzl",
+    "sources_aspect",
 )
 
 def _ts_devserver(ctx):
@@ -141,35 +141,25 @@ ts_devserver = rule(
             Paths should include the workspace name such as [\"__main__/resources\"]
             """,
         ),
-        "serving_path": attr.string(
-            default = "/_ts_scripts.js",
-            doc = """The path you can request from the client HTML which serves the JavaScript bundle.
-            If you don't specify one, the JavaScript can be loaded at /_ts_scripts.js""",
+        "bootstrap": attr.label_list(
+            doc = "Scripts to include in the JS bundle before the module loader (require.js)",
+            allow_files = [".js"],
         ),
         "data": attr.label_list(
             doc = "Dependencies that can be require'd while the server is running",
             allow_files = True,
-        ),
-        "index_html": attr.label(
-            allow_single_file = True,
-            doc = """An index.html file, we'll inject the script tag for the bundle,
-            as well as script tags for .js static_files and link tags for .css
-            static_files""",
-        ),
-        "static_files": attr.label_list(
-            doc = """Arbitrary files which to be served, such as index.html.
-            They are served relative to the package where this rule is declared.""",
-            allow_files = True,
-        ),
-        "scripts": attr.label_list(
-            doc = "User scripts to include in the JS bundle before the application sources",
-            allow_files = [".js"],
         ),
         "entry_module": attr.string(
             doc = """The entry_module should be the AMD module name of the entry module such as `"__main__/src/index"`
             ts_devserver concats the following snippet after the bundle to load the application:
             `require(["entry_module"]);`
             """,
+        ),
+        "index_html": attr.label(
+            allow_single_file = True,
+            doc = """An index.html file, we'll inject the script tag for the bundle,
+            as well as script tags for .js static_files and link tags for .css
+            static_files""",
         ),
         "port": attr.int(
             doc = """The port that the devserver will listen on.""",
@@ -180,8 +170,9 @@ ts_devserver = rule(
             allow_files = [".js"],
         ),
         "serving_path": attr.string(
+            default = "/_ts_scripts.js",
             doc = """The path you can request from the client HTML which serves the JavaScript bundle.
-            If you don't specify one, the JavaScript can be loaded at /_/ts_scripts.js""",
+            If you don't specify one, the JavaScript can be loaded at /_ts_scripts.js""",
         ),
         "static_files": attr.label_list(
             doc = """Arbitrary files which to be served, such as index.html.
@@ -208,6 +199,7 @@ ts_devserver = rule(
             executable = True,
             cfg = "host",
         ),
+        "_requirejs_script": attr.label(allow_single_file = True, default = Label("@build_bazel_rules_typescript_devserver_deps//node_modules/requirejs:require.js")),
     },
     outputs = {
         "manifest": "%{name}.MF",

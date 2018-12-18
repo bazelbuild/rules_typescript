@@ -171,6 +171,6 @@ platform_http_file(
 # Tell Bazel where the nested local repositories are that are
 # used for tests
 local_repository(
-  name = "disable_tsetse_for_external_test",
-  path = "internal/e2e/disable_tsetse_for_external",
+    name = "disable_tsetse_for_external_test",
+    path = "internal/e2e/disable_tsetse_for_external",
 )
