@@ -70,11 +70,13 @@ npm_package(
 )
 
 npm_package(
-  name = "package",
-  srcs = [
-    "ts_web_test.bzl",
-    "BUILD.bazel",
-    "yarn.lock",
-    "package.json",
-  ],
+    name = "package",
+    srcs = [
+        "BUILD.bazel",
+        "karma.conf.js",
+        "karma.js",
+        "package.json",
+        "ts_web_test.bzl",
+    ],
 )
+

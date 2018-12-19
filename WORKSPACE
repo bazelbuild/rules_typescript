@@ -167,16 +167,15 @@ local_repository(
 
 ### START DEV
 
-load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
-
-gazelle_dependencies()
-
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
+
 go_register_toolchains()
 
-load("@bazel_gazelle//:deps.bzl", "go_repository")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
+gazelle_dependencies()
 
 go_repository(
     name = "com_github_kylelemons_godebug",
@@ -190,4 +189,3 @@ go_repository(
     importpath = "github.com/mattn/go-isatty",
 )
 ### END DEV
-

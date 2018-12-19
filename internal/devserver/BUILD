@@ -35,12 +35,11 @@ npm_package(
     srcs = [
         "BUILD",
         "package.json",
-        "yarn.lock",
         "ts_devserver.bzl",
+        "yarn.lock",
     ],
     replacements = {
         "//devserver:devserver": "//devserver/server",
     },
     visibility = ["//internal:__pkg__"],
-    deps = ["strip_workaround"],
 )

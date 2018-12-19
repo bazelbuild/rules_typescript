@@ -51,7 +51,7 @@ def rules_typescript_dependencies():
         sha256 = "a13af63e928c34eff428d47d31bafeec4e38ee9b6940e70bf2c9cd47184c5c16",
     )
 
-    ### START DEV
+    ### TODO(mgechev): remove once we can get rid of the dependencies
 
     # ts_devserver depends on the Go rules.
     # See https://github.com/bazelbuild/rules_go#setup for the latest version.
@@ -71,7 +71,7 @@ def rules_typescript_dependencies():
         sha256 = "d9980ae0c91d90aaf9131170adfec4e87464d53e58ce2eb01b350a53e93a87c7",
     )
 
-    ### END DEV
+    ### End todo
 
     # ts_auto_deps depends on com_github_bazelbuild_buildtools
     _maybe(

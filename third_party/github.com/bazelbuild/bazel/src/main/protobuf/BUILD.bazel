@@ -1,6 +1,6 @@
-package(default_visibility = ["//:__pkg__"])
-
 load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
+
+package(default_visibility = ["//:__pkg__"])
 
 licenses(["notice"])  # Apache 2.0
 

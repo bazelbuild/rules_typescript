@@ -19,9 +19,8 @@
 # https://github.com/bazelbuild/rules_go/blob/master/go/tools/gazelle/README.rst#directives
 # gazelle:exclude node_modules
 load("@bazel_gazelle//:def.bzl", "gazelle")
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
+load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "npm_package")
 load("@build_bazel_rules_nodejs//internal/js_library:js_library.bzl", "js_library")
-load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
 
 exports_files(["LICENSE"])
 
@@ -60,7 +59,6 @@ nodejs_binary(
 
 ### START DEV
 
-load("@bazel_gazelle//:def.bzl", "gazelle")
 # ts_library defaults to this label in the top-level package.
 # Point to where the file actually lives.
 alias(
@@ -68,7 +66,6 @@ alias(
     actual = "//examples:tsconfig.json",
     visibility = ["//visibility:public"],
 )
-
 
 gazelle(
     name = "gazelle",
@@ -82,20 +79,22 @@ npm_package(
     name = "release",
     srcs = [
         "AUTHORS",
-        "defs.bzl",
-        "LICENSE",
         "BUILD.bazel",
+        "LICENSE",
         "WORKSPACE",
+        "defs.bzl",
         "package.bzl",
     ],
-    replacements = {
-        "\s*###\\s*START\\s*DEV\\s*[\s\S]*###\\s*END\\s*DEV": "",
-    },
     packages = [
+        "//internal:npm_package",
+        "//internal/karma:npm_package",
         "//devserver:package",
         "//internal:package",
         "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:package",
     ],
+    replacements = {
+        "\s*###\\s*START\\s*DEV\\s*[\s\S]*###\\s*END\\s*DEV": "",
+    },
 )
 
 ### END DEV

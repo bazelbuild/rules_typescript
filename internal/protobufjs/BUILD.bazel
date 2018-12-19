@@ -1,7 +1,6 @@
-package(default_visibility = ["//visibility:public"])
+load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "npm_package")
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary")
-load("@build_bazel_rules_nodejs//:defs.bzl", "npm_package")
+package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "node_modules/protobufjs/dist/minimal/protobuf.min.js",
@@ -58,9 +57,9 @@ nodejs_binary(
 npm_package(
     name = "package",
     srcs = [
-        "ts_proto_library.bzl",
         "BUILD.bazel",
-        "yarn.lock",
         "package.json",
+        "ts_proto_library.bzl",
+        "yarn.lock",
     ],
 )
