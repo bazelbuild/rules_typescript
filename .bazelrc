@@ -1,4 +1,4 @@
-build --strategy=TypeScriptCompile=worker --worker_max_instances=TypeScriptCompile=1
+build --strategy=TypeScriptCompile=worker
 test --test_output=errors
 
 # Enable debugging tests with --config=debug
