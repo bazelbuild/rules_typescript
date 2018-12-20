@@ -19,6 +19,7 @@
 # https://github.com/bazelbuild/rules_go/blob/master/go/tools/gazelle/README.rst#directives
 # gazelle:exclude node_modules
 load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
 load("@build_bazel_rules_nodejs//:defs.bzl", "nodejs_binary", "npm_package")
 load("@build_bazel_rules_nodejs//internal/js_library:js_library.bzl", "js_library")
 
@@ -76,7 +77,7 @@ gazelle(
 # to get the @build_bazel_rules_typescript workspace.
 # It's the companion of the @bazel/typescript, @bazel/karma, etc npm packages.
 npm_package(
-    name = "release",
+    name = "bzl_package",
     srcs = [
         "AUTHORS",
         "BUILD.bazel",
@@ -86,15 +87,20 @@ npm_package(
         "package.bzl",
     ],
     packages = [
+        "//devserver:bzl_package",
+        "//internal:bzl_package",
         "//internal:npm_package",
         "//internal/karma:npm_package",
-        "//devserver:package",
-        "//internal:package",
-        "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:package",
+        "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:bzl_package",
     ],
     replacements = {
-        "\s*###\\s*START\\s*DEV\\s*[\s\S]*###\\s*END\\s*DEV": "",
+        "\s*###\\s*START\\s*DEV\\s*[\s\S]*?###\\s*END\\s*DEV": "",
     },
 )
 
+pkg_tar(
+    name = "release",
+    srcs = [":bzl_package"],
+    extension = "tar.gz",
+)
 ### END DEV

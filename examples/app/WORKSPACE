@@ -2,7 +2,7 @@ workspace(name = "app")
 
 local_repository(
     name = "build_bazel_rules_typescript",
-    path = "../../bazel-bin/release",
+    path = "../../bazel-bin/bzl_package",
 )
 
 # Fetch transitive Bazel dependencies of build_bazel_rules_typescript

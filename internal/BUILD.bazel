@@ -169,20 +169,23 @@ npm_package(
 )
 
 npm_package(
-    name = "package",
+    name = "bzl_package",
     srcs = [
         "BUILD.bazel",
         "build_defs.bzl",
+        "defaults.bzl",
         "package.json",
         "ts_config.bzl",
         "ts_repositories.bzl",
-        "defaults.bzl",
     ],
     packages = [
         ":common_pkg",
         ":tsc_wrapped_pkg",
-        "//internal/devserver:package",
-        "//internal/karma:package",
-        "//internal/protobufjs:package",
+        "//internal/devserver:bzl_package",
+        "//internal/karma:bzl_package",
+        "//internal/protobufjs:bzl_package",
     ],
+    replacements = {
+        "\s*###\\s*START\\s*DEV\\s*[\s\S]*?###\\s*END\\s*DEV": "",
+    },
 )

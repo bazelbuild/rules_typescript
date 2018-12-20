@@ -55,7 +55,7 @@ nodejs_binary(
 )
 
 npm_package(
-    name = "package",
+    name = "bzl_package",
     srcs = [
         "BUILD.bazel",
         "package.json",

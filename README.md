@@ -77,6 +77,12 @@ yarn_install(
   yarn_lock = "//:yarn.lock",
 )
 
+# Setup Go toolchain
+# Required if you'll be using rules_webtesting.
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")	
+go_rules_dependencies()	
+go_register_toolchains()
+
 # Setup web testing, choose browsers we can test on
 load("@io_bazel_rules_webtesting//web:repositories.bzl", "browser_repositories", "web_test_repositories")
 

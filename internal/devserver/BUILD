@@ -31,7 +31,7 @@ filegroup(
 )
 
 npm_package(
-    name = "package",
+    name = "bzl_package",
     srcs = [
         "BUILD",
         "package.json",
