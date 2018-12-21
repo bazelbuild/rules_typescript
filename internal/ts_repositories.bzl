@@ -16,6 +16,7 @@
 
 ### START DEV
 load("@bazel_gazelle//:deps.bzl", "go_repository")
+
 ### END DEV
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "check_rules_nodejs_version", "yarn_install")
 
