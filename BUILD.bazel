@@ -89,8 +89,6 @@ npm_package(
     packages = [
         "//devserver:bzl_package",
         "//internal:bzl_package",
-        "//internal:npm_package",
-        "//internal/karma:npm_package",
         "//third_party/github.com/bazelbuild/bazel/src/main/protobuf:bzl_package",
     ],
     replacements = {
@@ -99,7 +97,7 @@ npm_package(
 )
 
 pkg_tar(
-    name = "release",
+    name = "bzl_release",
     srcs = [":bzl_package"],
     extension = "tar.gz",
 )
