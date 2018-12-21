@@ -156,11 +156,17 @@ export interface BazelOptions {
    * compilation unit.
    */
   hasImplementation?: boolean;
+
+  /**
+   * Additional TscPlugin's declared in the build rule
+   */
+  plugins?: string[];
 }
 
 export interface ParsedTsConfig {
   options: ts.CompilerOptions;
   bazelOpts: BazelOptions;
+  angularCompilerOptions?: {[k: string]: {}};
   files: string[];
   disabledTsetseRules: string[];
   config: {};

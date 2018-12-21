@@ -155,6 +155,9 @@ def create_tsconfig(
         "expectedDiagnostics": getattr(ctx.attr, "expected_diagnostics", []),
     }
 
+    if hasattr(ctx.attr, "plugins"):
+        bazel_options["plugins"] = ctx.attr.plugins
+
     if disable_strict_deps:
         bazel_options["disableStrictDeps"] = disable_strict_deps
         bazel_options["allowedStrictDeps"] = []

@@ -341,6 +341,9 @@ ts_library = rule(
             """,
             default = Label("@npm//typescript:typescript__typings"),
         ),
+        "plugins": attr.string_list(
+            doc = """Special plugins for the tsc_wrapped compiler like Angular""",
+        ),
         "supports_workers": attr.bool(
             doc = """Intended for internal use only.
             Allows you to disable the Bazel Worker strategy for this library.
