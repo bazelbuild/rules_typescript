@@ -217,13 +217,12 @@ function runFromOptions(
       ts.resolveModuleName;
   const compilerHost = new CompilerHost(
       files, options, bazelOpts, compilerHostDelegate, fileLoader,
-      moduleResolver);
+      moduleResolver, angularPlugin);
 
   const oldProgram = cache.getProgram(bazelOpts.target);
   const program = perfTrace.wrap(
       'createProgram',
-      () => ts.createProgram(
-          compilerHost.inputFiles, options, compilerHost, oldProgram));
+      () => ts.createProgram(Array.from(compilerHost.knownFiles), options, compilerHost, oldProgram));
   cache.putProgram(bazelOpts.target, program);
 
   if (!bazelOpts.isJsTranspilation) {

@@ -5,6 +5,7 @@ import * as ts from 'typescript';
 
 import {FileLoader} from './cache';
 import * as perfTrace from './perf_trace';
+import {TscPlugin} from './plugin_api';
 import {BazelOptions} from './tsconfig';
 import {DEBUG, debug} from './worker';
 
@@ -61,7 +62,14 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   /**
    * Lookup table to answer file stat's without looking on disk.
    */
-  private knownFiles = new Set<string>();
+  public knownFiles = new Set<string>();
+
+  /**
+   * SourceFiles which are added to the program but which never existed on disk.
+   * This is used for backward-compatibilty in the Angular compiler.
+   * It ought to be removed when all Bazel users are using ngtsc aka. Ivy
+   */
+  public syntheticFiles = new Map<string, ts.SourceFile>();
 
   /**
    * rootDirs relative to the rootDir, eg "bazel-out/local-fastbuild/bin"
@@ -92,13 +100,29 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
       public inputFiles: string[], options: ts.CompilerOptions,
       readonly bazelOpts: BazelOptions, private delegate: ts.CompilerHost,
       private fileLoader: FileLoader,
-      private moduleResolver: ModuleResolver = ts.resolveModuleName) {
+      private moduleResolver: ModuleResolver = ts.resolveModuleName,
+      private angularPlugin?: TscPlugin) {
     this.options = narrowTsOptions(options);
     this.relativeRoots =
         this.options.rootDirs.map(r => path.relative(this.options.rootDir, r));
     inputFiles.forEach((f) => {
       this.knownFiles.add(f);
     });
+
+    // Allow plugins to contribute in-memory synthetic files, which will be loaded
+    // as if they existed on disk as action inputs.
+    if (angularPlugin) {
+      const angularGeneratedFiles = angularPlugin.generatedFiles!(inputFiles);
+      for (const f of Object.keys(angularGeneratedFiles)) {
+        const generator = angularGeneratedFiles[f];
+        const generated = generator(this);
+        if (generated) {
+          this.syntheticFiles.set(generated.fileName, generated);
+          // Add to knownFiles as well, which is used for fileExists check below.
+          this.knownFiles.add(generated.fileName);
+        }
+      }
+    }
 
     // getCancelationToken is an optional method on the delegate. If we
     // unconditionally implement the method, we will be forced to return null,
@@ -424,6 +448,11 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
   getSourceFile(
       fileName: string, languageVersion: ts.ScriptTarget,
       onError?: (message: string) => void) {
+    const syntheticFile = this.syntheticFiles.get(fileName);
+    if (syntheticFile) {
+      return syntheticFile;
+    }
+
     return perfTrace.wrap(`getSourceFile ${fileName}`, () => {
       const sf = this.fileLoader.loadFile(fileName, fileName, languageVersion);
       if (!/\.d\.tsx?$/.test(fileName) &&
