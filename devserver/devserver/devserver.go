@@ -164,17 +164,25 @@ func CreateFileHandler(servingPath, manifest string, pkgs []string) http.Handler
 	return indexOnNotFoundHandler
 }
 
-// dirHttpFileSystem	 implements http.FileSystem by looking in the list of dirs one after each other.
+// dirHttpFileSystem implements http.FileSystem by looking in the list of dirs one after each other.
 type dirHttpFileSystem []string
 
 func (packageNames dirHttpFileSystem) Open(name string) (http.File, error) {
 	for _, packageName := range packageNames {
-		realFilePath, err := bazel.Runfile(filepath.Join(packageName, name))
+		filePackageName := filepath.Join(packageName, name)
+		realFilePath, err := bazel.Runfile(filePackageName)
 
 		if err != nil {
+			// In case the runfile could not be found and is actually referring to a directory, we
+			// also check if there is runfile referring to "index.html". The goal is to serve the
+			// index file of a requested directory.
+			realFilePath, err = bazel.Runfile(filepath.Join(filePackageName, "index.html"))
+
 			// Continue searching if the file couldn't be found for the current
 			// package.
-			continue
+			if err != nil {
+				continue
+			}
 		}
 
 		// We can assume that the file is present, if it's listed in the runfile manifest. Though, we

@@ -226,24 +226,42 @@ ts_devserver = rule(
 Additional documentation at https://github.com/alexeagle/angular-bazel-example/wiki/Running-a-devserver-under-Bazel
 """
 
-def ts_devserver_macro(name, data=[], args=[], visibility=None, tags=[], testonly=0, **kwargs):
-    """ibazel wrapper for `ts_devserver`
+def ts_devserver_macro(name, data = [], args = [], visibility = None, tags = [], testonly = 0, **kwargs):
+    """Macro for creating a `ts_devserver`
 
-    This macro re-exposes the `ts_devserver` rule with some extra tags so that
-    it behaves correctly under ibazel.
+    This macro re-exposes a `sh_binary` and `ts_devserver` target that can run the
+    actual devserver implementation.
+
+    The `ts_devserver` rule is just responsible for generating a launcher script
+    that runs the Go devserver implementation. The `sh_binary` is the primary
+    target that matches the specified "name" and executes the generated bash
+    launcher script.
+
 
     This is re-exported in `//:defs.bzl` as `ts_devserver` so if you load the rule
     from there, you actually get this macro.
 
     Args:
-      tags: standard Bazel tags, this macro adds a couple for ibazel
+      name: Name of the devserver target
+      data: Runtime dependencies for the devserver
+      args: Command line arguments that will be passed to the devserver Go implementation
+      visibility: Visibility of the devserver targets
+      tags: Standard Bazel tags, this macro adds a couple for ibazel
+      testonly: Whether the devserver should only run in `bazel test`
       **kwargs: passed through to `ts_devserver`
     """
     ts_devserver(
-        name = "%s_bin" % name,
+        name = "%s_launcher" % name,
         data = data + ["@bazel_tools//tools/bash/runfiles"],
         testonly = testonly,
         visibility = ["//visibility:private"],
+        tags = tags,
+        **kwargs
+    )
+
+    native.sh_binary(
+        name = name,
+        args = args,
         # Users don't need to know that these tags are required to run under ibazel
         tags = tags + [
             # Tell ibazel not to restart the devserver when its deps change.
@@ -252,15 +270,8 @@ def ts_devserver_macro(name, data=[], args=[], visibility=None, tags=[], testonl
             # this program.
             "ibazel_live_reload",
         ],
-      **kwargs
-    )
-
-    native.sh_binary(
-        name = name,
-        args = args,
-        tags = tags,
-        srcs = [":%s_bin.sh" % name],
-        data = [":%s_bin" % name],
+        srcs = [":%s_launcher.sh" % name],
+        data = [":%s_launcher" % name],
         testonly = testonly,
         visibility = visibility,
     )

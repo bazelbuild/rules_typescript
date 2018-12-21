@@ -32,14 +32,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// In case the serving path does not start with a forward-slash, we just prepend a forward slash.
-	// This allows Windows users to define a serving path because MSys usually automatically resolves
-	// command arguments starting with slash (e.g. serving_path=/my-bundle.js turns into C:/my-bundle.js)
-	// Read more here: https://stackoverflow.com/q/34647591
-	if servingPath != nil && !strings.HasPrefix(*servingPath, "/") {
-		*servingPath = "/" + *servingPath
-	}
-
 	manifestPath, err := bazel.Runfile(*scriptsManifest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find scripts_manifest in runfiles: %v\n", err)

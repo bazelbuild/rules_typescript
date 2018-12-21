@@ -62,7 +62,7 @@ ts_devserver(
     port = 8080,
     deps = [":bundle"],
     static_files = [":index.html"],
-    serving_path = "concatjs-bundle.js",
+    serving_path = "/concatjs-bundle.js",
 )
 
 # Test for production mode

@@ -44,9 +44,6 @@ func req(handler http.HandlerFunc, url string) (int, string) {
 }
 
 func TestDevserverFileHandling(t *testing.T) {
-	_, del := tmpfile(t, "TestIndexServing/manifest.MF", "file1.js\nfile2.js")
-	defer del()
-
 	handler := CreateFileHandler("/app.js", "manifest.MF", []string{
 		// This verifies that we can resolve relatively to the current package. Usually the
 		// devserver Bazel rule adds the current package here.
@@ -65,34 +62,27 @@ func TestDevserverFileHandling(t *testing.T) {
 		code    int
 		url     string
 		content string
-		delIdx  bool
 	}{
 		// index file from pkg1.
-		{http.StatusOK, "/", "contents of index.html", false},
+		{http.StatusOK, "/", "contents of index.html"},
 		// index file as a response to not found handler.
-		{http.StatusNotFound, "/no/such/dir", "contents of index.html", false},
+		{http.StatusNotFound, "/no/such/dir", "contents of index.html"},
 		// index file as a response to not found handler.
-		{http.StatusNotFound, "/no/such/dir/", "contents of index.html", false},
+		{http.StatusNotFound, "/no/such/dir/", "contents of index.html"},
 		// index file as a response to a directory that is found.
-		{http.StatusNotFound, "/pkg2/", "contents of index.html", false},
+		{http.StatusNotFound, "/pkg2/", "contents of index.html"},
 		// file from relative to base package.
-		{http.StatusOK, "/test/relative.html", "contents of relative.html", false},
+		{http.StatusOK, "/test/relative.html", "contents of relative.html"},
 		// file from the base package with full path.
-		{http.StatusOK, "/pkg1/foo.html", "contents of foo.html", false},
+		{http.StatusOK, "/pkg1/foo.html", "contents of foo.html"},
 		// file from pkg2.
-		{http.StatusOK, "/bar.html", "contents of bar.html", false},
+		{http.StatusOK, "/bar.html", "contents of bar.html"},
 		// file from pkg2 with full path.
-		{http.StatusOK, "/pkg2/bar.html", "contents of bar.html", false},
+		{http.StatusOK, "/pkg2/bar.html", "contents of bar.html"},
 		// index file from disk
-		{http.StatusOK, "/rpc/items", "contents of rpc/items/index.html", false},
+		{http.StatusOK, "/rpc/items", "contents of rpc/items/index.html"},
 		// file from an unrelated package.
-		{http.StatusOK, "/pkg3/baz.html", "contents of baz.html in pkg3", false},
-		// generated index for root.
-		{http.StatusOK, "/", `<script src="/app.js">`, true},
-		// generated index as a response to not found handler.
-		{http.StatusNotFound, "/no/such/dir", defaultPageContent, true},
-		// generated index file as a response to a directory that is found.
-		{http.StatusNotFound, "/pkg2/", defaultPageContent, true},
+		{http.StatusOK, "/pkg3/baz.html", "contents of baz.html in pkg3"},
 	}
 
 	for _, tst := range tests {
@@ -103,8 +93,36 @@ func TestDevserverFileHandling(t *testing.T) {
 		if !strings.Contains(body, tst.content) {
 			t.Errorf("expected %q to contain %q, got %q", tst.url, tst.content, body)
 		}
-		if !tst.delIdx && strings.Contains(body, defaultPageContent) {
+		if strings.Contains(body, defaultPageContent) {
 			t.Errorf("got %q, default page shouldn't be part of response", body)
+		}
+	}
+}
+
+func TestDevserverGeneratedIndexFile(t *testing.T) {
+	handler := CreateFileHandler("/app.js", "manifest.MF", []string{})
+	defaultPageContent := `<script src="/app.js">`
+
+	tests := []struct {
+		code    int
+		url     string
+		content string
+	}{
+		// Assert generated index for root.
+		{http.StatusOK, "/", defaultPageContent},
+		// Assert generated index as a response to not found handler.
+		{http.StatusNotFound, "/no/such/dir", defaultPageContent},
+		// Assert index file as a response to a directory that is found.
+		{http.StatusNotFound, "/pkg2/", defaultPageContent},
+	}
+
+	for _, tst := range tests {
+		code, body := req(handler, fmt.Sprintf("http://test%s", tst.url))
+		if code != tst.code {
+			t.Errorf("got %d, expected %d", code, tst.code)
+		}
+		if !strings.Contains(body, tst.content) {
+			t.Errorf("expected %q to contain %q, got %q", tst.url, tst.content, body)
 		}
 	}
 }
