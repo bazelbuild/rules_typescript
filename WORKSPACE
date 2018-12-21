@@ -58,6 +58,18 @@ yarn_install(
     yarn_lock = "//:yarn.lock",
 )
 
+### START DEV
+load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
+
+go_rules_dependencies()
+
+go_register_toolchains()
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+### END DEV
+
 load(
     "@build_bazel_rules_typescript//:defs.bzl",
     "check_rules_typescript_version",
@@ -164,13 +176,3 @@ local_repository(
     name = "disable_tsetse_for_external_test",
     path = "internal/e2e/disable_tsetse_for_external",
 )
-
-### START DEV
-
-load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
-
-go_rules_dependencies()
-
-go_register_toolchains()
-
-### END DEV

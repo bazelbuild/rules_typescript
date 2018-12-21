@@ -63,7 +63,7 @@ rule is that minors are breaking changes and patches are new features).
 1. `npm config set tag-version-prefix ''`
 1. `npm version minor -m 'rel: %s'` (replace `minor` with `patch` if no breaking changes)
 1. Build npm packages and publish them: `bazel run //internal:npm_package.publish && bazel run //internal/karma:npm_package.publish`
-1. `bazel build :release`
+1. `bazel build :bzl_release`
 1. `git push && git push --tags`
 1. (Manual for now) go to the [releases] page, edit the new release, upload the `bazel-bin/bzl_release.tar.gz` file on GitHub.
 1. (Temporary): submit a google3 CL to update the versions in package.bzl and package.json

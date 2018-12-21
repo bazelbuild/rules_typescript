@@ -36,7 +36,7 @@
         "which": "~1.0.5"
     },
     "scripts": {
-        "pree2e": "bazel build :bzl_package && webdriver-manager update $CHROMEDRIVER_VERSION_ARG && cd examples/app && yarn && bazel build //:e2e && cd ../.. && bazel build examples/protocol_buffers:e2e",
+        "pree2e": "bazel build :bzl_package && bazel build //internal:npm_package && bazel build //internal/karma:npm_package && webdriver-manager update $CHROMEDRIVER_VERSION_ARG && cd examples/app && yarn && bazel build //:e2e && cd ../.. && bazel build examples/protocol_buffers:e2e",
         "e2e": "yarn e2e-bazel-external && yarn e2e-examples-app-devserver && yarn e2e-examples-app-prodserver && yarn e2e-examples-protobuf-devserver && yarn e2e-examples-protobuf-prodserver && yarn e2e-package_karma && yarn e2e-package_typescript && yarn e2e-package_typescript_karma && yarn e2e-ts_auto_deps",
         "e2e-bazel-external": "jasmine internal/e2e/default_tsconfig_test.js",
         "e2e-examples-app-devserver": "concurrently \"bazel run examples/app:devserver\" \"while ! nc -z 127.0.0.1 8080; do sleep 1; done && protractor --suite app\" --kill-others --success first",
