@@ -1,8 +1,7 @@
 {
-  "name": "app",
+  "name": "app_example",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "devDependencies": {
     "@bazel/typescript": "^0.22.0",
     "@types/jasmine": "^3.3.2",
