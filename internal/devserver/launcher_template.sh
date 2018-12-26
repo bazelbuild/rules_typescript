@@ -46,15 +46,14 @@ fi
 readonly main=$(rlocation "TEMPLATED_main")
 readonly manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_manifest")
 readonly scripts_manifest=$(rlocation "TEMPLATED_workspace/TEMPLATED_scripts_manifest")
-readonly entry_module=$(rlocation "TEMPLATED_entry_module")
 
 # Workaround for https://github.com/bazelbuild/bazel/issues/6764
 # If this issue is incorporated into Bazel, the workaround here should be removed.
 MSYS2_ARG_CONV_EXCL="*" "${main}" \
   -packages=TEMPLATED_packages \
   -serving_path=TEMPLATED_serving_path \
+  -entry_module=TEMPLATED_entry_module \
+  -port=TEMPLATED_port \
   -manifest="${manifest}" \
   -scripts_manifest="${scripts_manifest}" \
-  -entry_module="${entry_module}" \
-  -port=TEMPLATED_port \
   "$@"
