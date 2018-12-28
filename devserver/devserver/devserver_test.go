@@ -100,7 +100,9 @@ func TestDevserverFileHandling(t *testing.T) {
 }
 
 func TestDevserverGeneratedIndexFile(t *testing.T) {
-	handler := CreateFileHandler("/app.js", "manifest.MF", []string{})
+	handler := CreateFileHandler("/app.js", "manifest.MF", []string{
+		"devserver_test_workspace",
+	})
 	defaultPageContent := `<script src="/app.js">`
 
 	tests := []struct {
@@ -112,8 +114,35 @@ func TestDevserverGeneratedIndexFile(t *testing.T) {
 		{http.StatusOK, "/", defaultPageContent},
 		// Assert generated index as a response to not found handler.
 		{http.StatusNotFound, "/no/such/dir", defaultPageContent},
-		// Assert index file as a response to a directory that is found.
+		// Assert index file as a response to a directory that is found, but does not
+		// have an index file.
 		{http.StatusNotFound, "/pkg2/", defaultPageContent},
+	}
+
+	for _, tst := range tests {
+		code, body := req(handler, fmt.Sprintf("http://test%s", tst.url))
+		if code != tst.code {
+			t.Errorf("got %d, expected %d", code, tst.code)
+		}
+		if !strings.Contains(body, tst.content) {
+			t.Errorf("expected %q to contain %q, got %q", tst.url, tst.content, body)
+		}
+	}
+}
+
+func TestDevserverAbsoluteRunfileRequest(t *testing.T) {
+	handler := CreateFileHandler("/app.js", "manifest.MF", []string{})
+
+	tests := []struct {
+		code    int
+		url     string
+		content string
+	}{
+		// Assert that it's possible to request a runfile through it's absolute manifest path.
+		{http.StatusOK, "/devserver_test_workspace/pkg2/bar.html", "contents of bar.html"},
+		// Assert that it's possible to request a runfile directory through it's absolute manifest path. This
+		// should resolve to the directories "index.html" file.
+		{http.StatusOK, "/devserver_test_workspace/pkg1", "contents of index.html"},
 	}
 
 	for _, tst := range tests {

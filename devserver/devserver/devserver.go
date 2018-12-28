@@ -94,7 +94,9 @@ func (w *headerSuppressorResponseWriter) WriteHeader(code int) {}
 
 // CreateFileHandler returns an http handler to locate files on disk
 func CreateFileHandler(servingPath, manifest string, pkgs []string) http.HandlerFunc {
-	pkgPaths := dirHttpFileSystem(pkgs)
+	// We want to add the root runfile path because by default developers should be able to request
+	// runfiles through their absolute manifest path (e.g. "my_workspace_name/src/file.css")
+	pkgPaths := dirHttpFileSystem(append(pkgs, "./"))
 
 	fileHandler := http.FileServer(pkgPaths).ServeHTTP
 
