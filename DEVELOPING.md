@@ -19,8 +19,8 @@ http_archive(
 that that project's `package.json` would contain the matching:
 
 ```json
-"@bazel/typescript": "0.21.0",
-"@bazel/karma": "0.21.0",
+"@bazel/typescript": "0.23.0",
+"@bazel/karma": "0.23.0",
 ```
 
 When authoring changes and testing downstream, depending on the `@bazel/typescript` and `@bazel/karma` npm packages makes the workflow confusing and difficult.
