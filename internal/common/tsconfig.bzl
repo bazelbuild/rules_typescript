@@ -272,6 +272,6 @@ def create_tsconfig(
     return {
         "compilerOptions": compiler_options,
         "bazelOptions": bazel_options,
-        "files": [workspace_path + "/" + f.path for f in files],
+        "files": [workspace_path + "/" + f.path for f in files.to_list()],
         "compileOnSave": False,
     }
