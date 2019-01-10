@@ -275,7 +275,7 @@ func (cache *FileCache) refreshFiles(files []string) {
 				os.Exit(1)
 			}
 
-			// Create a new cache entry with the according resolved path. Also normalize the path
+			// Create a new cache entry with the corresponding resolved path. Also normalize the path
 			// before storing it persistently in the cache. The normalizing is good to do here because
 			// the path might be used in browser source URLs and should be kept in posix format.
 			entry = &cacheEntry{
