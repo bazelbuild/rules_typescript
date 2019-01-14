@@ -12,7 +12,7 @@ import (
 
 	"github.com/bazelbuild/rules_typescript/devserver/concatjs"
 	"github.com/bazelbuild/rules_typescript/devserver/devserver"
-	"github.com/bazelbuild/rules_go/go/tools/bazel"
+	"github.com/bazelbuild/rules_typescript/util"
 )
 
 var (
@@ -32,12 +32,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	manifestPath, err := bazel.Runfile(*scriptsManifest)
+	manifestPath, err := util.Runfile(*scriptsManifest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find scripts_manifest in runfiles: %v\n", err)
 		os.Exit(1)
 	}
-
 
 	scriptFiles, err := manifestFiles(manifestPath)
 	if err != nil {
@@ -46,7 +45,7 @@ func main() {
 	}
 
 	if !strings.HasPrefix(*servingPath, "/") {
-		fmt.Fprintf(os.Stderr, "The specified serving_path does not start with a slash. " +
+		fmt.Fprintf(os.Stderr, "The specified serving_path does not start with a slash. "+
 			"This causes the serving path to not have any effect.\n")
 		os.Exit(1)
 	}
@@ -83,7 +82,7 @@ func main() {
 	// skylark rule.
 	for _, v := range scriptFiles {
 		// Resolve scripts using the runfiles.
-		runfile, err := bazel.Runfile(v)
+		runfile, err := util.Runfile(v)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not find runfile %s, got error %s", v, err)
 		}
