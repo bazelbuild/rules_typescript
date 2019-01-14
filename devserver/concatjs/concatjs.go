@@ -101,10 +101,10 @@ type FileSystem interface {
 	ResolvePath(root string, file string) (string, error)
 }
 
-// realFileSystem implements FileSystem by actual disk access.
-type RealFileSystem struct {}
+// RealFileSystem implements FileSystem by actual disk access.
+type RealFileSystem struct{}
 
-// Gets the last modification time of the specified file.
+// StatMtime gets the last modification time of the specified file.
 func (fs *RealFileSystem) StatMtime(filename string) (time.Time, error) {
 	s, err := os.Stat(filename)
 	if err != nil {
@@ -113,17 +113,17 @@ func (fs *RealFileSystem) StatMtime(filename string) (time.Time, error) {
 	return s.ModTime(), nil
 }
 
-// Reads the specified file using the real filesystem.
+// ReadFile reads the specified file using the real filesystem.
 func (fs *RealFileSystem) ReadFile(filename string) ([]byte, error) {
 	return ioutil.ReadFile(filename)
 }
 
-// Resolves the specified path within a given root by joining root and the filepath.
+// ResolvePath resolves the specified path within a given root by joining root and the filepath.
 // This is only works if the specified file is located within the given root in the
 // real filesystem. This does not work in Bazel where requested files aren't always
 // located within the specified root. Files would need to be resolved as runfiles.
 func (fs *RealFileSystem) ResolvePath(root string, file string) (string, error) {
-	return filepath.Join(root, file), nil;
+	return filepath.Join(root, file), nil
 }
 
 // FileCache caches a set of files in memory and provides a single

@@ -4,7 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = ["devserver.go"],
     deps = [
-        "//devserver/util:go_default_library",
+        "//devserver/utils:go_default_library",
     ],
     importpath = "github.com/bazelbuild/rules_typescript/devserver/devserver",
     visibility = ["//visibility:public"],

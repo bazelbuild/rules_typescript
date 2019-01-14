@@ -21,7 +21,7 @@ package(default_visibility = [
 ])
 
 exports_files([
-    "ts_devserver.bzl", # Exported to be consumed for generating skydoc.
+    "ts_devserver.bzl",  # Exported to be consumed for generating skydoc.
     "launcher_template.sh",
 ])
 
