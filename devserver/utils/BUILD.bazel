@@ -12,6 +12,6 @@ go_library(
     deps = [
         "@io_bazel_rules_go//go/tools/bazel:go_default_library",
     ],
-    importpath = "github.com/bazelbuild/rules_typescript/devserver/util",
+    importpath = "github.com/bazelbuild/rules_typescript/devserver/utils",
     visibility = ["//visibility:public"],
 )

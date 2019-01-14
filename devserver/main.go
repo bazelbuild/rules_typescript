@@ -14,7 +14,7 @@ import (
 
 	"github.com/bazelbuild/rules_typescript/devserver/concatjs"
 	"github.com/bazelbuild/rules_typescript/devserver/devserver"
-	"github.com/bazelbuild/rules_typescript/devserver/util"
+	"github.com/bazelbuild/rules_typescript/devserver/utils"
 )
 
 var (
@@ -34,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	manifestPath, err := util.Runfile(*scriptsManifest)
+	manifestPath, err := utils.Runfile(*scriptsManifest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to find scripts_manifest in runfiles: %v\n", err)
 		os.Exit(1)
@@ -84,7 +84,7 @@ func main() {
 	// skylark rule.
 	for _, v := range scriptFiles {
 		// Resolve scripts using the runfiles.
-		runfile, err := util.Runfile(v)
+		runfile, err := utils.Runfile(v)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Could not find runfile %s, got error %s", v, err)
 		}
