@@ -176,6 +176,6 @@ local_repository(
 )
 
 local_repository(
-  name = "devserver_test_workspace",
-  path = "devserver/devserver/test/test-workspace",
+    name = "devserver_test_workspace",
+    path = "devserver/devserver/test/test-workspace",
 )

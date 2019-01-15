@@ -103,12 +103,12 @@ def _ts_devserver(ctx):
 
     # Avoid writing non-normalized paths (workspace/../other_workspace/path)
     if ctx.executable._devserver.short_path.startswith("../"):
-      script_path = ctx.executable._devserver.short_path[len("../"):]
+        script_path = ctx.executable._devserver.short_path[len("../"):]
     else:
-      script_path = "/".join([
-          ctx.workspace_name,
-          ctx.executable._devserver.short_path,
-      ])
+        script_path = "/".join([
+            ctx.workspace_name,
+            ctx.executable._devserver.short_path,
+        ])
 
     substitutions = {
         "TEMPLATED_entry_module": ctx.attr.entry_module,
@@ -121,10 +121,10 @@ def _ts_devserver(ctx):
         "TEMPLATED_workspace": workspace_name,
     }
     ctx.actions.expand_template(
-        template=ctx.file._launcher_template,
-        output=ctx.outputs.script,
-        substitutions=substitutions,
-        is_executable=True,
+        template = ctx.file._launcher_template,
+        output = ctx.outputs.script,
+        substitutions = substitutions,
+        is_executable = True,
     )
 
     return [DefaultInfo(

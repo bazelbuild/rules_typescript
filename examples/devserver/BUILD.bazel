@@ -11,12 +11,12 @@ ts_library(
 
 ts_devserver(
     name = "devserver",
-    port = 80,
-    serving_path = "/bundle.js",
     additional_root_paths = [
         "npm/node_modules/tslib",
         "build_bazel_rules_typescript/examples/devserver/",
     ],
+    port = 80,
+    serving_path = "/bundle.js",
     static_files = [
         # Files you want to import from the "additional_root_paths", still need to be explicitly specified
         # as files that should be served. The root paths just make it more convenient to import those dependencies.
