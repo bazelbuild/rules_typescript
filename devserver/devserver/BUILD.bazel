@@ -6,7 +6,7 @@ go_library(
     importpath = "github.com/bazelbuild/rules_typescript/devserver/devserver",
     visibility = ["//visibility:public"],
     deps = [
-        "//devserver/utils:go_default_library",
+        "//devserver/runfiles:go_default_library",
     ],
 )
 

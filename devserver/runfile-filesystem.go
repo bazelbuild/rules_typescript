@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/bazelbuild/rules_typescript/devserver/utils"
+	"github.com/bazelbuild/rules_typescript/devserver/runfiles"
 )
 
 // RunfileFileSystem implements FileSystem type from concatjs.
@@ -31,5 +31,5 @@ func (fs *RunfileFileSystem) ReadFile(filename string) ([]byte, error) {
 // This is necessary because on Windows, runfiles are not symlinked and need to be
 // resolved using the runfile manifest file.
 func (fs *RunfileFileSystem) ResolvePath(root string, file string) (string, error) {
-	return utils.Runfile(file)
+	return runfiles.Runfile(file)
 }

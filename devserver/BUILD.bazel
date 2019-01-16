@@ -14,7 +14,7 @@ go_library(
     deps = [
         "//devserver/concatjs:go_default_library",
         "//devserver/devserver:go_default_library",
-        "//devserver/utils:go_default_library",
+        "//devserver/runfiles:go_default_library",
     ],
 )
 
