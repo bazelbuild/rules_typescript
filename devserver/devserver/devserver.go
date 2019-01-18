@@ -127,8 +127,8 @@ func CreateFileHandler(servingPath, manifest string, pkgs []string, base string)
 			userIndexFile, err := runfiles.Runfile(base, pathReplacer.Replace(filepath.Join(pkg, "index.html")))
 
 			// In case the potential user index file couldn't be found in the runfiles,
-			// just continue searching.
-			if _, statErr := os.Stat(userIndexFile); err != nil || statErr != nil {
+			// continue searching within other packages.
+			if err != nil {
 				continue
 			}
 
@@ -183,19 +183,25 @@ func (fs dirHTTPFileSystem) Open(name string) (http.File, error) {
 	for _, packageName := range fs.files {
 		filePackageName := filepath.Join(packageName, name)
 		realFilePath, err := runfiles.Runfile(fs.base, filePackageName)
-		stat, statErr := os.Stat(realFilePath)
 
-		if err != nil || statErr != nil {
+		if err != nil {
 			// In case the runfile could not be found, we also need to check that the requested
 			// path does not refer to a directory containing an "index.html" file. This can
 			// happen if Bazel runs without runfile symlinks, where only files can be resolved
 			// from the manifest. In that case we dirty check if there is a "index.html" file.
 			realFilePath, err = runfiles.Runfile(fs.base, filepath.Join(filePackageName, "index.html"))
 
-			// Continue searching if the runfile couldn't be found for the request filed.
-			if _, statErr := os.Stat(realFilePath); err != nil || statErr != nil {
+			// Continue searching if the runfile couldn't be found for the requested file.
+			if err != nil {
 				continue
 			}
+		}
+
+		stat, err := os.Stat(realFilePath)
+		if err != nil {
+			// This should actually never happen because runfiles resolved through the runfile helpers
+			// should always exist. Just in order to properly handle the error, we add this error handling.
+			return nil, fmt.Errorf("could not read runfile %s", filePackageName)
 		}
 
 		// In case the resolved file resolves to a directory. This can only happen if
