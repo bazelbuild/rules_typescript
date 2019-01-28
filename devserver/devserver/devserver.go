@@ -97,13 +97,7 @@ func (w *headerSuppressorResponseWriter) WriteHeader(code int) {}
 func CreateFileHandler(servingPath, manifest string, pkgs []string, base string) http.HandlerFunc {
 	// We want to add the root runfile path because by default developers should be able to request
 	// runfiles through their absolute manifest path (e.g. "my_workspace_name/src/file.css")
-	// We use the empty string package because of the different algorithm for
-	// file resolution used internally and externally.
-	pkgPaths := dirHTTPFileSystem{[]string{"./"}, base}
-	for _, pkg := range pkgs {
-		pkgPaths.files = append(pkgPaths.files, pathReplacer.Replace(pkg))
-	}
-	pkgPaths.files = append(pkgPaths.files, base)
+	pkgPaths := dirHTTPFileSystem{append(pkgs, "./"), base}
 
 	fileHandler := http.FileServer(pkgPaths).ServeHTTP
 
@@ -175,21 +169,21 @@ func CreateFileHandler(servingPath, manifest string, pkgs []string, base string)
 
 // dirHTTPFileSystem implements http.FileSystem by looking in the list of dirs one after each other.
 type dirHTTPFileSystem struct {
-	files []string
+	packageDirs []string
 	base string
 }
 
 func (fs dirHTTPFileSystem) Open(name string) (http.File, error) {
-	for _, packageName := range fs.files {
-		filePackageName := filepath.Join(packageName, name)
-		realFilePath, err := runfiles.Runfile(fs.base, filePackageName)
+	for _, packageName := range fs.packageDirs {
+		manifestFilePath := filepath.Join(packageName, name)
+		realFilePath, err := runfiles.Runfile(fs.base, manifestFilePath)
 
 		if err != nil {
 			// In case the runfile could not be found, we also need to check that the requested
 			// path does not refer to a directory containing an "index.html" file. This can
 			// happen if Bazel runs without runfile symlinks, where only files can be resolved
 			// from the manifest. In that case we dirty check if there is a "index.html" file.
-			realFilePath, err = runfiles.Runfile(fs.base, filepath.Join(filePackageName, "index.html"))
+			realFilePath, err = runfiles.Runfile(fs.base, filepath.Join(manifestFilePath, "index.html"))
 
 			// Continue searching if the runfile couldn't be found for the requested file.
 			if err != nil {
@@ -201,14 +195,14 @@ func (fs dirHTTPFileSystem) Open(name string) (http.File, error) {
 		if err != nil {
 			// This should actually never happen because runfiles resolved through the runfile helpers
 			// should always exist. Just in order to properly handle the error, we add this error handling.
-			return nil, fmt.Errorf("could not read runfile %s", filePackageName)
+			return nil, fmt.Errorf("could not read runfile %s", manifestFilePath)
 		}
 
 		// In case the resolved file resolves to a directory. This can only happen if
 		// Bazel runs with symlinked runfiles (e.g. on MacOS, linux). In that case, we
 		// just look for a index.html in the directory.
 		if stat.IsDir() {
-			realFilePath, err = runfiles.Runfile(fs.base, filepath.Join(filePackageName, "index.html"))
+			realFilePath, err = runfiles.Runfile(fs.base, filepath.Join(manifestFilePath, "index.html"))
 
 			// In case the index.html file of the requested directory couldn't be found,
 			// we just continue searching.
