@@ -81,9 +81,8 @@ def rules_typescript_dependencies():
     )
 
     # io_bazel_rules_webtesting depends on bazel_skylib. It is installed by
-    # web_test_repositories() for for downstream users that are not using
-    # karma rules they may not call web_test_repositories(). This will get
-    # cleaned up by https://github.com/bazelbuild/rules_typescript/pull/374
+    # web_test_repositories() but we depend on it here in case users don't call
+    # web_test_repositories(). This will get cleaned up by https://github.com/bazelbuild/rules_typescript/pull/374
     # which introduces build_bazel_rules_karma with its own defs.bzl file
     # that will allow this dep to be removed from rules_typescript_dependencies()
     _maybe(
