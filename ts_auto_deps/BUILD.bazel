@@ -39,7 +39,7 @@ go_binary(
 
 go_binary(
     name = "ts_auto_deps-windows",
-    out = "ts_auto_deps-windows_x64.exe",
+    out = "ts_auto_deps-win32_x64.exe",
     embed = [":go_default_library"],
     goarch = "amd64",
     goos = "windows",

@@ -14,19 +14,12 @@ function getNativeBinaryExt() {
 }
 
 /**
- * Remaps os.platform() to return 'windows' instead of 'win32'
- */
-function platform() {
-  return os.platform() === 'win32' ? 'windows' : os.platform();
-}
-
-/**
  * @returns the native `ts_auto_deps` binary for the current platform
  * @throws when the `ts_auto_deps` executable can not be found
  */
 function getNativeBinary() {
   try {
-    return require.resolve(`./ts_auto_deps-${platform()}_${os.arch()}${getNativeBinaryExt()}`);
+    return require.resolve(`./ts_auto_deps-${os.platform()}_${os.arch()}${getNativeBinaryExt()}`);
   } catch (e) {
     const message = 'ts_auto_deps executable not found for your platform: ' +
         `(${os.platform()}_${os.arch()})\n`;
