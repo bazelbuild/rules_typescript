@@ -39,7 +39,8 @@ def ts_setup_workspace():
     # 0.15.0: fine grained npm dependencies breaking change
     # 0.16.6: support for yarn_install/npm_install bazelWorkspaces
     # 0.16.7: yarn_install/npm_install regression fix
-    check_rules_nodejs_version("0.16.7")
+    # 0.16.8: ng_package fix for packaging binary files
+    check_rules_nodejs_version("0.16.8")
 
     # Included here for backward compatability for downstream repositories
     # that use @build_bazel_rules_typescript_tsc_wrapped_deps such as rxjs.

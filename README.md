@@ -49,8 +49,8 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Fetch rules_nodejs
 http_archive(
     name = "build_bazel_rules_nodejs",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.16.7.zip"],
-    strip_prefix = "rules_nodejs-0.16.7",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.16.8.zip"],
+    strip_prefix = "rules_nodejs-0.16.8",
 )
 
 # Setup the NodeJS toolchain

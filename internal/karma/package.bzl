@@ -26,12 +26,11 @@ def rules_karma_dependencies():
     """
 
     # TypeScript compiler runs on node.js runtime
-    # TODO(gregmagolan): update to next release
     _maybe(
         http_archive,
         name = "build_bazel_rules_nodejs",
-        urls = ["https://github.com/gregmagolan/rules_nodejs/archive/a432c2f10aba8b23250f10cb92a4dd76145f4d9f.zip"],
-        strip_prefix = "rules_nodejs-a432c2f10aba8b23250f10cb92a4dd76145f4d9f",
+        strip_prefix = "rules_nodejs-0.16.8",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.16.8.zip"],
     )
 
     # ts_web_test depends on the web testing rules to provision browsers.
