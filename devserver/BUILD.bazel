@@ -26,7 +26,7 @@ go_binary(
     name = "devserver-darwin",
     out = "devserver-darwin_x64",
     embed = [":go_default_library"],
-    goarch = "386",
+    goarch = "amd64",
     goos = "darwin",
     pure = "on",
     visibility = ["//visibility:public"],

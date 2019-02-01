@@ -21,7 +21,7 @@ go_binary(
     name = "ts_auto_deps-darwin",
     out = "ts_auto_deps-darwin_x64",
     embed = [":go_default_library"],
-    goarch = "386",
+    goarch = "amd64",
     goos = "darwin",
     pure = "on",
     visibility = ["//visibility:public"],
