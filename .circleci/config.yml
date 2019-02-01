@@ -87,6 +87,8 @@ jobs:
   test:
     <<: *job_defaults
     resource_class: xlarge
+    environment:
+      CHROMEDRIVER_VERSION_ARG: --versions.chrome 2.41
     steps:
       - checkout:
           <<: *post_checkout
