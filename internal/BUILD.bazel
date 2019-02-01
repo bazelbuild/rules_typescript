@@ -14,6 +14,9 @@
 
 # gazelle:exclude worker_protocol.proto
 
+# BEGIN-DEV-ONLY
+# Parts of this BUILD file only necessary when building within the bazelbuild/rules_typescript repo.
+# The generated `@bazel/typescript` npm package contains a trimmed BUILD file using # DEV-ONLY fences.
 load("@build_bazel_rules_nodejs//:defs.bzl", "jasmine_node_test", "nodejs_binary")
 load("//internal:defaults.bzl", "ts_library")
 
@@ -134,3 +137,4 @@ filegroup(
         "//internal/protobufjs:npm_package_assets",
     ],
 )
+# END-DEV-ONLY
