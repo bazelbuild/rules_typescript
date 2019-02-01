@@ -64,7 +64,10 @@ js_library(
 # set which is required to support the call to `global.gc()`.
 nodejs_binary(
     name = "@bazel/typescript/tsc_wrapped",
-    data = ["@npm//@bazel/typescript"],
+    data = [
+        "@npm//@bazel/typescript",
+        "@npm//tsickle",
+    ],
     entry_point = "@bazel/typescript/tsc_wrapped/tsc_wrapped.js",
     install_source_map_support = False,
     templated_args = ["--node_options=--expose-gc"],
