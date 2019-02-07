@@ -10,7 +10,7 @@
 ## IMPORTANT
 # If you change the `docker_image` version, also change the `cache_key` suffix
 var_1: &docker_image circleci/node:10.12-browsers
-var_2: &cache_key rules_typescript-{{ checksum "yarn.lock" }}-internal/karma:node:{{ checksum "internal/karma/yarn.lock" }}-10.12-browsers
+var_2: &cache_key rules_typescript-v2-{{ checksum "yarn.lock" }}-internal/karma:node:{{ checksum "internal/karma/yarn.lock" }}-10.12-browsers
 var_3: &setup-bazel-remote-cache
   run:
     name: Start up bazel remote cache proxy
