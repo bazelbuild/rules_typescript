@@ -33,7 +33,8 @@ def ts_setup_workspace():
     check_bazel_version("0.18.0")
 
     # 0.16.8: ng_package fix for packaging binary files
-    check_rules_nodejs_version("0.16.8")
+    # 0.18.3: stable archive release with sha256
+    check_rules_nodejs_version("0.18.3")
 
     # Included here for backward compatability for downstream repositories
     # that use @build_bazel_rules_typescript_tsc_wrapped_deps such as rxjs.

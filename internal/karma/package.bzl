@@ -29,8 +29,8 @@ def rules_karma_dependencies():
     _maybe(
         http_archive,
         name = "build_bazel_rules_nodejs",
-        strip_prefix = "rules_nodejs-0.16.8",
-        urls = ["https://github.com/bazelbuild/rules_nodejs/archive/0.16.8.zip"],
+        sha256 = "d6e0f1bd861f8bbb4771bec0f9aebae7a24e1e4031bf9ff99bebbd9a7558d052",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.18.3/rules_nodejs-0.18.3.tar.gz"],
     )
 
     # ts_web_test depends on the web testing rules to provision browsers.
