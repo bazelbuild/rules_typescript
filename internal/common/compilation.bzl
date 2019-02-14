@@ -173,6 +173,11 @@ def _outputs(ctx, label, srcs_files = []):
         if not is_dts:
             devmode_js_files += [ctx.actions.declare_file(basename + ".js")]
             declaration_files += [ctx.actions.declare_file(basename + ".d.ts")]
+            # Temporary until all imports of ngfactory/ngsummary files are removed
+            # TODO(alexeagle): clean up after Ivy launch
+            if hasattr(ctx, "compile_angular_templates") and ctx.attr.compile_angular_templates:
+                devmode_js_files += [ctx.actions.declare_file(basename + ".ngfactory.js")]
+                devmode_js_files += [ctx.actions.declare_file(basename + ".ngsummary.js")]
     return struct(
         closure_js = closure_js_files,
         devmode_js = devmode_js_files,
