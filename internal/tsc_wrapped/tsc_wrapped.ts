@@ -241,9 +241,13 @@ function runFromOptions(
   } else {
     diagnostics = emitWithTypescript(program, compilationTargets);
   }
-
-  if (diagnostics.length > 0) {
-    console.error(bazelDiagnostics.format(bazelOpts.target, diagnostics));
+  const warnings = diagnostics.filter(d => d.category == ts.DiagnosticCategory.Warning);
+  if (warnings.length > 0) {
+    console.warn(bazelDiagnostics.format(bazelOpts.target, warnings));
+  }
+  const errors = diagnostics.filter(d => d.category == ts.DiagnosticCategory.Error);
+  if (errors.length > 0) {
+    console.error(bazelDiagnostics.format(bazelOpts.target, errors));
     debug('compilation failed at', new Error().stack!);
     return false;
   }
