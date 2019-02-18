@@ -92,6 +92,17 @@ def rules_typescript_dev_dependencies():
         strip_prefix = "bazel-skylib-d7c5518fa061ae18a20d00b14082705d3d2d885d",
     )
 
+    # rules_closure for closure example
+    _maybe(
+        http_archive,
+        name = "io_bazel_rules_closure",
+        sha256 = "637534d535c5b2b56dd9753e2f6a7abae3b53afcade15ad4da6314d290b1d328",
+        strip_prefix = "rules_closure-1e531288a47623c6631cadfc4c18aa08edc30895",
+        urls = [
+            "https://github.com/bazelbuild/rules_closure/archive/1e531288a47623c6631cadfc4c18aa08edc30895.tar.gz",
+        ],
+    )
+
     #############################################
     # Dependencies for generating documentation #
     #############################################

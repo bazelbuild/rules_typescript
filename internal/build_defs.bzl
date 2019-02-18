@@ -76,7 +76,7 @@ def _filter_ts_inputs(all_inputs):
         if f.path.endswith(".js") or f.path.endswith(".ts") or f.path.endswith(".json")
     ]
 
-def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description = "prodmode"):
+def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description = "prodmode", using_tsickle=False):
     externs_files = []
     action_inputs = []
     action_outputs = []
@@ -88,9 +88,12 @@ def _compile_action(ctx, inputs, outputs, tsconfig_file, node_opts, description 
         else:
             action_outputs.append(output)
 
-    # TODO(plf): For now we mock creation of files other than {name}.js.
-    for externs_file in externs_files:
-        ctx.actions.write(output = externs_file, content = "")
+    if using_tsickle:
+        action_outputs.extend(externs_files)
+    else:
+        # TODO(plf): For now we mock creation of files other than {name}.js.
+        for externs_file in externs_files:
+            ctx.actions.write(output = externs_file, content = "")
 
     # A ts_library that has only .d.ts inputs will have no outputs,
     # therefore there are no actions to execute

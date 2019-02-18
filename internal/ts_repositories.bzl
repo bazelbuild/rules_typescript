@@ -18,6 +18,7 @@
 # Parts of this BUILD file only necessary when building within the bazelbuild/rules_typescript repo.
 # The generated `@bazel/typescript` npm package contains a trimmed BUILD file using # DEV-ONLY fences.
 load("@bazel_gazelle//:deps.bzl", "go_repository")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_repositories")
 
 # END-DEV-ONLY
 load("@build_bazel_rules_nodejs//:defs.bzl", "check_bazel_version", "check_rules_nodejs_version", "yarn_install")
@@ -78,5 +79,7 @@ def ts_setup_dev_workspace():
         commit = "3fb116b820352b7f0c281308a4d6250c22d94e27",
         importpath = "github.com/mattn/go-isatty",
     )
+
+    closure_repositories()
 
 # END-DEV-ONLY

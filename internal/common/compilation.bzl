@@ -313,6 +313,20 @@ def compile_ts(
     # .d.ts (or even errors) from the altered Closure-style JS emit.
     tsconfig_es6["compilerOptions"]["declaration"] = False
     tsconfig_es6["compilerOptions"].pop("declarationDir")
+
+    # TODO: I'm not sure how we should control this.
+    # Should this be an attribute you can set on a library?
+    # Or should we have separate .es6.js and .closure.js outputs
+    # so downstream consumers can choose which to use?
+    tsconfig_es6["bazelOptions"]["tsickle"] = True
+
+    # TODO: Again I'm not sure how this should be configured.
+    # I switched to using goog.modules after experiencing
+    # major bugs in Closure Compiler's handling of es6 imports.
+    # But that may be fixed now. Would es6 imports be easier than
+    # explaining module names and entry_points to people?
+    tsconfig_es6["bazelOptions"]["googmodule"] = True
+
     outputs = transpiled_closure_js + tsickle_externs
 
     node_profile_args = []
@@ -351,6 +365,7 @@ def compile_ts(
             outputs,
             ctx.outputs.tsconfig,
             node_profile_args,
+            using_tsickle=True,
         )
 
         devmode_manifest = ctx.actions.declare_file(ctx.label.name + ".es5.MF")
