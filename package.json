@@ -64,7 +64,6 @@
         "e2e-examples-app-prodserver": "concurrently \"bazel run //examples/app:prodserver\" \"while ! nc -z 127.0.0.1 8080; do sleep 1; done && protractor --suite app\" --kill-others --success first",
         "e2e-examples-protobuf-devserver": "concurrently \"bazel run //examples/protocol_buffers:devserver\" \"while ! nc -z 127.0.0.1 8080; do sleep 1; done && protractor --suite protocol_buffers\" --kill-others --success first",
         "e2e-examples-protobuf-prodserver": "concurrently \"bazel run //examples/protocol_buffers:prodserver\" \"while ! nc -z 127.0.0.1 8080; do sleep 1; done && protractor --suite protocol_buffers\" --kill-others --success first",
-        "skydoc": "bazel build //docs && unzip -o -d docs/api bazel-bin/docs/docs-skydoc.zip",
         "bazel:format": "find . -type f \\( -name \"*.bzl\" -or -name WORKSPACE -or -name BUILD -or -name BUILD.bazel \\) ! -path \"*/node_modules/*\" | xargs buildifier -v --warnings=args-order,attr-cfg,attr-license,attr-non-empty,attr-output-default,attr-single-file,constant-glob,ctx-actions,ctx-args,depset-iteration,depset-union,dict-concatenation,duplicated-name,filetype,git-repository,http-archive,integer-division,load,load-on-top,native-build,native-package,out-of-order-load,output-group,package-name,package-on-top,positional-args,redefined-variable,repository-name,same-origin-load,string-iteration,unsorted-dict-items,unused-variable",
         "bazel:lint": "yarn bazel:format --lint=warn",
         "bazel:lint-fix": "yarn bazel:format --lint=fix"

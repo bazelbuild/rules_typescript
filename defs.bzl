@@ -29,7 +29,4 @@ ts_setup_workspace = _ts_setup_workspace
 ts_library = _ts_library
 ts_config = _ts_config
 ts_devserver = _ts_devserver
-
 ts_proto_library = _ts_proto_library
-# DO NOT ADD MORE rules here unless they appear in the generated docsite.
-# Run yarn skydoc to re-generate the docsite.

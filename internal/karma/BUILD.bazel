@@ -21,13 +21,6 @@ load("@npm_bazel_typescript//internal:defaults.bzl", "ts_library")
 
 package(default_visibility = ["//visibility:public"])
 
-# Exports to be consumed for generating skydoc.
-exports_files([
-    "karma_web_test.bzl",
-    "ts_web_test.bzl",
-    "web_test.bzl",
-])
-
 ts_library(
     name = "bazel_karma",
     srcs = glob(["*.ts"]),

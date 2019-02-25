@@ -18,8 +18,6 @@ package(default_visibility = ["//visibility:public"])
 
 exports_files([
     "node_modules/protobufjs/dist/minimal/protobuf.min.js",
-    # Exported to be consumed for generating skydoc.
-    "ts_proto_library.bzl",
 ])
 
 nodejs_binary(
