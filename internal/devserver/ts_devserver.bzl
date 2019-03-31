@@ -245,6 +245,12 @@ def ts_devserver_macro(name, data = [], args = [], visibility = None, tags = [],
         tags = tags,
         **kwargs
     )
+    
+    alias(
+        name = "%s.MF" % name,
+        actual = "%s_launcher.MF" % name,
+        visibility = visibility,
+    )
 
     native.sh_binary(
         name = name,
