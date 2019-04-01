@@ -16,6 +16,8 @@ ts_devserver(
     static_files = ["index.html"],
     # We'll collect all the devmode JS sources from these TypeScript libraries
     deps = [":app"],
+    # Expose this to other examples, so we can test visibility of generated manifest file
+    visibility = ["//examples:__subpackages__"],
 )
 
 rollup_bundle(

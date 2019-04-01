@@ -246,7 +246,8 @@ def ts_devserver_macro(name, data = [], args = [], visibility = None, tags = [],
         **kwargs
     )
     
-    alias(
+    # Expose the manifest file label
+    native.alias(
         name = "%s.MF" % name,
         actual = "%s_launcher.MF" % name,
         visibility = visibility,

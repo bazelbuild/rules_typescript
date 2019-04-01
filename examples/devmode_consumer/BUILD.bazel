@@ -13,3 +13,11 @@ sh_test(
         "@bazel_tools//tools/bash/runfiles",
     ],
 )
+
+# Verify that we can do something with the devserver manifest
+genrule(
+    name = "consume_manifest",
+    srcs = ["//examples/app:devserver.MF"],
+    outs = [":MANIFEST"],
+    cmd = "cp $< $@",
+)
