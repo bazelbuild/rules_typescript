@@ -30,8 +30,9 @@ def rules_typescript_dev_dependencies():
     _maybe(
         http_archive,
         name = "build_bazel_rules_nodejs",
-        sha256 = "4c702ffeeab2d24dd4101601b6d27cf582d2e0d4cdc3abefddd4834664669b6b",
-        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.28.0/rules_nodejs-0.28.0.tar.gz"],
+        urls = ["https://github.com/bazelbuild/rules_nodejs/archive/39c941ddf4ba2c730cd69505dd190770e60d6315.zip"],
+        strip_prefix = "rules_nodejs-39c941ddf4ba2c730cd69505dd190770e60d6315",
+        sha256 = "94aa159e95359d828edd878f5748cba22a515b9a6f7626892fb9fdf2e6676bb8",
     )
 
     # For protocol buffers
