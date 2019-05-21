@@ -54,6 +54,9 @@ def create_tsconfig(
     Returns:
       A nested dict that corresponds to a tsconfig.json structure
     """
+    if (type(files) != type(depset())):
+      fail("expected files argument to be a depset, got", type(files))
+
     outdir_path = out_dir if out_dir != None else ctx.configuration.bin_dir.path
 
     # Callers can choose the filename for the tsconfig, but it must always live
@@ -275,6 +278,6 @@ def create_tsconfig(
     return {
         "compilerOptions": compiler_options,
         "bazelOptions": bazel_options,
-        "files": [workspace_path + "/" + f.path for f in files],
+        "files": [workspace_path + "/" + f.path for f in files.to_list()],
         "compileOnSave": False,
     }
