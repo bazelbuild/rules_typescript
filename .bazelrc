@@ -8,5 +8,12 @@ test:debug --test_arg=--node_options=--inspect-brk --test_output=streamed --test
 run --nolegacy_external_runfiles
 test --nolegacy_external_runfiles
 
+# Turn on the "Managed Directories" feature.
+# This allows Bazel to share the same node_modules directory with other tools
+# NB: this option was introduced in Bazel 0.26
+# See https://docs.bazel.build/versions/master/command-line-reference.html#flag--experimental_allow_incremental_repository_updates
+build --experimental_allow_incremental_repository_updates
+query --experimental_allow_incremental_repository_updates
+
 # Opt-in to upcoming breaking change
 build --incompatible_depset_is_not_iterable
