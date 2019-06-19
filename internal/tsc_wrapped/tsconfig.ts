@@ -251,6 +251,7 @@ export function parseTsconfig(
       const mergedConfig = existingConfig || config;
 
       if (existingConfig) {
+        // merge bazelOptions
         const existingBazelOpts: BazelOptions = existingConfig.bazelOptions || {};
         const newBazelBazelOpts: BazelOptions = config.bazelOptions || {};
 
@@ -276,6 +277,38 @@ export function parseTsconfig(
           devmodeTargetOverride: isUndefined(existingBazelOpts.devmodeTargetOverride)
             ? newBazelBazelOpts.devmodeTargetOverride
             : existingBazelOpts.devmodeTargetOverride,
+        };
+
+        // merge compilerOptions plugins @bazel/tsetse disabledRules
+        const existingCompilerOptions: ts.CompilerOptions = existingConfig.compilerOptions || {};
+        const newCompilerOptions: ts.CompilerOptions = config.compilerOptions || {};
+
+        const allPlugins = [...(existingCompilerOptions['plugins'] as any[] || []), ...(newCompilerOptions['plugins'] as any[] || [])];
+        let allDisabledRules: string[] = [];
+        for (const pluginConfig of allPlugins) {
+          if (pluginConfig.name && pluginConfig.name === '@bazel/tsetse') {
+              const disabledRules = pluginConfig['disabledRules'];
+              if (disabledRules && !Array.isArray(disabledRules)) {
+                  throw new Error('Disabled tsetse rules must be an array of rule names');
+              }
+              allDisabledRules = [...allDisabledRules, ...disabledRules];
+          }
+        }
+        if (allDisabledRules.length) {
+          // look for existing @bazel/tsetse plugin or add new one with the full
+          // set of disabled rules
+          allDisabledRules = [...Array.from(new Set(allDisabledRules))]
+          mergedConfig.compilerOptions = mergedConfig.compilerOptions || {};
+          mergedConfig.compilerOptions['plugins'] = mergedConfig.compilerOptions['plugins'] || [];
+          for (const pluginConfig of mergedConfig.compilerOptions['plugins']) {
+            if (pluginConfig.name && pluginConfig.name === '@bazel/tsetse') {
+                pluginConfig['disabledRules'] = allDisabledRules;
+                allDisabledRules = [];
+            }
+          }
+          if (allDisabledRules.length) {
+            mergedConfig.compilerOptions['plugins'].push({name: "@bazel/tsetse", disabledRules: allDisabledRules });
+          }
         }
       }
 
