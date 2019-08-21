@@ -1322,7 +1322,7 @@ deleted file mode 100644
 index c9af3f85..00000000
 --- a/tests/core/runfiles/runfiles_remote_test/WORKSPACE
 +++ /dev/null
-@@ -1 +0,0 @@
+@@ -1,1 +0,0 @@
 -workspace(name = "runfiles_remote_test")
 diff --git a/tests/core/runfiles/runfiles_remote_test/remote_file.txt b/tests/core/runfiles/runfiles_remote_test/remote_file.txt
 deleted file mode 100644
