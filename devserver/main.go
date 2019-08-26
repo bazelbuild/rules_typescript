@@ -19,12 +19,13 @@ var (
 	port = flag.Int("port", 5432, "server port to listen on")
 	// The "base" CLI flag is only kept because within Google3 because removing would be a breaking change due to
 	// ConcatJS and "devserver/devserver.go" still respecting the specified base flag.
-	base            = flag.String("base", "", "server base (required, runfiles of the binary)")
-	pkgs            = flag.String("packages", "", "root package(s) to serve, comma-separated")
-	manifest        = flag.String("manifest", "", "sources manifest (.MF)")
-	scriptsManifest = flag.String("scripts_manifest", "", "preScripts manifest (.MF)")
-	servingPath     = flag.String("serving_path", "/_/ts_scripts.js", "path to serve the combined sources at")
-	entryModule     = flag.String("entry_module", "", "entry module name")
+	base                  = flag.String("base", "", "server base (required, runfiles of the binary)")
+	pkgs                  = flag.String("packages", "", "root package(s) to serve, comma-separated")
+	manifest              = flag.String("manifest", "", "sources manifest (.MF)")
+	scriptsManifest       = flag.String("scripts_manifest", "", "preScripts manifest (.MF)")
+	servingPath           = flag.String("serving_path", "/_/ts_scripts.js", "path to serve the combined sources at")
+	entryModule           = flag.String("entry_module", "", "entry module name")
+	livereloadScriptUrl   = flag.String("livereload_script_url", "/livereload.js", "URL that serves the livereload script when running with ibazel")
 )
 
 func main() {
@@ -102,6 +103,15 @@ func main() {
 	// the application to postScripts to be outputted after the sources
 	if *entryModule != "" {
 		postScripts = append(postScripts, fmt.Sprintf("require([\"%s\"]);", *entryModule))
+	}
+
+	// If a custom livereload script URL has been specified and ibazel is used, we set up the
+	// livereload proxy so that the livereload script can be loaded through the specified URL.
+	if *livereloadScriptUrl != "" && livereloadUrl != "" {
+		err := setupLivereloadProxy(*livereloadScriptUrl, livereloadUrl)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not set up livereload script proxy: %v", err)
+		}
 	}
 
 	http.Handle(*servingPath, concatjs.ServeConcatenatedJS(*manifest, *base, preScripts, postScripts,
