@@ -122,7 +122,7 @@ const workerpb = loadWorkerPb();
  *   https://www.npmjs.com/package/@bazel/worker
  */
 export async function runWorkerLoop(
-    runOneBuild: (args: string[], inputs?: {[path: string]: string}) =>
+    runOneBuild: (args: string[], inputs?: {[path: string]: string}, unusedInputsFilePath?: string) =>
         boolean | Promise<boolean>) {
   // Hook all output to stderr and write it to a buffer, then include
   // that buffer's in the worker protcol proto's textual output.  This
@@ -166,12 +166,13 @@ export async function runWorkerLoop(
         // Reset accumulated log output.
         consoleOutput = '';
         const args = req.arguments;
+        const unusedInputsFilePath = args.length === 2 && args.pop() || undefined;
         const inputs: {[path: string]: string} = {};
         for (const input of req.inputs) {
           inputs[input.path] = input.digest.toString('hex');
         }
         debug('Compiling with:\n\t' + args.join('\n\t'));
-        const exitCode = (await runOneBuild(args, inputs)) ? 0 : 1;
+        const exitCode = (await runOneBuild(args, inputs, unusedInputsFilePath)) ? 0 : 1;
         process.stdout.write((workerpb.WorkResponse.encodeDelimited({
                                exitCode,
                                output: consoleOutput,

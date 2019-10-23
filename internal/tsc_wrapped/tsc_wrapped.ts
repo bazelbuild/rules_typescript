@@ -195,7 +195,7 @@ function expandSourcesFromDirectories(fileList: string[], filePath: string) {
  * Any encountered errors are written to stderr.
  */
 function runOneBuild(
-    args: string[], inputs?: {[path: string]: string}): boolean {
+    args: string[], inputs?: {[path: string]: string}, unusedInputsFilePath?: string): boolean {
   if (args.length !== 1) {
     console.error('Expected one argument: path to tsconfig.json');
     return false;
@@ -237,7 +237,7 @@ function runOneBuild(
 
   let fileLoader: FileLoader;
   if (inputs) {
-    fileLoader = new CachedFileLoader(cache);
+    fileLoader = new CachedFileLoader(cache, new Set(Object.keys(inputs)));
     // Resolve the inputs to absolute paths to match TypeScript internals
     const resolvedInputs = new Map<string, string>();
     for (const key of Object.keys(inputs)) {
@@ -261,6 +261,12 @@ function runOneBuild(
       () => runFromOptions(
           fileLoader, options, bazelOpts, sourceFiles, disabledTsetseRules,
           angularCompilerOptions));
+
+  if (unusedInputsFilePath) {
+    fs.writeFileSync(unusedInputsFilePath, Array.from(fileLoader.unusedFiles).join('\n'));
+  }
+
+
   if (!success) return false;
   // Force a garbage collection pass.  This keeps our memory usage
   // consistent across multiple compilations, and allows the file
