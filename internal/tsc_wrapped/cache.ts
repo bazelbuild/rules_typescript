@@ -353,7 +353,7 @@ export class CachedFileLoader implements FileLoader {
 
   // TODO(alexeagle): remove unused param after usages updated:
   // angular:packages/bazel/src/ngc-wrapped/index.ts
-  constructor(private readonly cache: FileCache, public unusedFiles: Set<string>) {}
+  constructor(private readonly cache: FileCache, public unusedFiles: Set<string> = new Set()) {}
 
   fileExists(filePath: string) {
     this.unusedFiles.delete(filePath);
