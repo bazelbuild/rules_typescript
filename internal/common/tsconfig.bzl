@@ -17,7 +17,6 @@
 
 load(":common/module_mappings.bzl", "get_module_mappings")
 
-
 _DEBUG = False
 
 def create_tsconfig(
@@ -33,6 +32,7 @@ def create_tsconfig(
         extra_root_dirs = [],
         module_path_prefixes = None,
         module_roots = None,
+        external_module_roots = None,
         node_modules_root = None):
     """Creates an object representing the TypeScript configuration to run the compiler under Bazel.
 
@@ -50,6 +50,7 @@ def create_tsconfig(
       extra_root_dirs: Extra root dirs to be passed to tsc_wrapped.
       module_path_prefixes: additional locations to resolve modules
       module_roots: standard locations to resolve modules
+      external_module_roots: external locations to resolve modules
       node_modules_root: the node_modules root path
 
     Returns:
@@ -117,6 +118,12 @@ def create_tsconfig(
     # so we create a new hash that contains the module_mappings and insert the
     # default lookup locations at the end.
     mapped_module_roots = {}
+
+    if external_module_roots != None:
+        # First, inject external module roots if given into the mapped module roots
+        for name, paths in external_module_roots.items():
+            mapped_module_roots[name] = paths
+
     for name, path in module_mappings.items():
         # Each module name maps to the immediate path, to resolve "index(.d).ts",
         # or module mappings that directly point to files (like index.d.ts).
@@ -161,7 +168,6 @@ def create_tsconfig(
 
     if hasattr(ctx.attr, "compile_angular_templates") and ctx.attr.compile_angular_templates:
         bazel_options["compileAngularTemplates"] = True
-
 
     if disable_strict_deps:
         bazel_options["disableStrictDeps"] = disable_strict_deps
