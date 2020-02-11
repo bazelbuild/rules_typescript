@@ -57,7 +57,7 @@ describe('The constant-ness logic', () => {
     const constantCompiledSources = constantProgram.getSourceFiles();
     const constantTc = constantProgram.getTypeChecker();
     const constantExpressions =
-        constantCompiledSources.filter(s => !isInStockLibraries(s))
+        constantCompiledSources.filter(s => !isInStockLibraries(s) && s.statements.length > 0)
             .map(s => s.statements[0].getChildren()[0]);
 
     for (const expr of constantExpressions) {

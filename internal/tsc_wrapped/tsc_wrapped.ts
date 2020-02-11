@@ -371,6 +371,20 @@ export function createProgramAndEmit(
           compilerHost.inputFiles, options, compilerHost, oldProgram));
   cache.putProgram(bazelOpts.target, program);
 
+  for (const pluginConfig of options['plugins'] as ts.PluginImport[] || []) {
+    if (pluginConfig.name === 'ts-lit-plugin') {
+      // TODO: marshal the settings from the JSON format of the config
+      const litPluginSettings = {};
+      const litTscPlugin =
+          // Lazy load, so that code that does not use the plugin doesn't even
+          // have to spend the time to parse and load the plugin's source.
+          //
+          // tslint:disable-next-line:no-require-imports
+          new (require('ts-lit-plugin/lib/bazel-plugin').Plugin)(
+              program, litPluginSettings) as DiagnosticPlugin;
+      diagnosticPlugins.push(litTscPlugin);
+    }
+  }
 
   if (!bazelOpts.isJsTranspilation) {
     // If there are any TypeScript type errors abort now, so the error
