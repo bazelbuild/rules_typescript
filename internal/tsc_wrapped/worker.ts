@@ -72,7 +72,7 @@ declare namespace workerProto {
  */
 function loadWorkerPb() {
   const protoPath =
-      '../../third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto';
+      './third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto';
 
   // Use node module resolution so we can find the .proto file in any of the
   // root dirs
@@ -88,14 +88,13 @@ function loadWorkerPb() {
     // workspace location
     // This extra lookup should never happen in google3. It's only needed for
     // local development in the rules_typescript repo.
-
     const runfiles = process.env['BAZEL_NODE_RUNFILES_HELPER'];
     if (runfiles) {
       protofile = require(runfiles).resolve(
           'build_bazel_rules_typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto');
-    } else {
-      protofile =
-          'build_bazel_rules_typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf/worker_protocol.proto';
+    }
+    if (!protofile) {
+      throw new Error(`cannot find worker_protocol.proto at ${protoPath} or in Runfiles`);
     }
   }
 
