@@ -84,6 +84,21 @@ describe('strict deps', () => {
         .toMatch(/transitive dependency on p\/sd1.ts not allowed/);
   });
 
+  it('should not report error for transitive dependencies in allowed directory', () => {
+    const p = createProgram({
+      '/src/p/sd1.ts': 'export let x = 1;',
+      '/src/p/sd2.ts': `import {x} from "./sd1";
+          export let y = x;`,
+      '/src/d/sd3.ts': `import {y} from "../p/sd2";
+          import {x} from "../p/sd1";
+          export let z = x + y;`,
+    });
+    const diags = checkModuleDeps(
+      p.getSourceFile('d/sd3.ts')!, p.getTypeChecker(), ['/src/p'],
+      '/src');
+    expect(diags.length).toBe(0);
+  });
+
   it('reports errors for exports', () => {
     const p = createProgram({
       '/src/p/sd1.ts': 'export let x = 1;',

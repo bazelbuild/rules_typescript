@@ -30,6 +30,9 @@ export interface StrictDepsPluginConfig {
 /** The TypeScript diagnostic code for "Cannot find module ...". */
 export const TS_ERR_CANNOT_FIND_MODULE = 2307;
 
+/** RegExp used to test whether a file is a descendent of a parent directory */
+const PATH_TEST_REGEX = /^(\.{1,2}\/)*(\.{1,2})?$/;
+
 /**
  * The strict_deps plugin checks the imports of the compiled modules.
  *
@@ -68,8 +71,15 @@ export function checkModuleDeps(
   function stripExt(fn: string) {
     return fn.replace(/(\.d)?\.tsx?$/, '');
   }
-  const allowedMap: {[fileName: string]: boolean} = {};
-  for (const d of allowedDeps) allowedMap[stripExt(d)] = true;
+  const allowedFiles: Set<string> = new Set();
+  const allowedDirs: Set<string> = new Set();
+  for (const d of allowedDeps) {
+    const path = stripExt(d);
+    allowedFiles.add(path);
+    if (path === d) {
+      allowedDirs.add(path);
+    }
+  }
 
   const result: ts.Diagnostic[] = [];
   for (const stmt of sf.statements) {
@@ -87,8 +97,20 @@ export function checkModuleDeps(
     }
     const declFileNames =
         sym.declarations.map(decl => decl.getSourceFile().fileName);
-    if (declFileNames.find(
-            declFileName => !!allowedMap[stripExt(declFileName)])) {
+    const checkDir = (filename: string): boolean => {
+      for (const dir of allowedDirs) {
+        const descendent = PATH_TEST_REGEX.test(path.posix.relative(filename, dir));
+        if (descendent) {
+          return true;
+        }
+      }
+      return false;
+    };
+    const checkFileOrDir = (filename: string) => {
+      const path = stripExt(filename);
+      return allowedFiles.has(path) || checkDir(filename);
+    };
+    if (declFileNames.find(checkFileOrDir)) {
       continue;
     }
     const importNames = declFileNames.map(
