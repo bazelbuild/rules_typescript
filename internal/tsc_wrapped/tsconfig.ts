@@ -201,6 +201,17 @@ export interface BazelOptions {
    * future.
    */
   devmodeTargetOverride?: string;
+
+  /**
+   * Override for module format to use for devmode.
+   *
+   * This setting can be set in a user's tsconfig to override the default
+   * devmode module.
+   *
+   * EXPERIMENTAL: This setting is experimental and may be removed in the
+   * future.
+   */
+  devmodeModuleOverride?: string;
 }
 
 export interface ParsedTsConfig {
@@ -285,6 +296,10 @@ export function parseTsconfig(
           devmodeTargetOverride: isUndefined(existingBazelOpts.devmodeTargetOverride)
             ? newBazelBazelOpts.devmodeTargetOverride
             : existingBazelOpts.devmodeTargetOverride,
+
+          devmodeModuleOverride: isUndefined(existingBazelOpts.devmodeModuleOverride)
+            ? newBazelBazelOpts.devmodeModuleOverride
+            : existingBazelOpts.devmodeModuleOverride,
         }
       }
 
@@ -346,7 +361,7 @@ export function parseTsconfig(
         break;
       default:
         console.error(
-            'WARNING: your tsconfig.json file specifies an invalid bazelOptions.devmodeTargetOverride value of: \'${bazelOpts.devmodeTargetOverride\'');
+            `WARNING: your tsconfig.json file specifies an invalid bazelOptions.devmodeTargetOverride value of: '${bazelOpts.devmodeTargetOverride}'`);
     }
   }
 
@@ -358,6 +373,36 @@ export function parseTsconfig(
   // If the user requested goog.module, we need to produce that output even if
   // the generated tsconfig indicates otherwise.
   if (bazelOpts.googmodule) options.module = ts.ModuleKind.CommonJS;
+
+  // If not googmodule, override the devmode module if devmodeModuleOverride is set
+  else if (bazelOpts.es5Mode && bazelOpts.devmodeModuleOverride) {
+    switch (bazelOpts.devmodeModuleOverride.toLowerCase()) {
+      case 'none':
+        options.module = ts.ModuleKind.None;
+        break;
+      case 'commonjs':
+        options.module = ts.ModuleKind.CommonJS;
+        break;
+      case 'amd':
+        options.module = ts.ModuleKind.AMD;
+        break;
+      case 'umd':
+        options.module = ts.ModuleKind.UMD;
+        break;
+      case 'system':
+        options.module = ts.ModuleKind.System;
+        break;
+      case 'es2015':
+        options.module = ts.ModuleKind.ES2015;
+        break;
+      case 'esnext':
+        options.module = ts.ModuleKind.ESNext;
+        break;
+      default:
+        console.error(
+            `WARNING: your tsconfig.json file specifies an invalid bazelOptions.devmodeModuleOverride value of: '${bazelOpts.devmodeModuleOverride}'`);
+    }
+  }
 
   // TypeScript's parseJsonConfigFileContent returns paths that are joined, eg.
   // /path/to/project/bazel-out/arch/bin/path/to/package/../../../../../../path
