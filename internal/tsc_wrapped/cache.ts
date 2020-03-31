@@ -72,7 +72,7 @@ class Cache<T> {
     // Drop half the cache, the least recently used entry == the first entry.
     this.debug('Evicting from the', this.name, 'cache...');
     const originalSize = this.map.size;
-    let numberKeysToDrop = originalSize / 2;
+    let numberKeysToDrop = Math.ceil(originalSize / 2);
     if (numberKeysToDrop === 0) {
       return 0;
     }
