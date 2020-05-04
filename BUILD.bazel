@@ -31,7 +31,7 @@ gazelle(
     prefix = "github.com/bazelbuild/rules_typescript",
 )
 
-# This package is included in the npm_bazel_typescript package in rules_nodejs/packages/typescript
+# This package is included in the @bazel/typescript package in rules_nodejs/packages/typescript
 pkg_npm(
     name = "npm_bazel_typescript_package",
     srcs = [
