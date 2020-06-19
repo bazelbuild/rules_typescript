@@ -398,7 +398,7 @@ export class CompilerHost implements ts.CompilerHost, tsickle.TsickleHost {
    * looking under `bazelOpts.nodeModulesPrefix`
    */
   resolveTypeReferenceDirectives(names: string[], containingFile: string): ts.ResolvedTypeReferenceDirective[] {
-    if (!this.allowActionInputReads) return [];
+    if (!this.allowActionInputReads || !names) return [];
     const result: ts.ResolvedTypeReferenceDirective[] = [];
     names.forEach(name => {
       let resolved: ts.ResolvedTypeReferenceDirective | undefined;
