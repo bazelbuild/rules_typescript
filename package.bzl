@@ -30,8 +30,8 @@ def rules_typescript_dev_dependencies():
     _maybe(
         http_archive,
         name = "build_bazel_rules_nodejs",
-        sha256 = "b6670f9f43faa66e3009488bbd909bc7bc46a5a9661a33f6bc578068d1837f37",
-        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/1.3.0/rules_nodejs-1.3.0.tar.gz"],
+        sha256 = "cb6d92c93a1769205d6573c21363bdbdcf5831af114a7fbc3f800b8598207dee",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/2.0.0-rc.2/rules_nodejs-2.0.0-rc.2.tar.gz"],
     )
 
     # For protocol buffers
@@ -44,17 +44,15 @@ def rules_typescript_dev_dependencies():
 
     # For building ts_devserver binary
     # See https://github.com/bazelbuild/rules_go#setup for the latest version.
+    # Cannot update to https://github.com/bazelbuild/rules_go/releases/tag/v0.23.00 as this changes
+    # where go devserver binaries are outputed to and breaks the devserver.
     _maybe(
         http_archive,
         name = "io_bazel_rules_go",
-        patch_args = ["-p1"],
-        # Patch out a breaking change to runfiles support library
-        # See discussion on https://github.com/bazelbuild/rules_go/pull/2076
-        patches = ["@build_bazel_rules_typescript//:revert_rules_go_commit_4442d82a001f378d0605cbbca3fb529979a1c3a6.patch"],
-        sha256 = "8df59f11fb697743cbb3f26cfb8750395f30471e9eabde0d174c3aebc7a1cd39",
+        sha256 = "7b9bbe3ea1fccb46dcfa6c3f3e29ba7ec740d8733370e21cdc8937467b4a4349",
         urls = [
-            "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/0.19.1/rules_go-0.19.1.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.22.4/rules_go-v0.22.4.tar.gz",
         ],
     )
 
@@ -70,11 +68,11 @@ def rules_typescript_dev_dependencies():
     _maybe(
         http_archive,
         name = "bazel_gazelle",
+        sha256 = "cdb02a887a7187ea4d5a27452311a75ed8637379a1287d8eeb952138ea485f7d",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz",
-            "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz",
+            "https://mirror.bazel.build/github.com/bazelbuild/bazel-gazelle/releases/download/v0.21.1/bazel-gazelle-v0.21.1.tar.gz",
+            "https://github.com/bazelbuild/bazel-gazelle/releases/download/v0.21.1/bazel-gazelle-v0.21.1.tar.gz",
         ],
-        sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
     )
 
 def _maybe(repo_rule, name, **kwargs):
