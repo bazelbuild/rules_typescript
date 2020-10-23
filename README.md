@@ -1,4 +1,6 @@
-# build_bazel_rules_typescript
+# Moved to rules_nodejs monorepo: https://github.com/bazelbuild/rules_nodejs/tree/3.x/third_party/github.com/bazelbuild/rules_typescript
+
+**Readme content is preserved below to avoid breaking links**
 
 This repo contains a mirror of some Google-internal bits that support TypeScript development under Bazel.
 
